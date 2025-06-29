@@ -18,8 +18,6 @@ const SimplePSDAnalysisPage: React.FC = () => {
     // Extract filename from metadata if available
     if (psd.metadata?.documentName) {
       setOriginalFileName(psd.metadata.documentName);
-    } else if (psd.name) {
-      setOriginalFileName(psd.name);
     }
   };
 
