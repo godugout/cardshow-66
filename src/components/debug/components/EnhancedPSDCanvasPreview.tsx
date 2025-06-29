@@ -152,13 +152,18 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
               const isSelected = layer.id === selectedLayerId;
               const isFocused = focusMode && isSelected;
               
-              // Safely access layer properties with defaults
+              // Calculate layer dimensions from bounds
+              const layerLeft = layer.bounds.left;
+              const layerTop = layer.bounds.top;
+              const layerWidth = layer.bounds.right - layer.bounds.left;
+              const layerHeight = layer.bounds.bottom - layer.bounds.top;
+              
               const layerStyle = {
                 position: 'absolute' as const,
-                left: `${(layer.left || 0) * zoom}px`,
-                top: `${(layer.top || 0) * zoom}px`,
-                width: `${(layer.width || 0) * zoom}px`,
-                height: `${(layer.height || 0) * zoom}px`,
+                left: `${layerLeft * zoom}px`,
+                top: `${layerTop * zoom}px`,
+                width: `${layerWidth * zoom}px`,
+                height: `${layerHeight * zoom}px`,
                 opacity: isFocused ? 1 : (focusMode ? 0.3 : (layer.opacity || 100) / 100),
                 border: isSelected ? '2px solid #10b981' : 'none',
                 borderRadius: '2px',
@@ -166,18 +171,21 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
                 transition: 'all 0.2s ease'
               };
 
+              // Check if this is an enhanced layer with imageUrl
+              const enhancedLayer = layer as any;
+
               return (
                 <div
                   key={layer.id}
                   style={layerStyle}
                   onClick={() => onLayerSelect(layer.id)}
                   className="hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50"
-                  title={`${layer.name} (${layer.width}×${layer.height})`}
+                  title={`${layer.name} (${layerWidth}×${layerHeight})`}
                 >
                   {/* Layer Image */}
-                  {layer.imageUrl && (
+                  {enhancedLayer.imageUrl && (
                     <img
-                      src={layer.imageUrl}
+                      src={enhancedLayer.imageUrl}
                       alt={layer.name}
                       className="w-full h-full object-contain rounded"
                       draggable={false}
@@ -199,10 +207,10 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
               <div className="absolute bottom-4 left-4 bg-black/80 text-white p-3 rounded-lg text-sm">
                 <div className="font-medium">{selectedLayer.name}</div>
                 <div className="text-gray-300">
-                  {selectedLayer.width} × {selectedLayer.height}px
+                  {selectedLayer.bounds.right - selectedLayer.bounds.left} × {selectedLayer.bounds.bottom - selectedLayer.bounds.top}px
                 </div>
                 <div className="text-gray-400">
-                  Position: {selectedLayer.left || 0}, {selectedLayer.top || 0}
+                  Position: {selectedLayer.bounds.left}, {selectedLayer.bounds.top}
                 </div>
               </div>
             )}
