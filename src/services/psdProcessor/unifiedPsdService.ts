@@ -24,6 +24,7 @@ export class UnifiedPSDService {
       
       // Validate the result
       if (!this.validateEnhancedPSD(enhancedPSD)) {
+        console.error('Enhanced PSD validation failed:', enhancedPSD);
         throw new Error('Invalid PSD processing result');
       }
       
@@ -37,10 +38,30 @@ export class UnifiedPSDService {
   }
 
   private validateEnhancedPSD(psd: any): psd is EnhancedProcessedPSD {
-    if (!psd || typeof psd !== 'object') return false;
-    if (!Array.isArray(psd.layers)) return false;
-    if (typeof psd.width !== 'number' || typeof psd.height !== 'number') return false;
-    if (!psd.extractedImages || !Array.isArray(psd.extractedImages)) return false;
+    if (!psd || typeof psd !== 'object') {
+      console.log('Validation failed: not an object');
+      return false;
+    }
+    if (!Array.isArray(psd.layers)) {
+      console.log('Validation failed: layers not array');
+      return false;
+    }
+    if (typeof psd.width !== 'number' || typeof psd.height !== 'number') {
+      console.log('Validation failed: width/height not numbers');
+      return false;
+    }
+    if (!psd.extractedImages || typeof psd.extractedImages !== 'object') {
+      console.log('Validation failed: extractedImages not object');
+      return false;
+    }
+    if (!Array.isArray(psd.extractedImages.layerImages)) {
+      console.log('Validation failed: layerImages not array');
+      return false;
+    }
+    if (!(psd.layerPreviews instanceof Map)) {
+      console.log('Validation failed: layerPreviews not Map');
+      return false;
+    }
     return true;
   }
 }
