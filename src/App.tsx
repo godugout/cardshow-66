@@ -20,6 +20,8 @@ import CommunityHubPage from './pages/CommunityHubPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import NotFound from './pages/NotFound';
 import Debug from "./pages/Debug";
 
 const queryClient = new QueryClient({
@@ -134,6 +136,20 @@ function App() {
                     </MainLayout>
                   } 
                 />
+                
+                {/* Admin routes */}
+                <Route 
+                  path="/admin" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <AdminDashboardPage />
+                      </ProtectedRoute>
+                    </MainLayout>
+                  } 
+                />
+                
+                {/* Debug/Development routes */}
                 <Route 
                   path="/debug/psd-preview" 
                   element={
@@ -154,8 +170,29 @@ function App() {
                     </MainLayout>
                   } 
                 />
-                <Route path="/debug/bulk-psd-analysis" element={<BulkPSDAnalysisPage />} />
-                <Route path="/debug" element={<Debug />} />
+                <Route 
+                  path="/debug/bulk-psd-analysis" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <BulkPSDAnalysisPage />
+                      </ProtectedRoute>
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/debug" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <Debug />
+                      </ProtectedRoute>
+                    </MainLayout>
+                  } 
+                />
+                
+                {/* 404 catch-all route */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
           </TooltipProvider>

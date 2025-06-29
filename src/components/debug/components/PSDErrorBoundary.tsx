@@ -1,68 +1,99 @@
 
-import React, { Component, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface State {
+interface PSDErrorBoundaryState {
   hasError: boolean;
   error?: Error;
   errorInfo?: React.ErrorInfo;
 }
 
-export class PSDErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+interface PSDErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error: Error; reset: () => void }>;
+}
+
+export class PSDErrorBoundary extends React.Component<PSDErrorBoundaryProps, PSDErrorBoundaryState> {
+  constructor(props: PSDErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): PSDErrorBoundaryState {
+    return {
+      hasError: true,
+      error
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('PSD Component Error:', error, errorInfo);
-    this.setState({ error, errorInfo });
+    console.error('PSD Error Boundary caught an error:', error, errorInfo);
+    this.setState({
+      hasError: true,
+      error,
+      errorInfo
+    });
   }
 
-  handleRetry = () => {
+  handleReset = () => {
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
   };
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error={this.state.error!} reset={this.handleReset} />;
       }
 
       return (
-        <div className="flex flex-col items-center justify-center h-full bg-slate-900 text-white p-8 rounded-lg border border-slate-700">
-          <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">PSD Preview Error</h3>
-          <p className="text-slate-400 text-center mb-4 max-w-md">
-            Something went wrong while rendering the PSD preview. This could be due to a complex PSD file or rendering issue.
-          </p>
-          
-          {this.state.error && (
-            <details className="mb-4 text-sm text-slate-500 max-w-lg">
-              <summary className="cursor-pointer hover:text-slate-300">Error Details</summary>
-              <pre className="mt-2 p-2 bg-slate-800 rounded text-xs overflow-auto max-h-32">
-                {this.state.error.message}
-              </pre>
-            </details>
-          )}
-          
-          <Button
-            onClick={this.handleRetry}
-            className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Try Again
-          </Button>
+        <div className="min-h-screen bg-[#0a0a0b] p-6 flex items-center justify-center">
+          <Card className="max-w-md w-full bg-[#131316] border-red-500/30 p-6">
+            <div className="text-center space-y-4">
+              <AlertTriangle className="w-12 h-12 text-red-400 mx-auto" />
+              <h2 className="text-xl font-semibold text-white">PSD Processing Error</h2>
+              
+              <Alert className="border-red-700 bg-red-900/20 text-left">
+                <AlertDescription className="text-red-300 text-sm">
+                  {this.state.error?.message || 'An unexpected error occurred while processing the PSD file.'}
+                </AlertDescription>
+              </Alert>
+
+              <div className="flex gap-3 justify-center">
+                <Button
+                  onClick={this.handleReset}
+                  className="bg-crd-green text-black hover:bg-crd-green/90"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  asChild
+                >
+                  <Link to="/">
+                    <Home className="w-4 h-4 mr-2" />
+                    Go Home
+                  </Link>
+                </Button>
+              </div>
+
+              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+                <details className="text-left">
+                  <summary className="text-gray-400 cursor-pointer text-sm">Error Details</summary>
+                  <pre className="text-xs text-gray-500 mt-2 overflow-auto">
+                    {this.state.errorInfo.componentStack}
+                  </pre>
+                </details>
+              )}
+            </div>
+          </Card>
         </div>
       );
     }

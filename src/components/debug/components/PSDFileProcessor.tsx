@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { psdProcessingService } from '@/services/psdProcessor/psdProcessingService';
-import { processEnhancedPSD, EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
+import { unifiedPSDService } from '@/services/psdProcessor/unifiedPsdService';
+import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 
 interface PSDFileProcessorProps {
   onPSDProcessed: (psd: EnhancedProcessedPSD) => void;
@@ -25,6 +25,13 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
     const file = event.target.files?.[0];
     if (file) {
       if (file.name.toLowerCase().endsWith('.psd')) {
+        // Check file size (max 50MB for safety)
+        if (file.size > 50 * 1024 * 1024) {
+          setError('File too large. Please select a PSD file smaller than 50MB.');
+          setSelectedFile(null);
+          return;
+        }
+        
         setSelectedFile(file);
         setError(null);
         setSuccess(false);
@@ -44,25 +51,24 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
     setSuccess(false);
 
     try {
-      // Simulate progress updates
+      // Progress simulation with more realistic timing
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 70) {
+          if (prev >= 80) {
             clearInterval(progressInterval);
-            return 70;
+            return 80;
           }
-          return prev + 10;
+          return prev + 5;
         });
-      }, 200);
+      }, 300);
 
       console.log('Processing PSD file:', selectedFile.name);
       
-      // First process with basic processor
-      const basicProcessedPSD = await psdProcessingService.processPSDFile(selectedFile);
-      setProgress(80);
-      
-      // Then enhance with real image extraction
-      const enhancedProcessedPSD = await processEnhancedPSD(selectedFile, basicProcessedPSD);
+      const enhancedProcessedPSD = await unifiedPSDService.processPSDFile(selectedFile, {
+        extractImages: true,
+        generateThumbnails: true,
+        maxLayerSize: 2048
+      });
       
       clearInterval(progressInterval);
       setProgress(100);
@@ -73,7 +79,19 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
       
     } catch (error) {
       console.error('PSD processing failed:', error);
-      setError(error instanceof Error ? error.message : 'Failed to process PSD file');
+      
+      let errorMessage = 'Failed to process PSD file';
+      if (error instanceof Error) {
+        if (error.message.includes('Memory')) {
+          errorMessage = 'File too large for processing. Try a smaller PSD file.';
+        } else if (error.message.includes('corrupt')) {
+          errorMessage = 'PSD file appears to be corrupted. Please try another file.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -101,16 +119,22 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
             <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
             <div className="space-y-2">
               <p className="text-gray-300">Select a PSD file to process</p>
+              <p className="text-xs text-gray-500">Maximum file size: 50MB</p>
               <input
                 type="file"
                 accept=".psd"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="psd-upload"
+                disabled={isProcessing}
               />
               <label
                 htmlFor="psd-upload"
-                className="inline-block px-4 py-2 bg-crd-green text-black rounded-lg cursor-pointer hover:bg-crd-green/90 transition-colors"
+                className={`inline-block px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                  isProcessing 
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                    : 'bg-crd-green text-black hover:bg-crd-green/90'
+                }`}
               >
                 Choose PSD File
               </label>
@@ -126,14 +150,16 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
                   ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
                 </span>
               </div>
-              <Button
-                onClick={resetProcessor}
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white"
-              >
-                Remove
-              </Button>
+              {!isProcessing && (
+                <Button
+                  onClick={resetProcessor}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white"
+                >
+                  Remove
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -148,7 +174,7 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
             {isProcessing ? 'Processing...' : 'Process PSD'}
           </Button>
           
-          {success && (
+          {success && !isProcessing && (
             <Button
               onClick={resetProcessor}
               variant="outline"
@@ -164,7 +190,8 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-300">
-                {progress < 80 ? 'Processing PSD...' : 'Extracting images...'}
+                {progress < 50 ? 'Parsing PSD structure...' : 
+                 progress < 80 ? 'Extracting layers...' : 'Generating previews...'}
               </span>
               <span className="text-gray-300">{progress}%</span>
             </div>
