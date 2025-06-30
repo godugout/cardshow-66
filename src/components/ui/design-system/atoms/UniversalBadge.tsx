@@ -39,14 +39,14 @@ export interface UniversalBadgeProps
 export const UniversalBadge = React.forwardRef<HTMLDivElement, UniversalBadgeProps>(
   ({ className, variant, size, icon, children, ...props }, ref) => {
     return (
-      <Badge
-        className={cn(universalBadgeVariants({ variant, size, className }))}
+      <div
         ref={ref}
+        className={cn(universalBadgeVariants({ variant, size, className }))}
         {...props}
       >
         {icon && <span className="mr-1">{icon}</span>}
         {children}
-      </Badge>
+      </div>
     );
   }
 );
