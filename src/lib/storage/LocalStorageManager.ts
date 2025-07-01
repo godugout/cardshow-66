@@ -1,377 +1,203 @@
-import { v4 as uuidv4 } from 'uuid';
 import localforage from 'localforage';
 
-export type StorageDataType = 'cards' | 'drafts' | 'uploads' | 'memories' | 'settings' | 'sessions' | 'cache' | 'studio-state' | 'recovery-data';
-export type SyncPriority = 'critical' | 'high' | 'medium' | 'low';
-export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed' | 'local-only';
+export type StorageDataType = 'card' | 'collection' | 'user' | 'settings' | 'other';
+export type SyncPriority = 'high' | 'medium' | 'low';
 
-export interface StorageItemMetadata {
-  key: string;
+interface StorageMetadata {
   dataType: StorageDataType;
   priority: SyncPriority;
-  syncStatus: SyncStatus;
+  needsSync: boolean;
   lastModified: number;
-  lastSyncAttempt?: number;
-  syncRetries: number;
-  size?: number;
-  isTestData?: boolean;
+  lastSynced?: number;
 }
 
-export interface LocalStorageConfig {
-  enableSync: boolean;
-  testingMode: boolean;
-  maxRetries: number;
-  syncBatchSize: number;
-  autoSyncInterval: number;
+export interface PendingSyncItem {
+  key: string;
+  value: any;
+  dataType: StorageDataType;
+  priority: SyncPriority;
+  lastModified: number;
 }
 
 export class LocalStorageManager {
-  private static instance: LocalStorageManager;
-  private config: LocalStorageConfig;
-  private metadata: Map<string, StorageItemMetadata> = new Map();
-  private syncQueue: Set<string> = new Set();
-  private listeners: Map<string, ((data: any) => void)[]> = new Map();
+  private prefix = 'crd_';
+  private testingMode = false;
+  private config = {
+    enableSync: true,
+    testingMode: false,
+  };
 
-  private constructor() {
-    this.config = this.loadConfig();
-    this.loadMetadata();
-    this.setupEventListeners();
+  constructor() {
+    this.loadConfig();
   }
 
-  public static getInstance(): LocalStorageManager {
-    if (!LocalStorageManager.instance) {
-      LocalStorageManager.instance = new LocalStorageManager();
-    }
-    return LocalStorageManager.instance;
-  }
-
-  private loadConfig(): LocalStorageConfig {
-    const defaultConfig: LocalStorageConfig = {
-      enableSync: true,
-      testingMode: false,
-      maxRetries: 3,
-      syncBatchSize: 10,
-      autoSyncInterval: 30000, // 30 seconds
-    };
-
+  private loadConfig() {
     try {
-      const stored = localStorage.getItem('crd_storage_config');
-      if (stored) {
-        return { ...defaultConfig, ...JSON.parse(stored) };
+      const configStr = localStorage.getItem(this.prefix + 'config');
+      if (configStr) {
+        this.config = JSON.parse(configStr);
+        this.testingMode = this.config.testingMode || false;
       }
     } catch (error) {
-      console.error('Failed to load storage config:', error);
-    }
-
-    return defaultConfig;
-  }
-
-  private saveConfig(): void {
-    try {
-      localStorage.setItem('crd_storage_config', JSON.stringify(this.config));
-    } catch (error) {
-      console.error('Failed to save storage config:', error);
+      console.error('Failed to load config from localStorage:', error);
     }
   }
 
-  private loadMetadata(): void {
-    try {
-      const stored = localStorage.getItem('crd_storage_metadata');
-      if (stored) {
-        const data = JSON.parse(stored);
-        this.metadata = new Map(Object.entries(data));
-      }
-    } catch (error) {
-      console.error('Failed to load storage metadata:', error);
-    }
+  updateConfig(newConfig: Partial<typeof this.config>) {
+    this.config = { ...this.config, ...newConfig };
+    localStorage.setItem(this.prefix + 'config', JSON.stringify(this.config));
   }
 
-  private saveMetadata(): void {
-    try {
-      const data = Object.fromEntries(this.metadata);
-      localStorage.setItem('crd_storage_metadata', JSON.stringify(data));
-    } catch (error) {
-      console.error('Failed to save storage metadata:', error);
-    }
-  }
-
-  private setupEventListeners(): void {
-    // Listen for storage events across tabs
-    window.addEventListener('storage', (e) => {
-      if (e.key && this.metadata.has(e.key)) {
-        this.notifyListeners(e.key, e.newValue ? JSON.parse(e.newValue) : null);
-      }
-    });
-
-    // Auto-sync interval
-    if (this.config.enableSync && !this.config.testingMode) {
-      setInterval(() => {
-        this.processSyncQueue();
-      }, this.config.autoSyncInterval);
-    }
-  }
-
-  // Configuration methods
-  public updateConfig(updates: Partial<LocalStorageConfig>): void {
-    this.config = { ...this.config, ...updates };
-    this.saveConfig();
-    console.log('Storage config updated:', this.config);
-  }
-
-  public getConfig(): LocalStorageConfig {
+  getConfig() {
     return { ...this.config };
   }
 
-  public setTestingMode(enabled: boolean): void {
-    this.updateConfig({ testingMode: enabled, enableSync: !enabled });
-    console.log(`Testing mode ${enabled ? 'enabled' : 'disabled'}`);
-  }
-
-  // Data management methods
-  public setItem<T>(
-    key: string,
-    value: T,
-    dataType: StorageDataType,
-    priority: SyncPriority = 'medium',
-    isTestData: boolean = false
-  ): void {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      
-      const metadata: StorageItemMetadata = {
-        key,
-        dataType,
-        priority,
-        syncStatus: this.config.testingMode ? 'local-only' : 'pending',
-        lastModified: Date.now(),
-        syncRetries: 0,
-        isTestData
-      };
-
-      this.metadata.set(key, metadata);
-      this.saveMetadata();
-
-      if (this.config.enableSync && !this.config.testingMode && !isTestData) {
-        this.queueForSync(key);
-      }
-
-      this.notifyListeners(key, value);
-    } catch (error) {
-      console.error(`Failed to set item ${key}:`, error);
+  setItem<T>(key: string, value: T, dataType: StorageDataType, priority: SyncPriority = 'medium'): void {
+    if (!this.config.enableSync) {
+      localStorage.setItem(this.prefix + key, JSON.stringify(value));
+      return;
     }
+
+    const metadata: StorageMetadata = {
+      dataType,
+      priority,
+      needsSync: true,
+      lastModified: Date.now(),
+    };
+
+    localStorage.setItem(this.prefix + key, JSON.stringify(value));
+    localStorage.setItem(this.prefix + key + '_meta', JSON.stringify(metadata));
   }
 
-  public getItem<T>(key: string): T | null {
+  getItem<T>(key: string): T | null {
     try {
-      const stored = localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : null;
+      const itemStr = localStorage.getItem(this.prefix + key);
+      return itemStr ? JSON.parse(itemStr) as T : null;
     } catch (error) {
-      console.error(`Failed to get item ${key}:`, error);
+      console.error(`Failed to parse item ${key} from localStorage:`, error);
       return null;
     }
   }
 
-  public removeItem(key: string): void {
+  removeItem(key: string): void {
+    localStorage.removeItem(this.prefix + key);
+    localStorage.removeItem(this.prefix + key + '_meta');
+  }
+
+  getItemMetadata(key: string): StorageMetadata | null {
     try {
-      localStorage.removeItem(key);
-      this.metadata.delete(key);
-      this.syncQueue.delete(key);
-      this.saveMetadata();
-      this.notifyListeners(key, null);
+      const metadataStr = localStorage.getItem(key + '_meta');
+      return metadataStr ? JSON.parse(metadataStr) as StorageMetadata : null;
     } catch (error) {
-      console.error(`Failed to remove item ${key}:`, error);
+      console.error(`Failed to parse metadata for item ${key} from localStorage:`, error);
+      return null;
     }
   }
 
-  // Sync management
-  public queueForSync(key: string): void {
-    if (this.config.enableSync && !this.config.testingMode) {
-      this.syncQueue.add(key);
-    }
-  }
-
-  public async processSyncQueue(): Promise<void> {
-    if (this.syncQueue.size === 0) return;
-
-    const batch = Array.from(this.syncQueue).slice(0, this.config.syncBatchSize);
-    console.log(`Processing sync batch: ${batch.length} items`);
-
-    for (const key of batch) {
-      await this.syncItem(key);
-    }
-  }
-
-  private async syncItem(key: string): Promise<boolean> {
-    const metadata = this.metadata.get(key);
-    if (!metadata || metadata.syncStatus === 'synced') {
-      this.syncQueue.delete(key);
-      return true;
-    }
-
-    if (metadata.syncRetries >= this.config.maxRetries) {
-      metadata.syncStatus = 'failed';
-      this.metadata.set(key, metadata);
-      this.syncQueue.delete(key);
-      return false;
-    }
-
-    try {
-      metadata.syncStatus = 'syncing';
-      metadata.lastSyncAttempt = Date.now();
-      this.metadata.set(key, metadata);
-
-      const data = this.getItem(key);
-      if (!data) {
-        this.syncQueue.delete(key);
-        return false;
-      }
-
-      // TODO: Implement actual sync logic based on data type
-      const success = await this.syncToDatabase(metadata.dataType, key, data);
-
-      if (success) {
-        metadata.syncStatus = 'synced';
-        metadata.syncRetries = 0;
-        this.syncQueue.delete(key);
-      } else {
-        metadata.syncStatus = 'failed';
-        metadata.syncRetries++;
-      }
-
-      this.metadata.set(key, metadata);
-      this.saveMetadata();
-      return success;
-    } catch (error) {
-      console.error(`Sync failed for ${key}:`, error);
-      metadata.syncStatus = 'failed';
-      metadata.syncRetries++;
-      this.metadata.set(key, metadata);
-      this.saveMetadata();
-      return false;
-    }
-  }
-
-  private async syncToDatabase(dataType: StorageDataType, key: string, data: any): Promise<boolean> {
-    // This will be implemented based on data type
-    console.log(`Syncing ${dataType} data for key ${key}`);
+  getPendingSyncItems(): PendingSyncItem[] {
+    const items: PendingSyncItem[] = [];
     
-    switch (dataType) {
-      case 'cards':
-        // Use existing card sync logic
-        return true; // Placeholder
-      case 'drafts':
-        // Implement draft sync
-        return true; // Placeholder
-      case 'settings':
-        // Implement settings sync
-        return true; // Placeholder
-      default:
-        console.log(`No sync implementation for data type: ${dataType}`);
-        return false;
-    }
-  }
-
-  // Utility methods
-  public getMetadata(key: string): StorageItemMetadata | undefined {
-    return this.metadata.get(key);
-  }
-
-  public getAllMetadata(): StorageItemMetadata[] {
-    return Array.from(this.metadata.values());
-  }
-
-  public getItemsByType(dataType: StorageDataType): StorageItemMetadata[] {
-    return Array.from(this.metadata.values()).filter(item => item.dataType === dataType);
-  }
-
-  public getPendingSyncCount(): number {
-    return Array.from(this.metadata.values()).filter(
-      item => item.syncStatus === 'pending' || item.syncStatus === 'failed'
-    ).length;
-  }
-
-  public getSyncQueue(): string[] {
-    return Array.from(this.syncQueue);
-  }
-
-  // Event listeners
-  public addListener(key: string, callback: (data: any) => void): void {
-    if (!this.listeners.has(key)) {
-      this.listeners.set(key, []);
-    }
-    this.listeners.get(key)!.push(callback);
-  }
-
-  public removeListener(key: string, callback: (data: any) => void): void {
-    const callbacks = this.listeners.get(key);
-    if (callbacks) {
-      const index = callbacks.indexOf(callback);
-      if (index > -1) {
-        callbacks.splice(index, 1);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix)) continue;
+      
+      const metadata = this.getItemMetadata(key);
+      if (metadata && metadata.needsSync) {
+        const value = this.getItem(key.replace(this.prefix, ''));
+        if (value) {
+          items.push({
+            key: key.replace(this.prefix, ''),
+            value,
+            dataType: metadata.dataType,
+            priority: metadata.priority,
+            lastModified: metadata.lastModified
+          });
+        }
       }
     }
+    
+    // Sort by priority and timestamp
+    return items.sort((a, b) => {
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      return b.lastModified - a.lastModified;
+    });
   }
 
-  private notifyListeners(key: string, data: any): void {
-    const callbacks = this.listeners.get(key);
-    if (callbacks) {
-      callbacks.forEach(callback => {
-        try {
-          callback(data);
-        } catch (error) {
-          console.error(`Listener error for key ${key}:`, error);
-        }
-      });
+  markAsSynced(key: string): void {
+    const fullKey = this.prefix + key;
+    const metadata = this.getItemMetadata(fullKey);
+    
+    if (metadata) {
+      const updatedMetadata = {
+        ...metadata,
+        needsSync: false,
+        lastSynced: Date.now()
+      };
+      
+      localStorage.setItem(fullKey + '_meta', JSON.stringify(updatedMetadata));
     }
   }
 
-  // Debug and testing methods
-  public getDebugInfo(): {
-    config: LocalStorageConfig;
-    totalItems: number;
-    pendingSync: number;
-    syncQueue: number;
-    itemsByType: Record<string, number>;
-    syncStatusCounts: Record<string, number>;
-  } {
-    const items = Array.from(this.metadata.values());
-    const itemsByType: Record<string, number> = {};
-    const syncStatusCounts: Record<string, number> = {};
+  clearAll(): void {
+    if (!this.testingMode) {
+      console.warn('localStorageManager.clearAll() called in production mode. This is likely a mistake.');
+      return;
+    }
+    localStorage.clear();
+  }
 
-    items.forEach(item => {
-      itemsByType[item.dataType] = (itemsByType[item.dataType] || 0) + 1;
-      syncStatusCounts[item.syncStatus] = (syncStatusCounts[item.syncStatus] || 0) + 1;
-    });
+  setTestingMode(enabled: boolean): void {
+    this.testingMode = enabled;
+    this.config.testingMode = enabled;
+    localStorage.setItem(this.prefix + 'config', JSON.stringify(this.config));
+  }
+
+  isTestingMode(): boolean {
+    return this.testingMode;
+  }
+
+  getDebugInfo() {
+    let totalSize = 0;
+    const items = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+
+      const value = localStorage.getItem(key);
+      if (value) {
+        const size = value.length * 2; // 2 bytes per character
+        totalSize += size;
+        items.push({ key, size });
+      }
+    }
+
+    const sizeInKB = (totalSize / 1024).toFixed(2);
+    const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
 
     return {
+      itemCount: localStorage.length,
+      totalSizeKB: sizeInKB,
+      totalSizeMB: sizeInMB,
+      items: items.sort((a, b) => b.size - a.size),
       config: this.config,
-      totalItems: items.length,
-      pendingSync: this.getPendingSyncCount(),
-      syncQueue: this.syncQueue.size,
-      itemsByType,
-      syncStatusCounts
     };
   }
 
-  public clearAllData(includeMetadata: boolean = false): void {
-    const keys = Array.from(this.metadata.keys());
-    keys.forEach(key => {
-      localStorage.removeItem(key);
-    });
-    
-    this.metadata.clear();
-    this.syncQueue.clear();
-    
-    if (includeMetadata) {
-      localStorage.removeItem('crd_storage_metadata');
-      localStorage.removeItem('crd_storage_config');
-    } else {
-      this.saveMetadata();
+  getPendingSyncCount(): number {
+    let count = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix)) continue;
+      const metadata = this.getItemMetadata(key);
+      if (metadata && metadata.needsSync) {
+        count++;
+      }
     }
-    
-    console.log('All local storage data cleared');
+    return count;
   }
 }
 
-// Export singleton instance
-export const localStorageManager = LocalStorageManager.getInstance();
+export const localStorageManager = new LocalStorageManager();
