@@ -1,8 +1,7 @@
-
 import localforage from 'localforage';
 
 export type StorageDataType = 'card' | 'collection' | 'user' | 'settings' | 'other' | 'studio-state' | 'recovery-data' | 'uploads';
-export type SyncPriority = 'high' | 'medium' | 'low';
+export type SyncPriority = 'high' | 'medium' | 'low' | 'critical';
 
 export interface StorageMetadata {
   dataType: StorageDataType;
@@ -10,6 +9,8 @@ export interface StorageMetadata {
   needsSync: boolean;
   lastModified: number;
   lastSynced?: number;
+  syncStatus?: 'pending' | 'syncing' | 'synced' | 'failed';
+  syncRetries?: number;
 }
 
 export interface StorageItemMetadata extends StorageMetadata {
@@ -70,6 +71,8 @@ export class LocalStorageManager {
       priority,
       needsSync: true,
       lastModified: Date.now(),
+      syncStatus: 'pending',
+      syncRetries: 0,
     };
 
     localStorage.setItem(this.prefix + key, JSON.stringify(value));
@@ -170,7 +173,7 @@ export class LocalStorageManager {
     
     // Sort by priority and timestamp
     return items.sort((a, b) => {
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
       const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
       if (priorityDiff !== 0) return priorityDiff;
       return b.lastModified - a.lastModified;
@@ -184,7 +187,8 @@ export class LocalStorageManager {
       const updatedMetadata = {
         ...metadata,
         needsSync: false,
-        lastSynced: Date.now()
+        lastSynced: Date.now(),
+        syncStatus: 'synced' as const,
       };
       
       localStorage.setItem(this.prefix + key + '_meta', JSON.stringify(updatedMetadata));
