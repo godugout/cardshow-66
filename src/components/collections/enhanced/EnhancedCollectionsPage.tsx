@@ -1,272 +1,255 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { 
+  Search, 
   Plus, 
-  TrendingUp, 
-  Star, 
-  Users, 
-  Grid,
-  Sparkles,
-  Trophy,
-  Zap
+  Grid, 
+  List, 
+  Filter, 
+  Folder,
+  Image,
+  Sparkles
 } from 'lucide-react';
-import { useUser } from '@/hooks/use-user';
-import { useCollectionsRealtime } from '@/hooks/collections/useCollectionRealtime';
-import { useFeaturedCollections, usePublicCollections } from '@/hooks/collections/useCollectionQueries';
-import { CollectionGrid } from '../real-time/CollectionGrid';
-import { CollectionDetail } from '../real-time/CollectionDetail';
-import { CreateCollectionModal } from '../CreateCollectionModal';
-import type { Collection } from '@/types/collections';
+import { CollectionStats } from './CollectionStats';
+import { CollectionTemplates } from './CollectionTemplates';
+import { QuickCreateCollection } from './QuickCreateCollection';
+import { UnifiedCard } from '@/components/ui/UnifiedCard';
+import { UnifiedEmptyState } from '@/components/ui/UnifiedEmptyState';
+import { UnifiedLoading } from '@/components/ui/UnifiedLoading';
 
-export const EnhancedCollectionsPage: React.FC = () => {
-  const { user } = useUser();
-  const [activeTab, setActiveTab] = useState('discover');
-  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+export const EnhancedCollectionsPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState('recent');
+  const [filterBy, setFilterBy] = useState('all');
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Enable global real-time updates
-  const { isConnected } = useCollectionsRealtime();
+  const stats = {
+    totalCollections: 12,
+    totalCards: 156,
+    favoriteCollections: 3,
+    recentActivity: 8
+  };
 
-  // Featured collections
-  const { data: featuredCollections } = useFeaturedCollections();
-
-  if (selectedCollection) {
-    return (
-      <CollectionDetail
-        collectionId={selectedCollection.id}
-        onBack={() => setSelectedCollection(null)}
-      />
-    );
-  }
+  // Mock collections data
+  const mockCollections = [
+    {
+      id: '1',
+      title: 'Baseball Legends',
+      description: 'Classic baseball cards from the golden era',
+      cardCount: 24,
+      isPublic: true,
+      lastUpdated: '2 days ago'
+    },
+    {
+      id: '2',
+      title: 'Oakland A\'s Collection',
+      description: 'Celebrating the rich history of Oakland Athletics',
+      cardCount: 18,
+      isPublic: false,
+      lastUpdated: '1 week ago'
+    },
+    {
+      id: '3',
+      title: 'Modern Art Cards',
+      description: 'Contemporary designs and artistic creations',
+      cardCount: 31,
+      isPublic: true,
+      lastUpdated: '3 days ago'
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-crd-darkest">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="text-center py-12 px-8 rounded-2xl bg-gradient-to-r from-editor-dark to-crd-darkGray border border-crd-mediumGray/20 mb-8 relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 left-4">
-              <Sparkles className="w-8 h-8 text-crd-green animate-pulse" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Header */}
+      <div className="border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">My Collections</h1>
+              <p className="text-gray-400">Organize and showcase your card creations</p>
             </div>
-            <div className="absolute top-8 right-8">
-              <Trophy className="w-6 h-6 text-yellow-400 animate-bounce" />
-            </div>
-            <div className="absolute bottom-6 left-8">
-              <Zap className="w-7 h-7 text-blue-400 animate-pulse" />
-            </div>
-          </div>
-
-          <div className="relative z-10">
-            <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-crd-green to-blue-400 bg-clip-text text-transparent">
-              Collections Hub
-            </h1>
-            <p className="text-xl mb-8 max-w-2xl mx-auto text-crd-lightGray">
-              Discover amazing collections, create your own masterpieces, and connect with fellow collectors in real-time.
-            </p>
-            
-            {/* Real-time Status */}
-            <div className="flex items-center justify-center gap-4 mb-8">
-              <div className="flex items-center gap-2 px-3 py-1 bg-crd-green/10 border border-crd-green/20 rounded-full">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-crd-green animate-pulse' : 'bg-gray-500'}`} />
-                <span className="text-sm text-crd-white">
-                  {isConnected ? 'Live Updates Active' : 'Connecting...'}
-                </span>
-              </div>
-            </div>
-
-            <Button 
-              onClick={() => setShowCreateModal(true)}
-              className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold text-lg px-8 py-3"
+            <Button
+              onClick={() => setShowQuickCreate(true)}
+              className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold px-6 py-3"
             >
-              <Plus className="mr-2 h-6 w-6" />
-              Create Collection
+              <Plus className="w-5 h-5 mr-2" />
+              New Collection
             </Button>
           </div>
-        </div>
 
-        {/* Featured Collections */}
-        {featuredCollections && featuredCollections.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6">
-              <Star className="w-6 h-6 text-yellow-400" />
-              <h2 className="text-2xl font-bold text-crd-white">Featured Collections</h2>
-              <Badge className="bg-yellow-400/10 text-yellow-400 border-yellow-400/20">
-                Trending
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {featuredCollections.slice(0, 4).map((collection) => (
-                <div
-                  key={collection.id}
-                  className="group cursor-pointer"
-                  onClick={() => setSelectedCollection(collection)}
-                >
-                  <div className="relative bg-editor-dark rounded-xl border border-crd-mediumGray/20 hover:border-crd-green/50 transition-all transform hover:scale-105 overflow-hidden">
-                    <div className="h-48 bg-gradient-to-br from-crd-green/20 to-blue-400/20 relative">
-                      {collection.cover_image_url ? (
-                        <img 
-                          src={collection.cover_image_url} 
-                          alt={collection.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Grid className="w-12 h-12 text-crd-lightGray" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-yellow-400 text-black font-bold">
-                          <Star className="w-3 h-3 mr-1" />
-                          Featured
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4">
-                      <h3 className="font-bold text-crd-white mb-2 line-clamp-1">
-                        {collection.title}
-                      </h3>
-                      <p className="text-sm text-crd-lightGray mb-3 line-clamp-2">
-                        {collection.description}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-crd-lightGray">
-                        <span>{collection.views_count} views</span>
-                        <span>{Math.round(collection.completion_rate)}% complete</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start mb-8 p-1 rounded-xl bg-editor-dark border border-crd-mediumGray/20">
-            <TabsTrigger 
-              value="discover" 
-              className="flex-1 rounded-lg data-[state=active]:bg-crd-green data-[state=active]:text-black"
-            >
-              <TrendingUp className="mr-2 h-4 w-4" />
+          <CollectionStats stats={stats} />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <Tabs defaultValue="my-collections" className="space-y-6">
+          <TabsList className="bg-gray-800 border-gray-700">
+            <TabsTrigger value="my-collections" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+              <Folder className="w-4 h-4 mr-2" />
+              My Collections
+            </TabsTrigger>
+            <TabsTrigger value="discover" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+              <Sparkles className="w-4 h-4 mr-2" />
               Discover
             </TabsTrigger>
-            {user && (
-              <TabsTrigger 
-                value="my-collections" 
-                className="flex-1 rounded-lg data-[state=active]:bg-crd-green data-[state=active]:text-black"
-              >
-                <Grid className="mr-2 h-4 w-4" />
-                My Collections
-              </TabsTrigger>
-            )}
-            <TabsTrigger 
-              value="trending" 
-              className="flex-1 rounded-lg data-[state=active]:bg-crd-green data-[state=active]:text-black"
-            >
-              <Star className="mr-2 h-4 w-4" />
-              Trending
-            </TabsTrigger>
-            <TabsTrigger 
-              value="community" 
-              className="flex-1 rounded-lg data-[state=active]:bg-crd-green data-[state=active]:text-black"
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Community
+            <TabsTrigger value="templates" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+              <Image className="w-4 h-4 mr-2" />
+              Templates
             </TabsTrigger>
           </TabsList>
-          
-          {/* Discover Tab */}
-          <TabsContent value="discover" className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-crd-white">Discover Collections</h2>
-              <Button 
-                onClick={() => setShowCreateModal(true)}
-                className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Collection
-              </Button>
+
+          <TabsContent value="my-collections" className="space-y-6">
+            {/* Search and Filter Bar */}
+            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+              <div className="flex flex-col lg:flex-row gap-4 items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search collections..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-gray-700 border-gray-600 text-white"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40 bg-gray-700 border-gray-600">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Recently Updated</SelectItem>
+                      <SelectItem value="created">Recently Created</SelectItem>
+                      <SelectItem value="name">Name A-Z</SelectItem>
+                      <SelectItem value="cards">Most Cards</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterBy} onValueChange={setFilterBy}>
+                    <SelectTrigger className="w-32 bg-gray-700 border-gray-600">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="favorites">Favorites</SelectItem>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex bg-gray-700 rounded-lg p-1">
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                      className="p-2"
+                    >
+                      <Grid className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                      className="p-2"
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <CollectionGrid 
-              onCollectionClick={setSelectedCollection}
-              className="min-h-96"
-            />
-          </TabsContent>
-
-          {/* My Collections Tab */}
-          {user && (
-            <TabsContent value="my-collections" className="space-y-8">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-crd-white">My Collections</h2>
-                <Button 
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Collection
-                </Button>
+            {/* Collections Display */}
+            {isLoading ? (
+              <div className="py-12">
+                <UnifiedLoading size="lg" text="Loading your collections..." />
               </div>
-
-              <CollectionGrid 
-                showUserCollections={true}
-                userId={user.id}
-                onCollectionClick={setSelectedCollection}
-                className="min-h-96"
+            ) : mockCollections.length === 0 ? (
+              <UnifiedEmptyState
+                icon={<Folder className="w-16 h-16 text-gray-400" />}
+                title="No Collections Yet"
+                description="Create your first collection to organize your cards and showcase your creativity."
+                action={{
+                  label: "Create Collection",
+                  onClick: () => setShowQuickCreate(true)
+                }}
               />
-            </TabsContent>
-          )}
-
-          {/* Trending Tab */}
-          <TabsContent value="trending" className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-crd-white">Trending Collections</h2>
-              <Badge className="bg-crd-green/10 text-crd-green border-crd-green/20">
-                Updated Live
-              </Badge>
-            </div>
-
-            <CollectionGrid 
-              onCollectionClick={setSelectedCollection}
-              className="min-h-96"
-            />
+            ) : (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-4'}>
+                {mockCollections.map(collection => (
+                  <UnifiedCard
+                    key={collection.id}
+                    title={collection.title}
+                    description={`${collection.cardCount} cards • ${collection.lastUpdated}`}
+                    rarity={collection.isPublic ? 'rare' : 'common'}
+                    stats={{
+                      views: Math.floor(Math.random() * 1000),
+                      likes: Math.floor(Math.random() * 100)
+                    }}
+                    actions={{
+                      onView: () => console.log('View collection:', collection.id),
+                      onLike: () => console.log('Like collection:', collection.id),
+                      onShare: () => console.log('Share collection:', collection.id)
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
-          {/* Community Tab */}
-          <TabsContent value="community" className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-crd-white">Community Collections</h2>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Most Liked</Badge>
-                <Badge variant="secondary">Most Viewed</Badge>
-              </div>
+          <TabsContent value="discover" className="space-y-6">
+            <div className="text-center py-12">
+              <Sparkles className="w-16 h-16 text-crd-green mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-white mb-2">Discover Amazing Collections</h3>
+              <p className="text-gray-400 mb-6">Explore collections from creators around the world</p>
             </div>
+            
+            {/* Public collections would go here */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {mockCollections.filter(c => c.isPublic).map(collection => (
+                <UnifiedCard
+                  key={collection.id}
+                  title={collection.title}
+                  description={collection.description}
+                  rarity="epic"
+                  stats={{
+                    views: Math.floor(Math.random() * 5000),
+                    likes: Math.floor(Math.random() * 500)
+                  }}
+                  actions={{
+                    onView: () => console.log('View collection:', collection.id),
+                    onLike: () => console.log('Like collection:', collection.id),
+                    onShare: () => console.log('Share collection:', collection.id)
+                  }}
+                />
+              ))}
+            </div>
+          </TabsContent>
 
-            <CollectionGrid 
-              onCollectionClick={setSelectedCollection}
-              className="min-h-96"
-            />
+          <TabsContent value="templates" className="space-y-6">
+            <CollectionTemplates />
           </TabsContent>
         </Tabs>
-
-        {/* Create Collection Modal */}
-        <CreateCollectionModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onCreate={(data) => {
-            console.log('Create collection:', data);
-            setShowCreateModal(false);
-          }}
-          isLoading={false}
-        />
       </div>
+
+      {/* Quick Create Modal */}
+      {showQuickCreate && (
+        <QuickCreateCollection
+          onClose={() => setShowQuickCreate(false)}
+          onSuccess={() => {
+            setShowQuickCreate(false);
+            // Refresh collections would happen here
+          }}
+        />
+      )}
     </div>
   );
 };
