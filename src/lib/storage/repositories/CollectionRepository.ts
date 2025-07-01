@@ -1,4 +1,5 @@
 
+import { supabase } from '@/lib/supabase-client';
 import { UnifiedRepository } from '../UnifiedRepository';
 
 export interface Collection {

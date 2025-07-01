@@ -1,14 +1,20 @@
+
 import localforage from 'localforage';
 
-export type StorageDataType = 'card' | 'collection' | 'user' | 'settings' | 'other';
+export type StorageDataType = 'card' | 'collection' | 'user' | 'settings' | 'other' | 'studio-state' | 'recovery-data' | 'uploads';
 export type SyncPriority = 'high' | 'medium' | 'low';
 
-interface StorageMetadata {
+export interface StorageMetadata {
   dataType: StorageDataType;
   priority: SyncPriority;
   needsSync: boolean;
   lastModified: number;
   lastSynced?: number;
+}
+
+export interface StorageItemMetadata extends StorageMetadata {
+  key: string;
+  size: number;
 }
 
 export interface PendingSyncItem {
@@ -25,6 +31,7 @@ export class LocalStorageManager {
   private config = {
     enableSync: true,
     testingMode: false,
+    autoSyncInterval: 5 * 60 * 1000, // 5 minutes
   };
 
   constructor() {
@@ -86,7 +93,7 @@ export class LocalStorageManager {
 
   getItemMetadata(key: string): StorageMetadata | null {
     try {
-      const metadataStr = localStorage.getItem(key + '_meta');
+      const metadataStr = localStorage.getItem(this.prefix + key + '_meta');
       return metadataStr ? JSON.parse(metadataStr) as StorageMetadata : null;
     } catch (error) {
       console.error(`Failed to parse metadata for item ${key} from localStorage:`, error);
@@ -94,19 +101,64 @@ export class LocalStorageManager {
     }
   }
 
+  getAllMetadata(): StorageItemMetadata[] {
+    const items: StorageItemMetadata[] = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix) || key.endsWith('_meta')) continue;
+      
+      const cleanKey = key.replace(this.prefix, '');
+      const metadata = this.getItemMetadata(cleanKey);
+      const value = localStorage.getItem(key);
+      
+      if (metadata && value) {
+        items.push({
+          key: cleanKey,
+          size: value.length * 2, // 2 bytes per character
+          ...metadata
+        });
+      }
+    }
+    
+    return items;
+  }
+
+  getItemsByType(dataType: StorageDataType): Array<{ key: string; value: any }> {
+    const items: Array<{ key: string; value: any }> = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix) || key.endsWith('_meta')) continue;
+      
+      const cleanKey = key.replace(this.prefix, '');
+      const metadata = this.getItemMetadata(cleanKey);
+      
+      if (metadata && metadata.dataType === dataType) {
+        const value = this.getItem(cleanKey);
+        if (value) {
+          items.push({ key: cleanKey, value });
+        }
+      }
+    }
+    
+    return items;
+  }
+
   getPendingSyncItems(): PendingSyncItem[] {
     const items: PendingSyncItem[] = [];
     
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || !key.startsWith(this.prefix)) continue;
+      if (!key || !key.startsWith(this.prefix) || key.endsWith('_meta')) continue;
       
-      const metadata = this.getItemMetadata(key);
+      const cleanKey = key.replace(this.prefix, '');
+      const metadata = this.getItemMetadata(cleanKey);
       if (metadata && metadata.needsSync) {
-        const value = this.getItem(key.replace(this.prefix, ''));
+        const value = this.getItem(cleanKey);
         if (value) {
           items.push({
-            key: key.replace(this.prefix, ''),
+            key: cleanKey,
             value,
             dataType: metadata.dataType,
             priority: metadata.priority,
@@ -126,8 +178,7 @@ export class LocalStorageManager {
   }
 
   markAsSynced(key: string): void {
-    const fullKey = this.prefix + key;
-    const metadata = this.getItemMetadata(fullKey);
+    const metadata = this.getItemMetadata(key);
     
     if (metadata) {
       const updatedMetadata = {
@@ -136,7 +187,7 @@ export class LocalStorageManager {
         lastSynced: Date.now()
       };
       
-      localStorage.setItem(fullKey + '_meta', JSON.stringify(updatedMetadata));
+      localStorage.setItem(this.prefix + key + '_meta', JSON.stringify(updatedMetadata));
     }
   }
 
@@ -146,6 +197,10 @@ export class LocalStorageManager {
       return;
     }
     localStorage.clear();
+  }
+
+  clearAllData(): void {
+    this.clearAll();
   }
 
   setTestingMode(enabled: boolean): void {
@@ -161,6 +216,16 @@ export class LocalStorageManager {
   getDebugInfo() {
     let totalSize = 0;
     const items = [];
+    const itemsByType: Record<StorageDataType, number> = {
+      card: 0,
+      collection: 0,
+      user: 0,
+      settings: 0,
+      other: 0,
+      'studio-state': 0,
+      'recovery-data': 0,
+      uploads: 0
+    };
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -171,18 +236,32 @@ export class LocalStorageManager {
         const size = value.length * 2; // 2 bytes per character
         totalSize += size;
         items.push({ key, size });
+
+        // Count by type
+        if (key.startsWith(this.prefix)) {
+          const cleanKey = key.replace(this.prefix, '');
+          const metadata = this.getItemMetadata(cleanKey);
+          if (metadata) {
+            itemsByType[metadata.dataType]++;
+          }
+        }
       }
     }
 
     const sizeInKB = (totalSize / 1024).toFixed(2);
     const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
+    const pendingSync = this.getPendingSyncCount();
 
     return {
       itemCount: localStorage.length,
+      totalItems: localStorage.length,
       totalSizeKB: sizeInKB,
       totalSizeMB: sizeInMB,
       items: items.sort((a, b) => b.size - a.size),
       config: this.config,
+      pendingSync,
+      syncQueue: pendingSync,
+      itemsByType,
     };
   }
 
@@ -190,8 +269,9 @@ export class LocalStorageManager {
     let count = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || !key.startsWith(this.prefix)) continue;
-      const metadata = this.getItemMetadata(key);
+      if (!key || !key.startsWith(this.prefix) || key.endsWith('_meta')) continue;
+      const cleanKey = key.replace(this.prefix, '');
+      const metadata = this.getItemMetadata(cleanKey);
       if (metadata && metadata.needsSync) {
         count++;
       }
