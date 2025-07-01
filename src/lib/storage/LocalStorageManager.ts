@@ -1,7 +1,7 @@
 import localforage from 'localforage';
 
-export type StorageDataType = 'card' | 'collection' | 'user' | 'settings' | 'other';
-export type SyncPriority = 'high' | 'medium' | 'low';
+export type StorageDataType = 'card' | 'collection' | 'user' | 'settings' | 'other' | 'studio-state' | 'uploads' | 'recovery-data' | 'cards' | 'drafts' | 'memories' | 'sessions' | 'cache';
+export type SyncPriority = 'high' | 'medium' | 'low' | 'critical';
 
 interface StorageMetadata {
   dataType: StorageDataType;
@@ -9,6 +9,18 @@ interface StorageMetadata {
   needsSync: boolean;
   lastModified: number;
   lastSynced?: number;
+  syncStatus?: 'pending' | 'synced' | 'failed' | 'syncing' | 'local-only';
+  syncRetries?: number;
+}
+
+export interface StorageItemMetadata {
+  key: string;
+  dataType: StorageDataType;
+  priority: SyncPriority;
+  lastModified: number;
+  lastSynced?: number;
+  syncStatus: 'pending' | 'synced' | 'failed' | 'syncing' | 'local-only';
+  syncRetries: number;
 }
 
 export interface PendingSyncItem {
@@ -25,6 +37,7 @@ export class LocalStorageManager {
   private config = {
     enableSync: true,
     testingMode: false,
+    autoSyncInterval: 5 * 60 * 1000, // 5 minutes
   };
 
   constructor() {
@@ -161,6 +174,8 @@ export class LocalStorageManager {
   getDebugInfo() {
     let totalSize = 0;
     const items = [];
+    const itemsByType: Record<string, number> = {};
+    let pendingSync = 0;
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -171,6 +186,17 @@ export class LocalStorageManager {
         const size = value.length * 2; // 2 bytes per character
         totalSize += size;
         items.push({ key, size });
+
+        // Count by data type
+        if (key.startsWith(this.prefix) && !key.endsWith('_meta')) {
+          const metadata = this.getItemMetadata(key);
+          if (metadata) {
+            itemsByType[metadata.dataType] = (itemsByType[metadata.dataType] || 0) + 1;
+            if (metadata.needsSync) {
+              pendingSync++;
+            }
+          }
+        }
       }
     }
 
@@ -179,8 +205,12 @@ export class LocalStorageManager {
 
     return {
       itemCount: localStorage.length,
+      totalItems: items.length,
       totalSizeKB: sizeInKB,
       totalSizeMB: sizeInMB,
+      pendingSync,
+      syncQueue: pendingSync, // Alias for compatibility
+      itemsByType,
       items: items.sort((a, b) => b.size - a.size),
       config: this.config,
     };
@@ -197,6 +227,61 @@ export class LocalStorageManager {
       }
     }
     return count;
+  }
+
+  // Additional methods needed by other components
+  getAllMetadata(): StorageItemMetadata[] {
+    const items: StorageItemMetadata[] = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix) || key.endsWith('_meta')) continue;
+      
+      const metadata = this.getItemMetadata(key);
+      if (metadata) {
+        items.push({
+          key: key.replace(this.prefix, ''),
+          dataType: metadata.dataType,
+          priority: metadata.priority,
+          lastModified: metadata.lastModified,
+          lastSynced: metadata.lastSynced,
+          syncStatus: metadata.syncStatus || (metadata.needsSync ? 'pending' : 'synced'),
+          syncRetries: metadata.syncRetries || 0
+        });
+      }
+    }
+    
+    return items;
+  }
+
+  clearAllData(): void {
+    this.clearAll();
+  }
+
+  getItemsByType(dataType: StorageDataType): Array<{ key: string; value: any }> {
+    const items: Array<{ key: string; value: any }> = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(this.prefix) || key.endsWith('_meta')) continue;
+      
+      const metadata = this.getItemMetadata(key);
+      if (metadata && metadata.dataType === dataType) {
+        const value = this.getItem(key.replace(this.prefix, ''));
+        if (value) {
+          items.push({
+            key: key.replace(this.prefix, ''),
+            value
+          });
+        }
+      }
+    }
+    
+    return items;
+  }
+
+  getMetadata(key: string): StorageMetadata | null {
+    return this.getItemMetadata(this.prefix + key);
   }
 }
 

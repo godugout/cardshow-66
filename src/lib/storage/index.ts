@@ -4,7 +4,7 @@ export { UnifiedRepository } from './UnifiedRepository';
 export { cardRepository } from './repositories/CardRepository';
 export { collectionRepository } from './repositories/CollectionRepository';
 export { syncManager } from './SyncManager';
-export { useRepository } from '../hooks/useRepository';
+export { useRepository } from '../../hooks/useRepository';
 
 // Legacy exports for backward compatibility
 export { localStorageManager } from './LocalStorageManager';
