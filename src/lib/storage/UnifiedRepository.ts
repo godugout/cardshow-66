@@ -54,10 +54,10 @@ export class UnifiedRepository<T extends BaseEntity> {
           id: crypto.randomUUID(),
           created_at: new Date().toISOString(),
           _offline: true
-        };
+        } as T;
         
         localStorageManager.setItem(`${this.tableName}_${offlineData.id}`, offlineData, 'card', 'high');
-        return offlineData as unknown as T;
+        return offlineData;
       }
       
       throw error;
