@@ -44,7 +44,7 @@ export class CardStorageAdapter {
     };
 
     const key = `crd_card_${cardId}`;
-    localStorageManager.setItem(key, card, 'card', 'high');
+    localStorageManager.setItem(key, card, 'cards', 'high');
     
     console.log('Card saved via unified storage:', cardId);
     return cardId;
@@ -56,7 +56,7 @@ export class CardStorageAdapter {
   }
 
   public getAllCards(): Record<string, LocalCard> {
-    const cardItems = localStorageManager.getItemsByType('card');
+    const cardItems = localStorageManager.getItemsByType('cards');
     const cards: Record<string, LocalCard> = {};
     
     cardItems.forEach(item => {
@@ -80,7 +80,7 @@ export class CardStorageAdapter {
       card.needsSync = false;
       card.isLocal = false;
       const key = `crd_card_${id}`;
-      localStorageManager.setItem(key, card, 'card', 'high');
+      localStorageManager.setItem(key, card, 'cards', 'high');
       console.log('Card marked as synced:', id);
     }
   }

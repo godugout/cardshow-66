@@ -1,19 +1,19 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { RARITY_COLORS } from '@/types/cards';
+import { CardRarity, RARITY_COLORS } from '@/types/cards';
 import { Star, Sparkles, Crown, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface RarityBadgeProps {
-  rarity: string;
+  rarity: CardRarity;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   animated?: boolean;
   className?: string;
 }
 
-const RARITY_ICONS: Record<string, any> = {
+const RARITY_ICONS = {
   common: null,
   uncommon: null,
   rare: Star,
@@ -29,7 +29,7 @@ export const RarityBadge: React.FC<RarityBadgeProps> = ({
   animated = true,
   className
 }) => {
-  const colors = RARITY_COLORS[rarity] || RARITY_COLORS.common;
+  const colors = RARITY_COLORS[rarity];
   const Icon = RARITY_ICONS[rarity];
 
   const sizeClasses = {
