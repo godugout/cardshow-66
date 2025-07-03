@@ -61,17 +61,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = f
     try {
       // Get user count from profiles
       const { data: profilesData } = await supabase
-        .from('crd_profiles')
+        .from('profiles')
         .select('id', { count: 'exact' });
 
       // Get cards count
       const { data: cardsData } = await supabase
-        .from('crd_cards')
+        .from('cards')
         .select('id', { count: 'exact' });
 
-      // Get templates count
-      const { data: templatesData } = await supabase
-        .from('crd_templates')
+      // Get collections count
+      const { data: collectionsData } = await supabase
+        .from('collections')
         .select('id', { count: 'exact' });
 
       setMetrics({
@@ -79,7 +79,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = f
         activeUsers: Math.floor((profilesData?.length || 0) * 0.7), // Estimate 70% active
         revenue: 12500, // Mock data
         cardsGenerated: cardsData?.length || 0,
-        templatesCreated: templatesData?.length || 0
+        templatesCreated: collectionsData?.length || 0
       });
     } catch (error) {
       console.error('Error fetching platform metrics:', error);
@@ -89,7 +89,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = f
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('crd_profiles')
+        .from('profiles')
         .select(`
           id,
           username,

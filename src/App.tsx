@@ -15,6 +15,7 @@ import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
 import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
+import { UnifiedCreationFlow } from './components/creation/UnifiedCreationFlow';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
@@ -75,7 +76,7 @@ function App() {
                   element={
                     <MainLayout>
                       <ProtectedRoute>
-                        <CardCreation />
+                        <UnifiedCreationFlow />
                       </ProtectedRoute>
                     </MainLayout>
                   } 

@@ -33,9 +33,9 @@ export const UserCardsGallery: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from('crd_cards')
+        .from('cards')
         .select('id, title, description, image_url, rarity, tags, created_at, is_public')
-        .eq('creator_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
