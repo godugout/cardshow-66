@@ -11,6 +11,8 @@ export type Database = {
     Tables: {
       cards: {
         Row: {
+          activity_data: Json | null
+          activity_type: string | null
           created_at: string | null
           creator_name: string | null
           creator_verified: boolean | null
@@ -20,6 +22,7 @@ export type Database = {
           is_public: boolean | null
           price: number | null
           rarity: string | null
+          tags: string[] | null
           thumbnail_url: string | null
           title: string
           updated_at: string | null
@@ -28,6 +31,8 @@ export type Database = {
           watchers_count: number | null
         }
         Insert: {
+          activity_data?: Json | null
+          activity_type?: string | null
           created_at?: string | null
           creator_name?: string | null
           creator_verified?: boolean | null
@@ -37,6 +42,7 @@ export type Database = {
           is_public?: boolean | null
           price?: number | null
           rarity?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string | null
@@ -45,6 +51,8 @@ export type Database = {
           watchers_count?: number | null
         }
         Update: {
+          activity_data?: Json | null
+          activity_type?: string | null
           created_at?: string | null
           creator_name?: string | null
           creator_verified?: boolean | null
@@ -54,6 +62,7 @@ export type Database = {
           is_public?: boolean | null
           price?: number | null
           rarity?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
@@ -93,11 +102,86 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_courses: {
+        Row: {
+          category: string | null
+          completed_at: string | null
+          created_at: string | null
+          enrolled_at: string | null
+          id: string
+          progress_percentage: number | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          enrolled_at?: string | null
+          id?: string
+          progress_percentage?: number | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          enrolled_at?: string | null
+          id?: string
+          progress_percentage?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      marketplace_listings: {
+        Row: {
+          card_id: string | null
+          created_at: string | null
+          id: string
+          price: number
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          card_id?: string | null
+          created_at?: string | null
+          id?: string
+          price: number
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          card_id?: string | null
+          created_at?: string | null
+          id?: string
+          price?: number
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
+          creator_verified: boolean | null
           display_name: string | null
           id: string
           updated_at: string | null
@@ -108,6 +192,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          creator_verified?: boolean | null
           display_name?: string | null
           id?: string
           updated_at?: string | null
@@ -118,6 +203,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          creator_verified?: boolean | null
           display_name?: string | null
           id?: string
           updated_at?: string | null
