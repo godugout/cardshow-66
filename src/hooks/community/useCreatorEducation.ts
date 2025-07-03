@@ -96,22 +96,13 @@ export const useCreatorEducation = () => {
       if (!profile?.id) return [];
 
       const { data, error } = await supabase
-        .from('course_enrollments')
-        .select(`
-          *,
-          creator_courses (
-            id,
-            title,
-            instructor_id,
-            duration_minutes,
-            category
-          )
-        `)
-        .eq('student_id', profile.id)
+        .from('creator_courses')
+        .select('*')
+        .eq('user_id', profile.id)
         .order('enrolled_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!profile?.id,
   });

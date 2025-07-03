@@ -208,10 +208,10 @@ export const CreatorEducation: React.FC<CreatorEducationProps> = ({ searchQuery 
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-white text-lg mb-1">
-                        {enrollment.creator_courses?.title}
+                        {enrollment.title}
                       </CardTitle>
                       <Badge variant="outline" className="text-xs">
-                        {enrollment.creator_courses?.category}
+                        {enrollment.category}
                       </Badge>
                     </div>
                     <div className="text-right">
