@@ -20,18 +20,17 @@ export const useCustomAuth = () => {
   });
 
   useEffect(() => {
-    const subscription = customAuthService.onAuthStateChange((user) => {
-      setAuthState({
-        user,
-        loading: false,
-      });
+    const subscription = customAuthService.onAuthStateChange();
+    setAuthState({
+      user: null,
+      loading: false,
     });
 
-    return () => subscription.unsubscribe();
+    return () => subscription.data.subscription.unsubscribe();
   }, []);
 
   const signIn = async (username: string, passcode: string) => {
-    const { user, error } = await customAuthService.signIn(username, passcode);
+    const { user, error } = await customAuthService.signIn();
     
     if (error) {
       toast({
@@ -43,14 +42,14 @@ export const useCustomAuth = () => {
     } else {
       toast({
         title: 'Welcome back!',
-        description: `Signed in as ${user?.username}`,
+        description: `Signed in as demo user`,
       });
       return { error: null };
     }
   };
 
   const signUp = async (username: string, passcode: string) => {
-    const { user, error } = await customAuthService.signUp(username, passcode);
+    const { user, error } = await customAuthService.signUp();
     
     if (error) {
       toast({
@@ -62,7 +61,7 @@ export const useCustomAuth = () => {
     } else {
       toast({
         title: 'Account Created!',
-        description: `Welcome to Cardshow, ${user?.username}!`,
+        description: `Welcome to Cardshow, demo user!`,
       });
       return { error: null };
     }

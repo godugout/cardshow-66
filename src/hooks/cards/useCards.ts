@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-export const useCards = () => {
+export const useCards = (filters: any = {}) => {
   return {
-    data: [],
+    data: { pages: [{ cards: [], total: 0 }] },
     error: null,
     fetchNextPage: () => {},
     hasNextPage: false,
@@ -13,5 +13,9 @@ export const useCards = () => {
 };
 
 export const useToggleFavorite = () => {
-  return { mutate: () => {} };
+  return { 
+    mutate: () => {},
+    mutateAsync: async () => {},
+    isPending: false
+  };
 };
