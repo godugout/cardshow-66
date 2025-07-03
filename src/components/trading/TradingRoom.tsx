@@ -125,14 +125,14 @@ export const TradingRoom: React.FC<TradingRoomProps> = ({ tradeOffer, onClose })
             {tradeOffer.status === 'pending' && (
               <>
                 <Button
-                  onClick={() => acceptTradeOffer.mutate(tradeOffer.id)}
+                  onClick={() => acceptTradeOffer.mutate()}
                   className="bg-green-600 hover:bg-green-700 text-white"
                   disabled={acceptTradeOffer.isPending}
                 >
                   Accept Trade
                 </Button>
                 <Button
-                  onClick={() => rejectTradeOffer.mutate(tradeOffer.id)}
+                  onClick={() => rejectTradeOffer.mutate()}
                   variant="outline"
                   className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                   disabled={rejectTradeOffer.isPending}
@@ -144,7 +144,7 @@ export const TradingRoom: React.FC<TradingRoomProps> = ({ tradeOffer, onClose })
             
             {tradeOffer.status === 'accepted' && (
               <Button
-                onClick={() => completeTradeOffer.mutate(tradeOffer.id)}
+                onClick={() => completeTradeOffer.mutate()}
                 className="bg-crd-green hover:bg-crd-green/90 text-black"
                 disabled={completeTradeOffer.isPending}
               >

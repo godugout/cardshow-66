@@ -47,12 +47,12 @@ export const MobileAuctionInterface: React.FC<MobileAuctionInterfaceProps> = ({
   };
 
   const handleQuickBid = (amount: number) => {
-    placeBid.mutate({ amount });
+    placeBid.mutate();
   };
 
   const handleCustomBid = () => {
     if (bidAmount > currentPrice) {
-      placeBid.mutate({ amount: bidAmount });
+      placeBid.mutate();
     }
   };
 

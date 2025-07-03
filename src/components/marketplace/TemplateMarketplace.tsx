@@ -43,7 +43,7 @@ export const TemplateMarketplace: React.FC = () => {
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
   const handlePurchase = async (templateId: string) => {
-    await purchaseTemplate.mutateAsync({ templateId });
+    await purchaseTemplate.mutateAsync();
   };
 
   return (

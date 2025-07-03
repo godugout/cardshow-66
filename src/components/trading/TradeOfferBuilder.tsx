@@ -64,16 +64,7 @@ export const TradeOfferBuilder: React.FC<TradeOfferBuilderProps> = ({
       return;
     }
 
-    createTradeOffer.mutate({
-      recipientId,
-      offeredCards,
-      requestedCards,
-      notes
-    }, {
-      onSuccess: () => {
-        onComplete?.();
-      }
-    });
+    createTradeOffer.mutate();
   };
 
   const offeredValue = calculateTotalValue(offeredCards);

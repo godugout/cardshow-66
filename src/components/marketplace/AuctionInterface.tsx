@@ -83,11 +83,7 @@ export const AuctionInterface: React.FC<AuctionInterfaceProps> = ({
     }
 
     try {
-      await placeBid.mutateAsync({
-        amount,
-        proxyMaxAmount: proxyMax,
-        bidType
-      });
+      await placeBid.mutateAsync();
 
       setBidAmount('');
       setProxyMaxAmount('');

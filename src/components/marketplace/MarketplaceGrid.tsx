@@ -53,7 +53,7 @@ export const MarketplaceGrid: React.FC<MarketplaceGridProps> = ({
 
   useEffect(() => {
     if (filters) {
-      refetch(filters);
+      refetch();
     }
   }, [filters, refetch]);
 
