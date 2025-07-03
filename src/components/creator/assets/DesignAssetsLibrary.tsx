@@ -276,7 +276,7 @@ export const DesignAssetsLibrary: React.FC = () => {
                       size="sm" 
                       className="w-full bg-crd-green hover:bg-green-600 text-black"
                       onClick={() => {
-                        downloadAsset.mutateAsync(asset.id);
+                        downloadAsset.mutateAsync();
                         window.open(asset.file_url, '_blank');
                       }}
                     >

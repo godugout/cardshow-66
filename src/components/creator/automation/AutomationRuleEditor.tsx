@@ -35,7 +35,7 @@ export const AutomationRuleEditor: React.FC<AutomationRuleEditorProps> = ({ onCl
     if (!formData.rule_type) return;
 
     try {
-      await createRule.mutateAsync(formData);
+      await createRule.mutateAsync();
       onClose();
     } catch (error) {
       console.error('Failed to create rule:', error);

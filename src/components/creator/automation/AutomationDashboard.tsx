@@ -41,7 +41,7 @@ export const AutomationDashboard: React.FC = () => {
   };
 
   const toggleRule = async (ruleId: string, isActive: boolean) => {
-    await updateRule.mutateAsync({ id: ruleId, is_active: !isActive });
+    await updateRule.mutateAsync();
   };
 
   if (isLoading) {
@@ -199,7 +199,7 @@ export const AutomationDashboard: React.FC = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => deleteRule.mutateAsync(rule.id)}
+                        onClick={() => deleteRule.mutateAsync()}
                         className="text-red-400 hover:text-red-300"
                       >
                         <Trash2 className="w-4 h-4" />

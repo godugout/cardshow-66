@@ -65,14 +65,7 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = ({ onClose }) =
       // For now, we'll simulate with a placeholder URL
       const fileUrl = `https://example.com/assets/${file.name}`;
       
-      await createAsset.mutateAsync({
-        ...formData,
-        file_url: fileUrl,
-        file_size: file.size,
-        mime_type: file.type,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        categories: formData.categories.split(',').map(cat => cat.trim()).filter(Boolean),
-      });
+      await createAsset.mutateAsync();
       
       onClose();
     } catch (error) {

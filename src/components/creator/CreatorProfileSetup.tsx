@@ -29,10 +29,7 @@ export const CreatorProfileSetup: React.FC = () => {
     e.preventDefault();
     
     try {
-      await createProfile.mutateAsync({
-        ...formData,
-        verification_status: 'pending',
-      });
+      await createProfile.mutateAsync();
     } catch (error) {
       console.error('Profile creation failed:', error);
     }
@@ -233,7 +230,7 @@ export const CreatorProfileSetup: React.FC = () => {
                   type="button"
                   variant="outline"
                   className="border-crd-mediumGray text-crd-lightGray"
-                  onClick={() => setupStripeAccount.mutateAsync(formData)}
+                  onClick={() => setupStripeAccount.mutateAsync()}
                   disabled={setupStripeAccount.isPending}
                 >
                   {setupStripeAccount.isPending ? 'Setting up...' : 'Setup Stripe Account'}

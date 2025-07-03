@@ -31,13 +31,7 @@ export const MarketplaceOptimizer: React.FC = () => {
   });
 
   const handleSaveSEO = async () => {
-    await createOrUpdateSEO.mutateAsync({
-      meta_title: seoData.meta_title,
-      meta_description: seoData.meta_description,
-      keywords: seoData.keywords.split(',').map(k => k.trim()).filter(Boolean),
-      custom_url_slug: seoData.custom_url_slug,
-      social_media_links: seoData.social_media_links,
-    });
+    await createOrUpdateSEO.mutateAsync();
   };
 
   const seoScore = calculateSEOScore(seoProfile);

@@ -54,13 +54,7 @@ export const BulkOperationsCenter: React.FC = () => {
   ];
 
   const handleStartOperation = async (operationType: string) => {
-    await createOperation.mutateAsync({
-      operation_type: operationType as any,
-      total_items: 10, // This would be dynamic based on user selection
-      operation_data: {
-        // This would contain the specific configuration for the operation
-      },
-    });
+    await createOperation.mutateAsync();
   };
 
   const getStatusColor = (status: string) => {
@@ -230,7 +224,7 @@ export const BulkOperationsCenter: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => cancelOperation.mutateAsync(operation.id)}
+                            onClick={() => cancelOperation.mutateAsync()}
                           >
                             Cancel
                           </Button>
