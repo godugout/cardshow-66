@@ -13,7 +13,7 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
-import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
+import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
@@ -103,11 +103,9 @@ function App() {
                 <Route 
                   path="/studio" 
                   element={
-                    <MainLayout>
-                      <ProtectedRoute>
-                        <EnhancedStudio />
-                      </ProtectedRoute>
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <StudioPage />
+                    </ProtectedRoute>
                   } 
                 />
                 <Route 
