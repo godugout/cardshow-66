@@ -1,5 +1,6 @@
 import React from 'react';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { SampleDataGenerator } from '@/components/debug/SampleDataGenerator';
 import { useStudioState } from '@/hooks/studio/useStudioState';
 
 const StudioPage: React.FC = () => {
@@ -18,9 +19,7 @@ const StudioPage: React.FC = () => {
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-crd-text-secondary text-lg">No card selected.</p>
-          </div>
+          <SampleDataGenerator />
         </div>
       )}
     </div>
