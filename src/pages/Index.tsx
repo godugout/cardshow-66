@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { UniversalPageLayout, UniversalCard, UniversalButton, UniversalBadge } from '@/components/ui/design-system';
 import { Plus, Palette, Users, Trophy, Sparkles, ArrowRight, Star } from 'lucide-react';
+import { FeaturedCardsGrid } from '@/components/home/FeaturedCardsGrid';
 
 const Index = () => {
   const features = [
@@ -107,6 +108,9 @@ const Index = () => {
           ))}
         </div>
       </div>
+
+      {/* Featured Cards Section */}
+      <FeaturedCardsGrid />
 
       {/* Features Section */}
       <div className="py-20">
