@@ -3,7 +3,8 @@ import { useState } from 'react';
 export const useAppSettings = () => {
   const [settings] = useState({
     theme: 'dark',
-    notifications: true
+    notifications: true,
+    features: {}
   });
 
   const updateSettings = {
@@ -11,9 +12,14 @@ export const useAppSettings = () => {
     isPending: false,
   };
 
+  const saveSettings = (newSettings: any) => {
+    // Mock implementation
+  };
+
   return {
     settings,
     updateSettings,
+    saveSettings,
     isLoading: false
   };
 };

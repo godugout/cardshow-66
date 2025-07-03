@@ -13,7 +13,7 @@ export const usePaginatedProfile = () => {
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
   
-  const { profile, isLoading: profileLoading } = useProfile(user?.id);
+  const { profile, isLoading: profileLoading } = useProfile();
   
   // Paginated cards with caching
   const { 

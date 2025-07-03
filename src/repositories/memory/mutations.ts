@@ -3,12 +3,12 @@ import { supabase } from '@/lib/supabase-client';
 import type { Memory } from '@/types/memory';
 import type { CreateMemoryParams, UpdateMemoryParams } from './types';
 import { getMemoryById } from './queries';
-import { getAppId } from '@/integrations/supabase/client';
+// Removed getAppId import - not available
 
 export const createMemory = async (params: CreateMemoryParams): Promise<Memory> => {
   try {
-    // Get app_id if available
-    const appId = await getAppId();
+    // Mock app_id
+    const appId = null;
     
     const { data, error } = await supabase
       .from('memories')

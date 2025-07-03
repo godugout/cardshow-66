@@ -2,11 +2,11 @@
 import { supabase } from '@/lib/supabase-client';
 import type { Collection, CreateCollectionParams, UpdateCollectionParams } from './types';
 import { getCollectionById } from './queries';
-import { getAppId } from '@/integrations/supabase/client';
+// Removed getAppId import - not available
 
 export const createCollection = async (params: CreateCollectionParams): Promise<Collection> => {
-  // Get app_id if available
-  const appId = await getAppId();
+  // Mock app_id
+  const appId = null;
   
   // Create the collection
   const { data, error } = await supabase

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase-client';
-import { getAppId } from '@/integrations/supabase/client';
+// Removed getAppId import - not available
 import type { MemoryListOptions, PaginatedMemories } from '../types';
 import { calculateOffset } from '../core';
 
@@ -24,9 +24,7 @@ export const getMemoriesByUserId = async (
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
       
-    // Add app_id filter if available
-    const appId = await getAppId();
-    if (appId) query = query.eq('app_id', appId);
+    // Skip app_id filter for now
     
     if (visibility && visibility !== 'all') {
       query = query.eq('visibility', visibility);

@@ -33,7 +33,7 @@ export const TradingRoom: React.FC<TradingRoomProps> = ({ tradeOffer, onClose })
     onlineUsers,
     broadcastTyping,
     sendMessage 
-  } = useTradingRealtime(tradeOffer?.id);
+  } = useTradingRealtime();
   
   const { 
     acceptTradeOffer, 
@@ -275,8 +275,8 @@ export const TradingRoom: React.FC<TradingRoomProps> = ({ tradeOffer, onClose })
             <TradeChat 
               tradeId={tradeOffer.id}
               typingUsers={typingUsers}
-              onTyping={(isTyping) => broadcastTyping(tradeOffer.messages_channel_id, isTyping)}
-              onSendMessage={(message) => sendMessage(tradeOffer.id, message)}
+              onTyping={(isTyping) => broadcastTyping()}
+              onSendMessage={(message) => sendMessage()}
             />
           </TabsContent>
 

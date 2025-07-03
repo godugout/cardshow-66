@@ -1,20 +1,14 @@
-
-import { supabase } from '@/lib/supabase-client';
-import { getAppId } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Card {
   id: string;
   title: string;
   description?: string;
-  creator_id: string;
-  team_id?: string;
-  collection_id?: string;
+  user_id: string; // Use user_id to match database schema
   image_url?: string;
   thumbnail_url?: string;
   rarity: string;
   tags: string[];
-  design_metadata: Record<string, any>;
-  edition_size: number;
   price?: number;
   is_public: boolean;
   created_at: string;
@@ -24,15 +18,11 @@ export interface Card {
 export interface CardCreateParams {
   title: string;
   description?: string;
-  creator_id: string;
-  team_id?: string;
-  collection_id?: string;
+  user_id: string;
   image_url?: string;
   thumbnail_url?: string;
   rarity: string;
   tags?: string[];
-  design_metadata?: Record<string, any>;
-  edition_size?: number;
   price?: number;
   is_public?: boolean;
 }
@@ -41,14 +31,10 @@ export interface CardUpdateParams {
   id: string;
   title?: string;
   description?: string;
-  team_id?: string;
-  collection_id?: string;
   image_url?: string;
   thumbnail_url?: string;
   rarity?: string;
   tags?: string[];
-  design_metadata?: Record<string, any>;
-  edition_size?: number;
   price?: number;
   is_public?: boolean;
 }
@@ -56,9 +42,7 @@ export interface CardUpdateParams {
 export interface CardListOptions {
   page?: number;
   pageSize?: number;
-  creator_id?: string;
-  team_id?: string;
-  collection_id?: string;
+  user_id?: string;
   tags?: string[];
   rarity?: string;
   search?: string;
@@ -86,7 +70,7 @@ export const CardRepository = {
       
       if (!data) return null;
       
-      return data as Card;
+      return data as unknown as Card;
     } catch (error) {
       console.error('Error in getCardById:', error);
       return null;
@@ -95,23 +79,16 @@ export const CardRepository = {
 
   async createCard(params: CardCreateParams): Promise<Card | null> {
     try {
-      // Get app_id if available
-      const appId = await getAppId();
-      
       const { data, error } = await supabase
         .from('cards')
         .insert({
           title: params.title,
           description: params.description,
-          creator_id: params.creator_id,
-          team_id: params.team_id,
-          collection_id: params.collection_id,
+          user_id: params.user_id,
           image_url: params.image_url,
           thumbnail_url: params.thumbnail_url,
           rarity: params.rarity,
           tags: params.tags || [],
-          design_metadata: params.design_metadata || {},
-          edition_size: params.edition_size || 1,
           price: params.price,
           is_public: params.is_public || false,
         })
@@ -123,7 +100,7 @@ export const CardRepository = {
         return null;
       }
 
-      return data as Card;
+      return data as unknown as Card;
     } catch (error) {
       console.error('Error in createCard:', error);
       return null;
@@ -132,18 +109,14 @@ export const CardRepository = {
 
   async updateCard(params: CardUpdateParams): Promise<Card | null> {
     try {
-      const updates: Partial<Card> = {};
+      const updates: any = {};
       
       if (params.title !== undefined) updates.title = params.title;
       if (params.description !== undefined) updates.description = params.description;
-      if (params.team_id !== undefined) updates.team_id = params.team_id;
-      if (params.collection_id !== undefined) updates.collection_id = params.collection_id;
       if (params.image_url !== undefined) updates.image_url = params.image_url;
       if (params.thumbnail_url !== undefined) updates.thumbnail_url = params.thumbnail_url;
       if (params.rarity !== undefined) updates.rarity = params.rarity;
       if (params.tags !== undefined) updates.tags = params.tags;
-      if (params.design_metadata !== undefined) updates.design_metadata = params.design_metadata;
-      if (params.edition_size !== undefined) updates.edition_size = params.edition_size;
       if (params.price !== undefined) updates.price = params.price;
       if (params.is_public !== undefined) updates.is_public = params.is_public;
 
@@ -159,7 +132,7 @@ export const CardRepository = {
         return null;
       }
 
-      return data as Card;
+      return data as unknown as Card;
     } catch (error) {
       console.error('Error in updateCard:', error);
       return null;
@@ -171,9 +144,7 @@ export const CardRepository = {
       const {
         page = 1,
         pageSize = 10,
-        creator_id,
-        team_id,
-        collection_id,
+        user_id,
         tags,
         rarity,
         search,
@@ -189,16 +160,8 @@ export const CardRepository = {
         query = query.eq('is_public', true);
       }
       
-      if (creator_id) {
-        query = query.eq('creator_id', creator_id);
-      }
-      
-      if (team_id) {
-        query = query.eq('team_id', team_id);
-      }
-      
-      if (collection_id) {
-        query = query.eq('collection_id', collection_id);
+      if (user_id) {
+        query = query.eq('user_id', user_id);
       }
       
       if (rarity) {
@@ -225,7 +188,7 @@ export const CardRepository = {
       }
       
       return {
-        cards: data as Card[],
+        cards: (data as unknown as Card[]) || [],
         total: count || 0
       };
     } catch (error) {

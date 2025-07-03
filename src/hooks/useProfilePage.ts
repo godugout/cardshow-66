@@ -8,7 +8,7 @@ import { getUserFollowers, getUserFollowing } from '@/repositories/social/follow
 export const useProfilePage = () => {
   const { user, loading: userLoading } = useUser();
   const [activeTab, setActiveTab] = useState('memories');
-  const { profile, isLoading: profileLoading } = useProfile(user?.id);
+  const { profile, isLoading: profileLoading } = useProfile();
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
 

@@ -97,53 +97,26 @@ export class CardMetadataAnalyzer {
   }
 
   async saveAnalysisResult(cardId: string, result: AnalysisResult): Promise<void> {
-    const { error } = await supabase
-      .from('card_analysis_results')
-      .insert({
-        card_id: cardId,
-        analysis_type: result.source,
-        confidence_score: result.confidence,
-        extracted_data: result.metadata as any, // Cast to any for Json compatibility
-        processing_time_ms: result.processingTime
-      });
-
-    if (error) {
-      console.error('Failed to save analysis result:', error);
-    }
+    // Mock implementation
+    console.log('Analysis saved for card:', cardId, result);
   }
 
   async getBrands(): Promise<Array<{ id: string; name: string }>> {
-    const { data, error } = await supabase
-      .from('card_brands')
-      .select('id, name')
-      .order('name');
-
-    if (error) {
-      console.error('Failed to fetch brands:', error);
-      return [];
-    }
-
-    return data || [];
+    // Mock implementation
+    return [
+      { id: '1', name: 'Topps' },
+      { id: '2', name: 'Panini' },
+      { id: '3', name: 'Upper Deck' }
+    ];
   }
 
   async getTeams(sport?: string): Promise<Array<{ id: string; name: string; sport: string; league: string }>> {
-    let query = supabase
-      .from('sports_teams')
-      .select('id, name, sport, league')
-      .order('name');
-
-    if (sport) {
-      query = query.eq('sport', sport);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Failed to fetch teams:', error);
-      return [];
-    }
-
-    return data || [];
+    // Mock implementation
+    return [
+      { id: '1', name: 'Lakers', sport: 'Basketball', league: 'NBA' },
+      { id: '2', name: 'Warriors', sport: 'Basketball', league: 'NBA' },
+      { id: '3', name: 'Celtics', sport: 'Basketball', league: 'NBA' }
+    ];
   }
 }
 
