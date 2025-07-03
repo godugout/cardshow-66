@@ -46,19 +46,11 @@ function App() {
                 {/* Auth routes - no navbar */}
                 <Route 
                   path="/auth/signin" 
-                  element={
-                    <ProtectedRoute requireAuth={false}>
-                      <SignIn />
-                    </ProtectedRoute>
-                  } 
+                  element={<SignIn />} 
                 />
                 <Route 
                   path="/auth/signup" 
-                  element={
-                    <ProtectedRoute requireAuth={false}>
-                      <SignUp />
-                    </ProtectedRoute>
-                  } 
+                  element={<SignUp />} 
                 />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 
@@ -75,9 +67,7 @@ function App() {
                   path="/create" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <UnifiedCreationFlow />
-                      </ProtectedRoute>
+                      <UnifiedCreationFlow />
                     </MainLayout>
                   } 
                 />
@@ -85,9 +75,7 @@ function App() {
                   path="/create/enhanced" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <EnhancedCardCreationPage />
-                      </ProtectedRoute>
+                      <EnhancedCardCreationPage />
                     </MainLayout>
                   } 
                 />
@@ -95,19 +83,13 @@ function App() {
                   path="/create/functional" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <FunctionalCardCreationPage />
-                      </ProtectedRoute>
+                      <FunctionalCardCreationPage />
                     </MainLayout>
                   } 
                 />
                 <Route 
                   path="/studio" 
-                  element={
-                    <ProtectedRoute>
-                      <StudioPage />
-                    </ProtectedRoute>
-                  } 
+                  element={<StudioPage />} 
                 />
                 <Route 
                   path="/collections" 
@@ -121,9 +103,7 @@ function App() {
                   path="/creator-dashboard" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <CreatorDashboardPage />
-                      </ProtectedRoute>
+                      <CreatorDashboardPage />
                     </MainLayout>
                   } 
                 />
@@ -141,9 +121,7 @@ function App() {
                   path="/admin" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <AdminDashboardPage />
-                      </ProtectedRoute>
+                      <AdminDashboardPage />
                     </MainLayout>
                   } 
                 />
@@ -153,9 +131,7 @@ function App() {
                   path="/debug/psd-preview" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <SimplePSDAnalysisPage />
-                      </ProtectedRoute>
+                      <SimplePSDAnalysisPage />
                     </MainLayout>
                   } 
                 />
@@ -163,9 +139,7 @@ function App() {
                   path="/debug/psd-preview-advanced" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <PSDPreviewPage />
-                      </ProtectedRoute>
+                      <PSDPreviewPage />
                     </MainLayout>
                   } 
                 />
@@ -173,9 +147,7 @@ function App() {
                   path="/debug/bulk-psd-analysis" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <BulkPSDAnalysisPage />
-                      </ProtectedRoute>
+                      <BulkPSDAnalysisPage />
                     </MainLayout>
                   } 
                 />
@@ -183,9 +155,7 @@ function App() {
                   path="/debug" 
                   element={
                     <MainLayout>
-                      <ProtectedRoute>
-                        <Debug />
-                      </ProtectedRoute>
+                      <Debug />
                     </MainLayout>
                   } 
                 />

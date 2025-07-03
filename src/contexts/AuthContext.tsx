@@ -35,133 +35,90 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Create a mock user for development - no authentication required
+  const mockUser: User = {
+    id: 'mock-user-id',
+    email: 'demo@cardshow.dev',
+    email_confirmed_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    app_metadata: {},
+    user_metadata: {
+      username: 'demo-user',
+      full_name: 'Demo User',
+      avatar_url: ''
+    },
+    aud: 'authenticated',
+    role: 'authenticated'
+  } as User;
+
+  const mockSession: Session = {
+    access_token: 'mock-token',
+    refresh_token: 'mock-refresh',
+    expires_in: 3600,
+    expires_at: Date.now() + 3600000,
+    token_type: 'bearer',
+    user: mockUser
+  } as Session;
+
+  const [user] = useState<User | null>(mockUser);
+  const [session] = useState<Session | null>(mockSession);
+  const [loading] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    // Create a mock profile if it doesn't exist
+    const createMockProfile = async () => {
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', mockUser.id)
+          .single();
 
-        // Handle profile creation/updates after auth state change
-        if (event === 'SIGNED_IN' && session?.user) {
-          setTimeout(async () => {
-            try {
-              // Ensure user has a profile
-              const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('id', session.user.id)
-                .single();
-
-              if (error && error.code === 'PGRST116') {
-                // Profile doesn't exist, create it
-                const { error: insertError } = await supabase
-                  .from('profiles')
-                  .insert({
-                    id: session.user.id,
-                    username: session.user.user_metadata?.username || session.user.email?.split('@')[0],
-                    display_name: session.user.user_metadata?.full_name || session.user.user_metadata?.display_name,
-                    avatar_url: session.user.user_metadata?.avatar_url,
-                  });
-
-                if (insertError) {
-                  console.error('Error creating profile:', insertError);
-                }
-              }
-            } catch (error) {
-              console.error('Error ensuring profile:', error);
-            }
-          }, 0);
+        if (error && error.code === 'PGRST116') {
+          // Profile doesn't exist, create it
+          await supabase
+            .from('profiles')
+            .insert({
+              id: mockUser.id,
+              user_id: mockUser.id,
+              username: 'demo-user',
+              display_name: 'Demo User',
+              avatar_url: '',
+              bio: 'Demo user for testing'
+            });
         }
+      } catch (error) {
+        console.log('Mock profile setup:', error);
       }
-    );
+    };
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    createMockProfile();
   }, []);
 
+  // Mock auth functions for development - no actual authentication
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast.error('Sign in failed: ' + error.message);
-    } else {
-      toast.success('Welcome back!');
-    }
-
-    return { error };
+    toast.success('Demo mode - already signed in!');
+    return { error: null };
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`
-      }
-    });
-
-    if (error) {
-      toast.error('Sign up failed: ' + error.message);
-    } else {
-      toast.success('Account created! Please check your email to verify.');
-    }
-
-    return { error };
+    toast.success('Demo mode - already signed in!');
+    return { error: null };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast.error('Sign out failed: ' + error.message);
-    } else {
-      toast.success('Signed out successfully');
-    }
+    toast.success('Demo mode - sign out disabled');
   };
 
   const signInWithOAuth = async (provider: 'google' | 'github' | 'discord') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/`
-      }
-    });
-
-    if (error) {
-      toast.error(`${provider} sign in failed: ` + error.message);
-    }
-
-    return { error };
+    toast.success('Demo mode - already signed in!');
+    return { error: null };
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`
-    });
-
-    if (error) {
-      toast.error('Password reset failed: ' + error.message);
-    } else {
-      toast.success('Password reset email sent!');
-    }
-
-    return { error };
+    toast.success('Demo mode - password reset not needed');
+    return { error: null };
   };
 
   return (
