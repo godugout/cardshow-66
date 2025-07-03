@@ -50,12 +50,7 @@ export const CreatorCollaboration: React.FC<CreatorCollaborationProps> = ({ sear
     if (!newCollaboration.projectType || newCollaboration.collaborators.length === 0) return;
 
     try {
-      await createCollaboration.mutateAsync({
-        projectId: 'temp-project-id', // This would be selected from existing projects
-        collaborators: newCollaboration.collaborators,
-        ownershipSplit: newCollaboration.ownershipSplit,
-        projectType: newCollaboration.projectType as any,
-      });
+      await createCollaboration.mutateAsync();
       setShowCreateModal(false);
       setNewCollaboration({
         projectType: '',

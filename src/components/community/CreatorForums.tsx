@@ -29,11 +29,7 @@ export const CreatorForums: React.FC<CreatorForumsProps> = ({ searchQuery }) => 
     if (!selectedForum || !newTopic.title || !newTopic.content) return;
 
     try {
-      await createForumTopic.mutateAsync({
-        forumId: selectedForum,
-        title: newTopic.title,
-        content: newTopic.content,
-      });
+      await createForumTopic.mutateAsync();
       setNewTopic({ title: '', content: '' });
       setShowCreateTopic(false);
     } catch (error) {

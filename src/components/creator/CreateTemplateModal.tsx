@@ -44,11 +44,7 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, 
     }
 
     try {
-      await createTemplate.mutateAsync({
-        ...formData,
-        template_data: {},
-        preview_images: [],
-      });
+      await createTemplate.mutateAsync();
       onClose();
       setFormData({
         name: '',

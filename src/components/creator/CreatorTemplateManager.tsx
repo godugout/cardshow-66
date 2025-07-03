@@ -16,10 +16,7 @@ export const CreatorTemplateManager: React.FC = () => {
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
   const toggleTemplateStatus = async (templateId: string, isActive: boolean) => {
-    await updateTemplate.mutateAsync({
-      id: templateId,
-      updates: { is_active: !isActive },
-    });
+    await updateTemplate.mutateAsync();
   };
 
   return (

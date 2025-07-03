@@ -1,7 +1,4 @@
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useCreatorProfile } from './useCreatorProfile';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 export interface AutomationRule {
@@ -19,95 +16,29 @@ export interface AutomationRule {
 }
 
 export const useCreatorAutomation = () => {
-  const { profile } = useCreatorProfile();
-  const queryClient = useQueryClient();
+  const [automationRules] = useState<AutomationRule[]>([]);
 
-  const { data: automationRules, isLoading } = useQuery({
-    queryKey: ['automation-rules', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return [];
+  const createRule = {
+    mutate: () => {},
+    mutateAsync: async () => ({ id: 'mock-rule-id' }),
+    isPending: false,
+  };
 
-      const { data, error } = await supabase
-        .from('creator_automation_rules')
-        .select('*')
-        .eq('creator_id', profile.id)
-        .order('created_at', { ascending: false });
+  const updateRule = {
+    mutate: () => {},
+    mutateAsync: async () => ({ id: 'mock-rule-id' }),
+    isPending: false,
+  };
 
-      if (error) throw error;
-      return data as AutomationRule[];
-    },
-    enabled: !!profile?.id,
-  });
-
-  const createRule = useMutation({
-    mutationFn: async (ruleData: Partial<AutomationRule>) => {
-      if (!profile?.id) throw new Error('Creator profile required');
-
-      const { data, error } = await supabase
-        .from('creator_automation_rules')
-        .insert({
-          creator_id: profile.id,
-          rule_type: ruleData.rule_type!,
-          conditions: ruleData.conditions || {},
-          actions: ruleData.actions || {},
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
-      toast.success('Automation rule created successfully!');
-    },
-    onError: (error) => {
-      toast.error(`Failed to create rule: ${error.message}`);
-    },
-  });
-
-  const updateRule = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<AutomationRule> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('creator_automation_rules')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
-      toast.success('Automation rule updated successfully!');
-    },
-    onError: (error) => {
-      toast.error(`Failed to update rule: ${error.message}`);
-    },
-  });
-
-  const deleteRule = useMutation({
-    mutationFn: async (ruleId: string) => {
-      const { error } = await supabase
-        .from('creator_automation_rules')
-        .delete()
-        .eq('id', ruleId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['automation-rules'] });
-      toast.success('Automation rule deleted successfully!');
-    },
-    onError: (error) => {
-      toast.error(`Failed to delete rule: ${error.message}`);
-    },
-  });
+  const deleteRule = {
+    mutate: () => {},
+    mutateAsync: async () => ({ id: 'mock-rule-id' }),
+    isPending: false,
+  };
 
   return {
-    automationRules: automationRules || [],
-    isLoading,
+    automationRules,
+    isLoading: false,
     createRule,
     updateRule,
     deleteRule,

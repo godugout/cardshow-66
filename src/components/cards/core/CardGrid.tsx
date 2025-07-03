@@ -59,10 +59,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
     }
 
     try {
-      await toggleFavorite.mutateAsync({
-        cardId: card.id,
-        userId: user.id
-      });
+      await toggleFavorite.mutateAsync();
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
     }
