@@ -4,7 +4,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calendar, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Loader2, Calendar, Eye, Edit2, Trash2, MoreVertical } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface UserCard {
   id: string;
@@ -19,6 +28,7 @@ interface UserCard {
 
 export const UserCardsGallery: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,6 +58,66 @@ export const UserCardsGallery: React.FC = () => {
       console.error('Error fetching cards:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleView = (card: UserCard) => {
+    navigate(`/card/${card.id}`);
+  };
+
+  const handleEdit = (card: UserCard) => {
+    navigate(`/studio?cardId=${card.id}`);
+    toast.success(`Opening "${card.title}" in Studio`);
+  };
+
+  const handleDelete = async (card: UserCard) => {
+    if (!confirm(`Are you sure you want to delete "${card.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cards')
+        .delete()
+        .eq('id', card.id)
+        .eq('user_id', user?.id); // Extra security check
+
+      if (error) {
+        throw error;
+      }
+
+      // Remove from local state
+      setCards(prev => prev.filter(c => c.id !== card.id));
+      toast.success(`"${card.title}" deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      toast.error('Failed to delete card. Please try again.');
+    }
+  };
+
+  const handleToggleVisibility = async (card: UserCard) => {
+    try {
+      const newVisibility = !card.is_public;
+      
+      const { error } = await supabase
+        .from('cards')
+        .update({ is_public: newVisibility })
+        .eq('id', card.id)
+        .eq('user_id', user?.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setCards(prev => prev.map(c => 
+        c.id === card.id ? { ...c, is_public: newVisibility } : c
+      ));
+      
+      toast.success(`Card is now ${newVisibility ? 'public' : 'private'}`);
+    } catch (error) {
+      console.error('Error updating card visibility:', error);
+      toast.error('Failed to update card visibility');
     }
   };
 
@@ -89,9 +159,17 @@ export const UserCardsGallery: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Your Cards ({cards.length})</h2>
-        <p className="text-gray-600">Manage and view all your created cards</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Your Cards ({cards.length})</h2>
+          <p className="text-gray-600">Manage and view all your created cards</p>
+        </div>
+        <Button 
+          onClick={() => navigate('/create')}
+          className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+        >
+          Create New Card
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -109,15 +187,50 @@ export const UserCardsGallery: React.FC = () => {
                   <span className="text-gray-400">No Image</span>
                 </div>
               )}
+              {/* Action Buttons */}
+              <div className="absolute top-2 right-2 flex gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90 text-white/90 hover:text-white backdrop-blur-sm border border-white/10"
+                    >
+                      <MoreVertical className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleView(card)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Card
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEdit(card)}>
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      Edit in Studio
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggleVisibility(card)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Make {card.is_public ? 'Private' : 'Public'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(card)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Card
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-2 left-2">
                 <Badge className={getRarityColor(card.rarity)}>
                   {card.rarity}
                 </Badge>
               </div>
 
               {!card.is_public && (
-                <div className="absolute top-2 left-2">
+                <div className="absolute bottom-2 left-2">
                   <Badge variant="secondary">
                     <Eye className="w-3 h-3 mr-1" />
                     Private
