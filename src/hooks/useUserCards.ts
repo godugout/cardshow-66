@@ -106,10 +106,31 @@ export const useUserCards = (userId?: string, options: UseUserCardsOptions = {})
           })
         );
         
+        // If no cards exist for this user, add a default card
+        const finalCards = cardsWithCreators.length === 0 && page === 1 ? [
+          {
+            id: 'default-card',
+            title: 'Welcome Card',
+            description: 'Your first card! Start creating amazing content.',
+            image_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+            thumbnail_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+            rarity: 'common',
+            price: 0,
+            creator_name: 'Cardshow',
+            creator_verified: true,
+            tags: ['welcome', 'starter'],
+            created_at: new Date().toISOString(),
+            creator_id: userId || '',
+            design_metadata: { isDefault: true },
+            is_public: false,
+            visibility: 'private'
+          }
+        ] : cardsWithCreators;
+
         if (page === 1) {
-          setUserCards(cardsWithCreators);
+          setUserCards(finalCards);
         } else {
-          setUserCards(prev => [...prev, ...cardsWithCreators]);
+          setUserCards(prev => [...prev, ...finalCards]);
         }
       } catch (err) {
         console.error('Error fetching user cards:', err);
