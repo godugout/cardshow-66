@@ -24,8 +24,8 @@ export const useUserProgress = () => {
         // Get user's card count
         const { count: cardsCount } = await supabase
           .from('cards')
-          .select('*', { count: 'exact', head: true })
-          .eq('creator_id', user.id);
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
 
         // Get user profile for subscription tier
         const { data: profile } = await supabase
