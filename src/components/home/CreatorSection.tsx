@@ -4,7 +4,7 @@ import { useCreators } from "@/hooks/useCreators";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const CreatorSection: React.FC = () => {
-  const { popularCreators, loading } = useCreators();
+  const { creators: popularCreators, loading } = useCreators();
 
   // Fallback data
   const fallbackCreators = [
@@ -42,7 +42,7 @@ export const CreatorSection: React.FC = () => {
   const creators = popularCreators.length > 0 
     ? popularCreators.map((creator, index) => ({
         rank: index + 1,
-        name: creator.username ? `@${creator.username}` : `@${creator.full_name?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
+        name: creator.username ? `@${creator.username}` : `@${creator.display_name?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
         avatar: creator.avatar_url || fallbackCreators[index % fallbackCreators.length].avatar,
         credits: "2456", // Placeholder
         badgeColor: fallbackCreators[index % fallbackCreators.length].badgeColor,

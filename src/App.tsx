@@ -18,6 +18,7 @@ import Collections from './pages/Collections';
 import { UnifiedCreationFlow } from './components/creation/UnifiedCreationFlow';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
+import CreatorsHubPage from './pages/CreatorsHub';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
@@ -112,6 +113,14 @@ function App() {
                   element={
                     <MainLayout>
                       <CommunityHubPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/creators" 
+                  element={
+                    <MainLayout>
+                      <CreatorsHubPage />
                     </MainLayout>
                   } 
                 />

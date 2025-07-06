@@ -138,6 +138,27 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       marketplace_listings: {
         Row: {
           card_id: string | null
@@ -180,9 +201,12 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          cards_count: number | null
           created_at: string | null
           creator_verified: boolean | null
           display_name: string | null
+          followers_count: number | null
+          following_count: number | null
           id: string
           updated_at: string | null
           user_id: string | null
@@ -191,9 +215,12 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          cards_count?: number | null
           created_at?: string | null
           creator_verified?: boolean | null
           display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
           id?: string
           updated_at?: string | null
           user_id?: string | null
@@ -202,9 +229,12 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          cards_count?: number | null
           created_at?: string | null
           creator_verified?: boolean | null
           display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
           id?: string
           updated_at?: string | null
           user_id?: string | null
