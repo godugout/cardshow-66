@@ -19,6 +19,7 @@ import { UnifiedCreationFlow } from './components/creation/UnifiedCreationFlow';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import CreatorsHubPage from './pages/CreatorsHub';
+import CreditsDashboardPage from './pages/CreditsDashboard';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
@@ -121,6 +122,14 @@ function App() {
                   element={
                     <MainLayout>
                       <CreatorsHubPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/credits" 
+                  element={
+                    <MainLayout>
+                      <CreditsDashboardPage />
                     </MainLayout>
                   } 
                 />

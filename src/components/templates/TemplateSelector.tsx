@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCredits } from '@/hooks/useCredits';
 import { toast } from 'sonner';
 
 interface TemplateSelectorProps {
@@ -22,6 +23,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   userProgress
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('sports');
+  const { spendCredits, canAfford } = useCredits();
 
   const categories = [
     { id: 'sports', name: 'Sports', icon: '⚽' },
@@ -70,14 +72,42 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     return false;
   };
 
-  const handleTemplateSelect = (template: Template) => {
+  const handleTemplateSelect = async (template: Template) => {
+    // Check if template is unlocked based on progression
     if (!isTemplateUnlocked(template)) {
       toast.error(`This template is locked. ${getUnlockText(template)}`);
       return;
     }
     
+    // Check if template requires credits (premium templates)
+    const creditCost = getTemplateCreditCost(template);
+    if (creditCost > 0) {
+      if (!canAfford(creditCost)) {
+        toast.error(`This template costs ${creditCost} credits. You need more credits to unlock it.`);
+        return;
+      }
+      
+      // Spend credits for premium template
+      const success = await spendCredits(
+        creditCost,
+        `Unlocked template: ${template.name}`,
+        template.id,
+        'template_unlock'
+      );
+      
+      if (!success) return;
+    }
+    
     onTemplateSelect(template);
     toast.success(`Selected ${template.name} template`);
+  };
+
+  const getTemplateCreditCost = (template: Template): number => {
+    // Premium templates cost credits
+    if (template.unlockRequirement?.type === 'subscription') {
+      return 150; // Premium subscription templates cost credits as alternative
+    }
+    return 0; // Free templates
   };
 
   return (

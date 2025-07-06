@@ -159,6 +159,42 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       marketplace_listings: {
         Row: {
           card_id: string | null
@@ -204,6 +240,7 @@ export type Database = {
           cards_count: number | null
           created_at: string | null
           creator_verified: boolean | null
+          credits_balance: number | null
           display_name: string | null
           followers_count: number | null
           following_count: number | null
@@ -218,6 +255,7 @@ export type Database = {
           cards_count?: number | null
           created_at?: string | null
           creator_verified?: boolean | null
+          credits_balance?: number | null
           display_name?: string | null
           followers_count?: number | null
           following_count?: number | null
@@ -232,6 +270,7 @@ export type Database = {
           cards_count?: number | null
           created_at?: string | null
           creator_verified?: boolean | null
+          credits_balance?: number | null
           display_name?: string | null
           followers_count?: number | null
           following_count?: number | null
@@ -295,7 +334,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_sufficient_credits: {
+        Args: { _user_id: string; _amount: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
