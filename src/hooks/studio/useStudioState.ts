@@ -156,13 +156,36 @@ const initialLayers: LayerState[] = [
   }
 ];
 
+const defaultCard: CardData = {
+  id: 'default-studio-card',
+  title: 'Welcome to Studio',
+  description: 'Your canvas awaits! Start customizing this card or create a new one.',
+  rarity: 'common',
+  tags: ['welcome', 'studio'],
+  image_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+  thumbnail_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+  design_metadata: { isDefault: true },
+  visibility: 'private',
+  creator_attribution: {
+    creator_name: 'Cardshow Studio',
+    collaboration_type: 'solo'
+  },
+  publishing_options: {
+    marketplace_listing: false,
+    crd_catalog_inclusion: false,
+    print_available: false,
+    pricing: { currency: 'USD' },
+    distribution: { limited_edition: false }
+  }
+};
+
 export const useStudioState = () => {
   const [studioState, setStudioState] = useState<StudioState>({
     lighting: initialLightingState,
     design: initialDesignState,
     layers: initialLayers,
     selectedLayerId: 'image',
-    currentCard: null
+    currentCard: defaultCard
   });
 
   const setCurrentCard = useCallback((card: CardData | null) => {
