@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCreators } from '@/hooks/useCreators';
 import { CreatorCard } from './CreatorCard';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Search, TrendingUp, Star, Users } from 'lucide-react';
 
 export const CreatorsHub: React.FC = () => {
+  const navigate = useNavigate();
   const { creators, loading, error, refetch, fetchFeatured } = useCreators();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('featured');
@@ -21,8 +23,7 @@ export const CreatorsHub: React.FC = () => {
   });
 
   const handleCreatorView = (creatorId: string) => {
-    // TODO: Navigate to creator profile page
-    console.log('View creator:', creatorId);
+    navigate(`/creators/${creatorId}`);
   };
 
   const handleTabChange = (value: string) => {

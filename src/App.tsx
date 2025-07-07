@@ -19,6 +19,7 @@ import { UnifiedCreationFlow } from './components/creation/UnifiedCreationFlow';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import CreatorsHubPage from './pages/CreatorsHub';
+import CreatorProfilePage from './pages/CreatorProfile';
 import CreditsDashboardPage from './pages/CreditsDashboard';
 import CreditsPage from './pages/CreditsPage';
 import CreditsSuccessPage from './pages/credits/SuccessPage';
@@ -129,7 +130,15 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/credits" 
+                  path="/creators/:id" 
+                  element={
+                    <MainLayout>
+                      <CreatorProfilePage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/credits"
                   element={
                     <MainLayout>
                       <CreditsPage />
