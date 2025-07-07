@@ -70,9 +70,9 @@ export const ProfileDropdown = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="text-crd-white hover:bg-crd-mediumGray focus:bg-crd-mediumGray cursor-pointer">
-          <Link to="/credits" className="flex items-center">
+          <Link to="/subscription" className="flex items-center">
             <Coins className="mr-2 h-4 w-4" />
-            <span>Credits</span>
+            <span>Subscription</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-crd-mediumGray" />

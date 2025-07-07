@@ -20,6 +20,7 @@ import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import CreatorsHubPage from './pages/CreatorsHub';
 import CreditsDashboardPage from './pages/CreditsDashboard';
+import SubscriptionPage from './pages/SubscriptionPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
@@ -130,6 +131,14 @@ function App() {
                   element={
                     <MainLayout>
                       <CreditsDashboardPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/subscription" 
+                  element={
+                    <MainLayout>
+                      <SubscriptionPage />
                     </MainLayout>
                   } 
                 />
