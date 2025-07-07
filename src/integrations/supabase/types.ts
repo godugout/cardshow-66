@@ -349,6 +349,54 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_items: {
+        Row: {
+          card_id: string | null
+          cash_value: number | null
+          created_at: string | null
+          credits_value: number | null
+          id: string
+          owner_type: string
+          quantity: number | null
+          trade_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          cash_value?: number | null
+          created_at?: string | null
+          credits_value?: number | null
+          id?: string
+          owner_type: string
+          quantity?: number | null
+          trade_id: string
+        }
+        Update: {
+          card_id?: string | null
+          cash_value?: number | null
+          created_at?: string | null
+          credits_value?: number | null
+          id?: string
+          owner_type?: string
+          quantity?: number | null
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_items_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_items_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trade_messages: {
         Row: {
           created_at: string | null
@@ -370,6 +418,110 @@ export type Database = {
           message?: string
           trade_id?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          expires_at: string | null
+          id: string
+          message: string | null
+          recipient_id: string | null
+          status: string | null
+          trade_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_id?: string | null
+          status?: string | null
+          trade_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_id?: string | null
+          status?: string | null
+          trade_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      trading_room_participants: {
+        Row: {
+          id: string
+          is_online: boolean | null
+          joined_at: string | null
+          role: string | null
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_online?: boolean | null
+          joined_at?: string | null
+          role?: string | null
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_online?: boolean | null
+          joined_at?: string | null
+          role?: string | null
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trading_room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "trading_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trading_rooms: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          name: string
+          room_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          name: string
+          room_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          name?: string
+          room_type?: string | null
         }
         Relationships: []
       }

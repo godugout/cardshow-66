@@ -1,258 +1,431 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useTradeOffers } from '@/hooks/trading/useTradeOffers';
-import { TradeCard } from '@/hooks/trading/types';
-import { Plus, X, DollarSign } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Plus, 
+  Minus, 
+  Search, 
+  ArrowRight, 
+  Coins, 
+  Calendar,
+  X,
+  Check
+} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import type { TradeOffer } from '@/types/trading';
 
 interface TradeOfferBuilderProps {
-  recipientId: string;
-  onComplete?: () => void;
+  onClose: () => void;
+  recipientId?: string;
 }
 
-export const TradeOfferBuilder: React.FC<TradeOfferBuilderProps> = ({
-  recipientId,
-  onComplete
+export const TradeOfferBuilder: React.FC<TradeOfferBuilderProps> = ({ 
+  onClose, 
+  recipientId 
 }) => {
-  const [offeredCards, setOfferedCards] = useState<TradeCard[]>([]);
-  const [requestedCards, setRequestedCards] = useState<TradeCard[]>([]);
-  const [notes, setNotes] = useState('');
-  
-  const { createTradeOffer } = useTradeOffers();
+  const [userCards, setUserCards] = useState<any[]>([]);
+  const [selectedOfferedCards, setSelectedOfferedCards] = useState<string[]>([]);
+  const [selectedRequestedCards, setSelectedRequestedCards] = useState<string[]>([]);
+  const [offeredCredits, setOfferedCredits] = useState(0);
+  const [requestedCredits, setRequestedCredits] = useState(0);
+  const [message, setMessage] = useState('');
+  const [expiresIn, setExpiresIn] = useState(7);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSection, setActiveSection] = useState<'offering' | 'requesting'>('offering');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const addCard = (type: 'offered' | 'requested') => {
-    const newCard: TradeCard = {
-      id: '',
-      title: '',
-      rarity: 'common',
-      estimated_value: 0
-    };
+  useEffect(() => {
+    loadUserCards();
+  }, []);
 
-    if (type === 'offered') {
-      setOfferedCards(prev => [...prev, newCard]);
-    } else {
-      setRequestedCards(prev => [...prev, newCard]);
-    }
-  };
+  const loadUserCards = async () => {
+    const { data, error } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .order('created_at', { ascending: false });
 
-  const updateCard = (
-    type: 'offered' | 'requested',
-    index: number,
-    field: keyof TradeCard,
-    value: string | number
-  ) => {
-    const setter = type === 'offered' ? setOfferedCards : setRequestedCards;
-    setter(prev => prev.map((card, i) => 
-      i === index ? { ...card, [field]: value } : card
-    ));
-  };
-
-  const removeCard = (type: 'offered' | 'requested', index: number) => {
-    const setter = type === 'offered' ? setOfferedCards : setRequestedCards;
-    setter(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const calculateTotalValue = (cards: TradeCard[]) => {
-    return cards.reduce((sum, card) => sum + (card.estimated_value || 0), 0);
-  };
-
-  const handleSubmit = () => {
-    if (offeredCards.length === 0 || requestedCards.length === 0) {
+    if (error) {
+      console.error('Error loading cards:', error);
       return;
     }
 
-    createTradeOffer.mutate();
+    setUserCards(data || []);
   };
 
-  const offeredValue = calculateTotalValue(offeredCards);
-  const requestedValue = calculateTotalValue(requestedCards);
-  const valueDifference = requestedValue - offeredValue;
+  const filteredCards = userCards.filter(card =>
+    card.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    card.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleCardSelection = (cardId: string, section: 'offering' | 'requesting') => {
+    if (section === 'offering') {
+      setSelectedOfferedCards(prev =>
+        prev.includes(cardId)
+          ? prev.filter(id => id !== cardId)
+          : [...prev, cardId]
+      );
+    } else {
+      setSelectedRequestedCards(prev =>
+        prev.includes(cardId)
+          ? prev.filter(id => id !== cardId)
+          : [...prev, cardId]
+      );
+    }
+  };
+
+  const getSelectedCards = (section: 'offering' | 'requesting') => {
+    const selectedIds = section === 'offering' ? selectedOfferedCards : selectedRequestedCards;
+    return userCards.filter(card => selectedIds.includes(card.id));
+  };
+
+  const createTradeOffer = async () => {
+    if (selectedOfferedCards.length === 0 && offeredCredits === 0) {
+      toast({
+        title: "Nothing to offer",
+        description: "Please add cards or credits to your offer",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedRequestedCards.length === 0 && requestedCredits === 0) {
+      toast({
+        title: "Nothing requested",
+        description: "Please specify what you want in return",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Create the trade
+      const { data: trade, error: tradeError } = await supabase
+        .from('trades')
+        .insert({
+          creator_id: (await supabase.auth.getUser()).data.user?.id,
+          recipient_id: recipientId,
+          message,
+          expires_at: new Date(Date.now() + expiresIn * 24 * 60 * 60 * 1000).toISOString(),
+          trade_type: 'card_for_card'
+        })
+        .select()
+        .single();
+
+      if (tradeError) throw tradeError;
+
+      // Add offered items
+      const offeredItems = [
+        ...selectedOfferedCards.map(cardId => ({
+          trade_id: trade.id,
+          card_id: cardId,
+          owner_type: 'creator' as const,
+          quantity: 1,
+          credits_value: 0,
+          cash_value: 0
+        })),
+        ...(offeredCredits > 0 ? [{
+          trade_id: trade.id,
+          owner_type: 'creator' as const,
+          quantity: 1,
+          credits_value: offeredCredits,
+          cash_value: 0
+        }] : [])
+      ];
+
+      // Add requested items
+      const requestedItems = [
+        ...selectedRequestedCards.map(cardId => ({
+          trade_id: trade.id,
+          card_id: cardId,
+          owner_type: 'recipient' as const,
+          quantity: 1,
+          credits_value: 0,
+          cash_value: 0
+        })),
+        ...(requestedCredits > 0 ? [{
+          trade_id: trade.id,
+          owner_type: 'recipient' as const,
+          quantity: 1,
+          credits_value: requestedCredits,
+          cash_value: 0
+        }] : [])
+      ];
+
+      if (offeredItems.length > 0) {
+        const { error: offeredError } = await supabase
+          .from('trade_items')
+          .insert(offeredItems);
+        if (offeredError) throw offeredError;
+      }
+
+      if (requestedItems.length > 0) {
+        const { error: requestedError } = await supabase
+          .from('trade_items')
+          .insert(requestedItems);
+        if (requestedError) throw requestedError;
+      }
+
+      toast({
+        title: "Trade offer created",
+        description: "Your trade offer has been sent successfully"
+      });
+
+      onClose();
+    } catch (error) {
+      console.error('Error creating trade:', error);
+      toast({
+        title: "Error creating trade",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Card className="bg-crd-dark border-crd-mediumGray">
-        <CardHeader>
-          <CardTitle className="text-white">Create Trade Offer</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Offered Cards */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Cards You're Offering</h3>
-              <Button
-                onClick={() => addCard('offered')}
-                size="sm"
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Card
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
-              {offeredCards.map((card, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-crd-mediumGray rounded-lg">
-                  <Input
-                    placeholder="Card title"
-                    value={card.title}
-                    onChange={(e) => updateCard('offered', index, 'title', e.target.value)}
-                    className="flex-1 bg-crd-darkest border-crd-mediumGray text-white"
-                  />
-                  <select
-                    value={card.rarity}
-                    onChange={(e) => updateCard('offered', index, 'rarity', e.target.value)}
-                    className="bg-crd-darkest border border-crd-mediumGray text-white rounded-md px-3 py-2"
-                  >
-                    <option value="common">Common</option>
-                    <option value="uncommon">Uncommon</option>
-                    <option value="rare">Rare</option>
-                    <option value="epic">Epic</option>
-                    <option value="legendary">Legendary</option>
-                    <option value="mythic">Mythic</option>
-                  </select>
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="w-4 h-4 text-crd-lightGray" />
-                    <Input
-                      type="number"
-                      placeholder="Value"
-                      value={card.estimated_value || ''}
-                      onChange={(e) => updateCard('offered', index, 'estimated_value', parseFloat(e.target.value) || 0)}
-                      className="w-20 bg-crd-darkest border-crd-mediumGray text-white"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => removeCard('offered', index)}
-                    size="sm"
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-3 text-right">
-              <span className="text-crd-lightGray">Total Value: </span>
-              <span className="text-crd-green font-semibold">${offeredValue}</span>
-            </div>
-          </div>
-
-          {/* Requested Cards */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Cards You Want</h3>
-              <Button
-                onClick={() => addCard('requested')}
-                size="sm"
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Card
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
-              {requestedCards.map((card, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-crd-mediumGray rounded-lg">
-                  <Input
-                    placeholder="Card title"
-                    value={card.title}
-                    onChange={(e) => updateCard('requested', index, 'title', e.target.value)}
-                    className="flex-1 bg-crd-darkest border-crd-mediumGray text-white"
-                  />
-                  <select
-                    value={card.rarity}
-                    onChange={(e) => updateCard('requested', index, 'rarity', e.target.value)}
-                    className="bg-crd-darkest border border-crd-mediumGray text-white rounded-md px-3 py-2"
-                  >
-                    <option value="common">Common</option>
-                    <option value="uncommon">Uncommon</option>
-                    <option value="rare">Rare</option>
-                    <option value="epic">Epic</option>
-                    <option value="legendary">Legendary</option>
-                    <option value="mythic">Mythic</option>
-                  </select>
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="w-4 h-4 text-crd-lightGray" />
-                    <Input
-                      type="number"
-                      placeholder="Value"
-                      value={card.estimated_value || ''}
-                      onChange={(e) => updateCard('requested', index, 'estimated_value', parseFloat(e.target.value) || 0)}
-                      className="w-20 bg-crd-darkest border-crd-mediumGray text-white"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => removeCard('requested', index)}
-                    size="sm"
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-3 text-right">
-              <span className="text-crd-lightGray">Total Value: </span>
-              <span className="text-crd-green font-semibold">${requestedValue}</span>
-            </div>
-          </div>
-
-          {/* Value Difference */}
-          {valueDifference !== 0 && (
-            <div className={`p-4 rounded-lg ${
-              valueDifference > 0 ? 'bg-red-500/20 border border-red-500/50' : 'bg-green-500/20 border border-green-500/50'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className="text-white font-medium">Value Difference:</span>
-                <span className={`font-bold ${valueDifference > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {valueDifference > 0 ? '+' : ''}${valueDifference}
-                </span>
+    <div className="space-y-6">
+      {/* Trade Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Offering Section */}
+        <Card className="p-4">
+          <h3 className="font-medium text-foreground mb-3 flex items-center">
+            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2" />
+            You're Offering
+          </h3>
+          <div className="space-y-2">
+            {getSelectedCards('offering').map(card => (
+              <div key={card.id} className="flex items-center justify-between text-sm">
+                <span className="text-foreground">{card.title}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleCardSelection(card.id, 'offering')}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
               </div>
-              {valueDifference > 0 && (
-                <p className="text-sm text-red-300 mt-2">
-                  You're requesting ${valueDifference} more value than you're offering.
-                </p>
-              )}
-            </div>
-          )}
+            ))}
+            {offeredCredits > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-foreground">{offeredCredits} Credits</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setOfferedCredits(0)}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+            {selectedOfferedCards.length === 0 && offeredCredits === 0 && (
+              <p className="text-sm text-muted-foreground">Nothing selected</p>
+            )}
+          </div>
+        </Card>
 
-          {/* Notes */}
-          <div>
-            <label className="block text-white font-medium mb-2">Notes (Optional)</label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any additional details about this trade..."
-              className="bg-crd-mediumGray border-crd-mediumGray text-white placeholder:text-crd-lightGray"
-              rows={3}
+        {/* Arrow */}
+        <div className="flex items-center justify-center">
+          <ArrowRight className="w-6 h-6 text-muted-foreground" />
+        </div>
+
+        {/* Requesting Section */}
+        <Card className="p-4">
+          <h3 className="font-medium text-foreground mb-3 flex items-center">
+            <span className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+            You're Requesting
+          </h3>
+          <div className="space-y-2">
+            {getSelectedCards('requesting').map(card => (
+              <div key={card.id} className="flex items-center justify-between text-sm">
+                <span className="text-foreground">{card.title}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleCardSelection(card.id, 'requesting')}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
+            {requestedCredits > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-foreground">{requestedCredits} Credits</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setRequestedCredits(0)}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+            {selectedRequestedCards.length === 0 && requestedCredits === 0 && (
+              <p className="text-sm text-muted-foreground">Nothing selected</p>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      <Separator />
+
+      {/* Section Toggle */}
+      <div className="flex items-center space-x-2">
+        <Button
+          variant={activeSection === 'offering' ? 'default' : 'outline'}
+          onClick={() => setActiveSection('offering')}
+        >
+          Add to Offer
+        </Button>
+        <Button
+          variant={activeSection === 'requesting' ? 'default' : 'outline'}
+          onClick={() => setActiveSection('requesting')}
+        >
+          Add to Request
+        </Button>
+      </div>
+
+      {/* Search */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search your cards..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      {/* Card Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-64 overflow-y-auto">
+        {filteredCards.map(card => {
+          const isSelected = activeSection === 'offering' 
+            ? selectedOfferedCards.includes(card.id)
+            : selectedRequestedCards.includes(card.id);
+
+          return (
+            <Card 
+              key={card.id} 
+              className={`cursor-pointer transition-all ${
+                isSelected ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => toggleCardSelection(card.id, activeSection)}
+            >
+              <div className="aspect-[2.5/3.5] relative">
+                {card.image_url && (
+                  <img 
+                    src={card.image_url} 
+                    alt={card.title}
+                    className="w-full h-full object-cover rounded-t-lg"
+                  />
+                )}
+                {isSelected && (
+                  <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                    <Check className="w-3 h-3" />
+                  </div>
+                )}
+              </div>
+              <div className="p-2">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {card.title}
+                </p>
+                <Badge variant="outline" className="text-xs mt-1">
+                  {card.rarity || 'common'}
+                </Badge>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Credits Section */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium text-foreground mb-2 block">
+            Offer Credits
+          </label>
+          <div className="flex items-center space-x-2">
+            <Coins className="w-4 h-4 text-muted-foreground" />
+            <Input
+              type="number"
+              value={offeredCredits}
+              onChange={(e) => setOfferedCredits(Number(e.target.value))}
+              min="0"
+              placeholder="0"
             />
           </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSubmit}
-              disabled={
-                offeredCards.length === 0 || 
-                requestedCards.length === 0 || 
-                createTradeOffer.isPending ||
-                offeredCards.some(card => !card.title.trim()) ||
-                requestedCards.some(card => !card.title.trim())
-              }
-              className="bg-crd-green hover:bg-crd-green/90 text-black px-8"
-            >
-              {createTradeOffer.isPending ? 'Creating...' : 'Send Trade Offer'}
-            </Button>
+        </div>
+        <div>
+          <label className="text-sm font-medium text-foreground mb-2 block">
+            Request Credits
+          </label>
+          <div className="flex items-center space-x-2">
+            <Coins className="w-4 h-4 text-muted-foreground" />
+            <Input
+              type="number"
+              value={requestedCredits}
+              onChange={(e) => setRequestedCredits(Number(e.target.value))}
+              min="0"
+              placeholder="0"
+            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Message */}
+      <div>
+        <label className="text-sm font-medium text-foreground mb-2 block">
+          Message (Optional)
+        </label>
+        <Textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Add a message to your trade offer..."
+          rows={3}
+        />
+      </div>
+
+      {/* Expiration */}
+      <div>
+        <label className="text-sm font-medium text-foreground mb-2 block">
+          Expires In
+        </label>
+        <Select value={expiresIn.toString()} onValueChange={(value) => setExpiresIn(Number(value))}>
+          <SelectTrigger>
+            <Calendar className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">1 day</SelectItem>
+            <SelectItem value="3">3 days</SelectItem>
+            <SelectItem value="7">7 days</SelectItem>
+            <SelectItem value="14">14 days</SelectItem>
+            <SelectItem value="30">30 days</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end space-x-3">
+        <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button onClick={createTradeOffer} disabled={isSubmitting}>
+          {isSubmitting ? 'Creating...' : 'Send Trade Offer'}
+        </Button>
+      </div>
     </div>
   );
 };

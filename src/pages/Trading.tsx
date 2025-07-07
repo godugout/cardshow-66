@@ -1,351 +1,406 @@
-
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { TradingRoom } from '@/components/trading/TradingRoom';
-import { TradeOfferBuilder } from '@/components/trading/TradeOfferBuilder';
-import { useTradeOffers } from '@/hooks/trading/useTradeOffers';
-import { useTradingRealtime } from '@/hooks/trading/useTradingRealtime';
-import { TradeOffer } from '@/hooks/trading/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  MessageSquare, 
   Plus, 
+  Search, 
+  Filter, 
+  Users, 
+  TrendingUp, 
   Clock, 
-  CheckCircle, 
-  XCircle,
-  TrendingUp,
-  Users
+  Eye,
+  MessageSquare,
+  Shield
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { TradingRoom } from '@/components/trading/TradingRoom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import type { TradingRoom as TradingRoomType, Trade } from '@/types/trading';
 
-const Trading = () => {
-  const [activeTab, setActiveTab] = useState('active');
-  const [selectedTrade, setSelectedTrade] = useState<TradeOffer | null>(null);
-  const [showCreateOffer, setShowCreateOffer] = useState(false);
-  
-  const { userTrades, isLoadingTrades } = useTradeOffers();
-  const { isConnected } = useTradingRealtime();
+export const Trading: React.FC = () => {
+  const [tradingRooms, setTradingRooms] = useState<TradingRoomType[]>([]);
+  const [myTrades, setMyTrades] = useState<Trade[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<TradingRoomType | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateRoom, setShowCreateRoom] = useState(false);
+  const [newRoomName, setNewRoomName] = useState('');
+  const [newRoomDescription, setNewRoomDescription] = useState('');
+  const [newRoomType, setNewRoomType] = useState<'public' | 'private'>('public');
+  const { toast } = useToast();
 
-  const getStatusColor = (status: TradeOffer['status']) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-500';
-      case 'accepted': return 'bg-green-500';
-      case 'rejected': return 'bg-red-500';
-      case 'completed': return 'bg-blue-500';
-      case 'expired': return 'bg-gray-500';
-      case 'cancelled': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+  useEffect(() => {
+    loadTradingRooms();
+    loadMyTrades();
+  }, []);
+
+  const loadTradingRooms = async () => {
+    const { data, error } = await supabase
+      .from('trading_rooms')
+      .select(`
+        *,
+        trading_room_participants!inner(count)
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading trading rooms:', error);
+      return;
+    }
+
+    // Transform the data to include participant count
+    const roomsWithCounts = data?.map(room => ({
+      ...room,
+      participant_count: room.trading_room_participants?.length || 0
+    })) || [];
+
+    setTradingRooms(roomsWithCounts as TradingRoomType[]);
+  };
+
+  const loadMyTrades = async () => {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('trades')
+      .select(`
+        *,
+        trade_items(*)
+      `)
+      .or(`creator_id.eq.${user.id},recipient_id.eq.${user.id}`)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading trades:', error);
+      return;
+    }
+
+    setMyTrades((data || []) as Trade[]);
+  };
+
+  const createTradingRoom = async () => {
+    if (!newRoomName.trim()) {
+      toast({
+        title: "Room name required",
+        description: "Please enter a name for your trading room",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return;
+
+    try {
+      // Create the room
+      const { data: room, error: roomError } = await supabase
+        .from('trading_rooms')
+        .insert({
+          name: newRoomName,
+          description: newRoomDescription,
+          room_type: newRoomType,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (roomError) throw roomError;
+
+      // Add creator as participant
+      const { error: participantError } = await supabase
+        .from('trading_room_participants')
+        .insert({
+          room_id: room.id,
+          user_id: user.id,
+          role: 'owner'
+        });
+
+      if (participantError) throw participantError;
+
+      toast({
+        title: "Room created",
+        description: "Your trading room has been created successfully"
+      });
+
+      setShowCreateRoom(false);
+      setNewRoomName('');
+      setNewRoomDescription('');
+      loadTradingRooms();
+    } catch (error) {
+      console.error('Error creating room:', error);
+      toast({
+        title: "Error creating room",
+        description: "Please try again later",
+        variant: "destructive"
+      });
     }
   };
 
-  const getStatusIcon = (status: TradeOffer['status']) => {
-    switch (status) {
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'accepted': return <CheckCircle className="w-4 h-4" />;
-      case 'rejected': return <XCircle className="w-4 h-4" />;
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
+  const joinTradingRoom = async (roomId: string) => {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('trading_room_participants')
+        .insert({
+          room_id: roomId,
+          user_id: user.id,
+          role: 'member'
+        });
+
+      if (error) throw error;
+
+      const room = tradingRooms.find(r => r.id === roomId);
+      if (room) {
+        setSelectedRoom(room);
+      }
+
+      toast({
+        title: "Joined room",
+        description: "You have joined the trading room"
+      });
+    } catch (error) {
+      console.error('Error joining room:', error);
+      toast({
+        title: "Error joining room",
+        description: "Please try again later",
+        variant: "destructive"
+      });
     }
   };
 
-  const filterTradesByStatus = (status: string) => {
-    if (!userTrades) return [];
-    
-    switch (status) {
-      case 'active':
-        return userTrades.filter(trade => ['pending', 'accepted'].includes(trade.status));
-      case 'completed':
-        return userTrades.filter(trade => trade.status === 'completed');
-      case 'history':
-        return userTrades.filter(trade => ['rejected', 'cancelled', 'expired'].includes(trade.status));
-      default:
-        return userTrades;
-    }
-  };
+  const filteredRooms = tradingRooms.filter(room =>
+    room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    room.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const formatTimeRemaining = (expiresAt: string) => {
-    const now = new Date().getTime();
-    const expiry = new Date(expiresAt).getTime();
-    const diff = expiry - now;
-    
-    if (diff <= 0) return 'Expired';
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m left`;
-  };
-
-  if (selectedTrade) {
+  if (selectedRoom) {
     return (
-      <TradingRoom
-        tradeOffer={selectedTrade}
-        onClose={() => setSelectedTrade(null)}
+      <TradingRoom 
+        room={selectedRoom} 
+        onLeaveRoom={() => setSelectedRoom(null)} 
       />
     );
   }
 
-  if (showCreateOffer) {
-    return (
-      <div className="min-h-screen bg-crd-darkest p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Button
-              onClick={() => setShowCreateOffer(false)}
-              variant="outline"
-              className="mb-4"
-            >
-              ← Back to Trading
-            </Button>
-            <h1 className="text-3xl font-bold text-white">Create Trade Offer</h1>
-          </div>
-          <TradeOfferBuilder
-            recipientId="placeholder" // This would be selected from a user picker
-            onComplete={() => setShowCreateOffer(false)}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-crd-darkest">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Trading Center</h1>
-              <p className="text-crd-lightGray">
-                Trade cards with other collectors
-                {isConnected && (
-                  <span className="ml-2 inline-flex items-center text-xs text-crd-green">
-                    <div className="w-2 h-2 bg-crd-green rounded-full mr-1 animate-pulse" />
-                    Live
-                  </span>
-                )}
-              </p>
-            </div>
-            
-            <Button
-              onClick={() => setShowCreateOffer(true)}
-              className="bg-crd-green text-black hover:bg-crd-green/80"
-            >
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Trading Hub</h1>
+          <p className="text-muted-foreground">
+            Trade cards with other collectors in real-time
+          </p>
+        </div>
+        <Dialog open={showCreateRoom} onOpenChange={setShowCreateRoom}>
+          <DialogTrigger asChild>
+            <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Create Trade Offer
+              Create Room
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Trading Room</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Room Name
+                </label>
+                <Input
+                  value={newRoomName}
+                  onChange={(e) => setNewRoomName(e.target.value)}
+                  placeholder="Enter room name..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Description (Optional)
+                </label>
+                <Input
+                  value={newRoomDescription}
+                  onChange={(e) => setNewRoomDescription(e.target.value)}
+                  placeholder="Describe your trading room..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Room Type
+                </label>
+                <div className="flex space-x-2">
+                  <Button
+                    variant={newRoomType === 'public' ? 'default' : 'outline'}
+                    onClick={() => setNewRoomType('public')}
+                    className="flex-1"
+                  >
+                    Public
+                  </Button>
+                  <Button
+                    variant={newRoomType === 'private' ? 'default' : 'outline'}
+                    onClick={() => setNewRoomType('private')}
+                    className="flex-1"
+                  >
+                    Private
+                  </Button>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowCreateRoom(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={createTradingRoom}>
+                  Create Room
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Tabs defaultValue="rooms" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="rooms">Trading Rooms</TabsTrigger>
+          <TabsTrigger value="trades">My Trades</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rooms" className="space-y-6">
+          {/* Search and Filters */}
+          <div className="flex items-center space-x-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search trading rooms..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button variant="outline">
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="bg-crd-dark border-crd-mediumGray">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-crd-green/20 rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-crd-green" />
+          {/* Trading Rooms Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredRooms.map((room) => (
+              <Card key={room.id} className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-2">{room.name}</h3>
+                    {room.description && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {room.description}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm text-crd-lightGray">Active Trades</p>
-                    <p className="text-xl font-bold text-white">
-                      {filterTradesByStatus('active').length}
-                    </p>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={room.room_type === 'public' ? 'default' : 'secondary'}>
+                      {room.room_type}
+                    </Badge>
+                    {room.room_type === 'private' && (
+                      <Shield className="w-4 h-4 text-muted-foreground" />
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-crd-dark border-crd-mediumGray">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-crd-lightGray">Completed</p>
-                    <p className="text-xl font-bold text-white">
-                      {filterTradesByStatus('completed').length}
-                    </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-1" />
+                      <span>{room.participant_count || 0}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      <span>{new Date(room.created_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-crd-dark border-crd-mediumGray">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <Users className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-crd-lightGray">Trade Partners</p>
-                    <p className="text-xl font-bold text-white">
-                      {new Set([
-                        ...userTrades?.map(t => t.initiator_id) || [],
-                        ...userTrades?.map(t => t.recipient_id) || []
-                      ]).size}
-                    </p>
-                  </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedRoom(room)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={() => joinTradingRoom(room.id)}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Join
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-crd-dark border-crd-mediumGray">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-500/20 rounded-lg">
-                    <MessageSquare className="w-5 h-5 text-yellow-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-crd-lightGray">Pending</p>
-                    <p className="text-xl font-bold text-white">
-                      {userTrades?.filter(t => t.status === 'pending').length || 0}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </Card>
+            ))}
           </div>
-        </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-crd-mediumGray mb-6">
-            <TabsTrigger
-              value="active"
-              className="data-[state=active]:bg-crd-green data-[state=active]:text-black"
-            >
-              Active Trades ({filterTradesByStatus('active').length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="completed"
-              className="data-[state=active]:bg-crd-green data-[state=active]:text-black"
-            >
-              Completed ({filterTradesByStatus('completed').length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="data-[state=active]:bg-crd-green data-[state=active]:text-black"
-            >
-              History ({filterTradesByStatus('history').length})
-            </TabsTrigger>
-          </TabsList>
+          {filteredRooms.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Trading Rooms Found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery ? 'Try adjusting your search terms' : 'Create the first trading room to get started'}
+              </p>
+              <Button onClick={() => setShowCreateRoom(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Trading Room
+              </Button>
+            </div>
+          )}
+        </TabsContent>
 
-          <TabsContent value={activeTab}>
-            {isLoadingTrades ? (
+        <TabsContent value="trades" className="space-y-6">
+          {/* My Trades */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">My Trades</h2>
+            
+            {myTrades.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-crd-lightGray">Loading trades...</div>
+                <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No Trades Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Join a trading room to start making trade offers
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filterTradesByStatus(activeTab).map((trade) => (
-                  <Card key={trade.id} className="bg-crd-dark border-crd-mediumGray hover:border-crd-green/50 transition-colors cursor-pointer">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-white text-lg">
-                          Trade #{trade.id.slice(0, 8)}
-                        </CardTitle>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`${getStatusColor(trade.status)} text-white`}>
-                            <div className="flex items-center gap-1">
-                              {getStatusIcon(trade.status)}
-                              {trade.status}
-                            </div>
-                          </Badge>
+              <div className="space-y-4">
+                {myTrades.map((trade) => (
+                  <Card key={trade.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Badge variant="outline">{trade.status}</Badge>
+                          <Badge variant="secondary">{trade.trade_type}</Badge>
                         </div>
-                      </div>
-                      {trade.status === 'pending' && (
-                        <p className="text-sm text-crd-lightGray">
-                          {formatTimeRemaining(trade.expires_at)}
+                        <p className="text-sm text-muted-foreground">
+                          Created {new Date(trade.created_at).toLocaleDateString()}
                         </p>
-                      )}
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm text-crd-lightGray mb-2">Offering</p>
-                            <div className="space-y-1">
-                              {trade.offered_cards.slice(0, 2).map((card, index) => (
-                                <p key={index} className="text-sm text-white truncate">
-                                  {card.title}
-                                </p>
-                              ))}
-                              {trade.offered_cards.length > 2 && (
-                                <p className="text-xs text-crd-lightGray">
-                                  +{trade.offered_cards.length - 2} more
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <p className="text-sm text-crd-lightGray mb-2">Requesting</p>
-                            <div className="space-y-1">
-                              {trade.requested_cards.slice(0, 2).map((card, index) => (
-                                <p key={index} className="text-sm text-white truncate">
-                                  {card.title}
-                                </p>
-                              ))}
-                              {trade.requested_cards.length > 2 && (
-                                <p className="text-xs text-crd-lightGray">
-                                  +{trade.requested_cards.length - 2} more
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-4 border-t border-crd-mediumGray">
-                          <span className="text-sm text-crd-lightGray">
-                            {formatDistanceToNow(new Date(trade.created_at), { addSuffix: true })}
-                          </span>
-                          <Button
-                            onClick={() => setSelectedTrade(trade)}
-                            size="sm"
-                            className="bg-crd-green hover:bg-crd-green/90 text-black"
-                          >
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            View Trade
-                          </Button>
-                        </div>
+                        {trade.message && (
+                          <p className="text-sm text-foreground mt-2">{trade.message}</p>
+                        )}
                       </div>
-                    </CardContent>
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </div>
                   </Card>
                 ))}
               </div>
             )}
-
-            {!isLoadingTrades && filterTradesByStatus(activeTab).length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔄</div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  No {activeTab} trades
-                </h3>
-                <p className="text-crd-lightGray mb-4">
-                  {activeTab === 'active' 
-                    ? "You don't have any active trades right now."
-                    : `No ${activeTab} trades to display.`
-                  }
-                </p>
-                {activeTab === 'active' && (
-                  <Button
-                    onClick={() => setShowCreateOffer(true)}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Trade
-                  </Button>
-                )}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
-
-export default Trading;

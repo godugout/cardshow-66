@@ -20,6 +20,7 @@ import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityPage from './pages/CommunityPage';
 import CreatorProfilePage from './pages/CreatorProfile';
 import CreditsDashboardPage from './pages/CreditsDashboard';
+import { Trading } from './pages/Trading';
 import CreditsPage from './pages/CreditsPage';
 import CreditsSuccessPage from './pages/credits/SuccessPage';
 import SubscriptionPage from './pages/SubscriptionPage';
@@ -149,6 +150,14 @@ function App() {
                   element={
                     <MainLayout>
                       <SubscriptionPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/trading" 
+                  element={
+                    <MainLayout>
+                      <Trading />
                     </MainLayout>
                   } 
                 />
