@@ -13,6 +13,7 @@ interface CRDMKRPathProps {
 }
 
 export const CRDMKRPath: React.FC<CRDMKRPathProps> = ({ onBack }) => {
+  const isMobile = useIsMobile();
   const [activeView, setActiveView] = useState<'layers' | 'preview' | '3d'>('preview');
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
@@ -154,48 +155,91 @@ export const CRDMKRPath: React.FC<CRDMKRPathProps> = ({ onBack }) => {
               </UniversalCard>
             ) : activeView === '3d' ? (
               <div className="w-80 h-[480px]">
-                <Enhanced3DCardViewer
-                  card={{
-                    id: 'crdmkr-preview',
-                    title: 'CRDMKR Card',
-                    description: 'Live preview',
-                    image_url: uploadedImage,
-                    rarity: 'epic',
-                    tags: ['preview'],
-                    creator_id: 'preview-user',
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    user_id: 'preview-user',
-                    template_id: selectedFrame || 'modern',
-                    design_metadata: {
-                      effects: effectValues
-                    },
-                    visibility: 'private',
-                    creator_attribution: {
-                      collaboration_type: 'solo'
-                    },
-                    publishing_options: {
-                      marketplace_listing: false,
-                      crd_catalog_inclusion: false,
-                      print_available: false,
-                      pricing: { currency: 'USD' },
-                      distribution: { limited_edition: false }
-                    }
-                  }}
-                  className="w-full h-full"
-                  autoEnable={true}
-                  effects={effectValues}
-                  selectedFrame={selectedFrame}
-                  onModeChange={() => {}}
-                  fallbackComponent={
-                    <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                      <div className="text-center text-muted-foreground">
-                        <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>Loading 3D Preview...</p>
+                {isMobile ? (
+                  <Mobile3DCardViewer
+                    card={{
+                      id: 'crdmkr-preview',
+                      title: 'CRDMKR Card',
+                      description: 'Live preview',
+                      image_url: uploadedImage,
+                      rarity: 'epic',
+                      tags: ['preview'],
+                      creator_id: 'preview-user',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                      user_id: 'preview-user',
+                      template_id: selectedFrame || 'modern',
+                      design_metadata: {
+                        effects: effectValues
+                      },
+                      visibility: 'private',
+                      creator_attribution: {
+                        collaboration_type: 'solo'
+                      },
+                      publishing_options: {
+                        marketplace_listing: false,
+                        crd_catalog_inclusion: false,
+                        print_available: false,
+                        pricing: { currency: 'USD' },
+                        distribution: { limited_edition: false }
+                      }
+                    }}
+                    className="w-full h-full"
+                    effects={effectValues}
+                    selectedFrame={selectedFrame}
+                    fallbackComponent={
+                      <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                        <div className="text-center text-muted-foreground">
+                          <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                          <p>Loading 3D Preview...</p>
+                        </div>
                       </div>
-                    </div>
-                  }
-                />
+                    }
+                  />
+                ) : (
+                  <Enhanced3DCardViewer
+                    card={{
+                      id: 'crdmkr-preview',
+                      title: 'CRDMKR Card',
+                      description: 'Live preview',
+                      image_url: uploadedImage,
+                      rarity: 'epic',
+                      tags: ['preview'],
+                      creator_id: 'preview-user',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                      user_id: 'preview-user',
+                      template_id: selectedFrame || 'modern',
+                      design_metadata: {
+                        effects: effectValues
+                      },
+                      visibility: 'private',
+                      creator_attribution: {
+                        collaboration_type: 'solo'
+                      },
+                      publishing_options: {
+                        marketplace_listing: false,
+                        crd_catalog_inclusion: false,
+                        print_available: false,
+                        pricing: { currency: 'USD' },
+                        distribution: { limited_edition: false }
+                      }
+                    }}
+                    className="w-full h-full"
+                    autoEnable={true}
+                    effects={effectValues}
+                    selectedFrame={selectedFrame}
+                    onModeChange={() => {}}
+                    fallbackComponent={
+                      <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                        <div className="text-center text-muted-foreground">
+                          <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                          <p>Loading 3D Preview...</p>
+                        </div>
+                      </div>
+                    }
+                  />
+                )}
               </div>
             ) : (
               <UniversalCard className="aspect-[3/4] w-80 overflow-hidden">

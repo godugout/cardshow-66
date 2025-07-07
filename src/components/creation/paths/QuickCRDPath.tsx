@@ -12,6 +12,7 @@ interface QuickCRDPathProps {
 }
 
 export const QuickCRDPath: React.FC<QuickCRDPathProps> = ({ onBack }) => {
+  const isMobile = useIsMobile();
   const [step, setStep] = useState<'upload' | 'processing' | 'complete'>('upload');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
@@ -214,49 +215,91 @@ export const QuickCRDPath: React.FC<QuickCRDPathProps> = ({ onBack }) => {
                 {uploadedFiles.length > 0 && (
                   <UniversalCard className="p-6">
                     <div className="flex justify-center">
-                      {show3DPreview && has3DEffects ? (
+                       {show3DPreview && has3DEffects ? (
                         <div className="w-80 h-[480px]">
-                          <Enhanced3DCardViewer
-                            card={{
-                              id: 'quick-crd-preview',
-                              title: `Quick Card ${selectedCardIndex + 1}`,
-                              description: 'Quick CRD creation with effects',
-                              image_url: getCardPreviewUrl(uploadedFiles[selectedCardIndex]),
-                              rarity: 'rare',
-                              tags: ['quick-crd'],
-                              creator_id: 'preview-user',
-                              created_at: new Date().toISOString(),
-                              updated_at: new Date().toISOString(),
-                              user_id: 'preview-user',
-                              template_id: 'modern',
-                              design_metadata: {
-                                effects: effectValues
-                              },
-                              visibility: 'private',
-                              creator_attribution: {
-                                collaboration_type: 'solo'
-                              },
-                              publishing_options: {
-                                marketplace_listing: false,
-                                crd_catalog_inclusion: false,
-                                print_available: false,
-                                pricing: { currency: 'USD' },
-                                distribution: { limited_edition: false }
-                              }
-                            }}
-                            className="w-full h-full"
-                            autoEnable={true}
-                            effects={effectValues}
-                            onModeChange={() => {}}
-                            fallbackComponent={
-                              <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                                <div className="text-center text-muted-foreground">
-                                  <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                  <p>Loading 3D Preview...</p>
+                          {isMobile ? (
+                            <Mobile3DCardViewer
+                              card={{
+                                id: 'quick-crd-preview',
+                                title: `Quick Card ${selectedCardIndex + 1}`,
+                                description: 'Quick CRD creation with effects',
+                                image_url: getCardPreviewUrl(uploadedFiles[selectedCardIndex]),
+                                rarity: 'rare',
+                                tags: ['quick-crd'],
+                                creator_id: 'preview-user',
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString(),
+                                user_id: 'preview-user',
+                                template_id: 'modern',
+                                design_metadata: {
+                                  effects: effectValues
+                                },
+                                visibility: 'private',
+                                creator_attribution: {
+                                  collaboration_type: 'solo'
+                                },
+                                publishing_options: {
+                                  marketplace_listing: false,
+                                  crd_catalog_inclusion: false,
+                                  print_available: false,
+                                  pricing: { currency: 'USD' },
+                                  distribution: { limited_edition: false }
+                                }
+                              }}
+                              className="w-full h-full"
+                              effects={effectValues}
+                              fallbackComponent={
+                                <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                                  <div className="text-center text-muted-foreground">
+                                    <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                    <p>Loading 3D Preview...</p>
+                                  </div>
                                 </div>
-                              </div>
-                            }
-                          />
+                              }
+                            />
+                          ) : (
+                            <Enhanced3DCardViewer
+                              card={{
+                                id: 'quick-crd-preview',
+                                title: `Quick Card ${selectedCardIndex + 1}`,
+                                description: 'Quick CRD creation with effects',
+                                image_url: getCardPreviewUrl(uploadedFiles[selectedCardIndex]),
+                                rarity: 'rare',
+                                tags: ['quick-crd'],
+                                creator_id: 'preview-user',
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString(),
+                                user_id: 'preview-user',
+                                template_id: 'modern',
+                                design_metadata: {
+                                  effects: effectValues
+                                },
+                                visibility: 'private',
+                                creator_attribution: {
+                                  collaboration_type: 'solo'
+                                },
+                                publishing_options: {
+                                  marketplace_listing: false,
+                                  crd_catalog_inclusion: false,
+                                  print_available: false,
+                                  pricing: { currency: 'USD' },
+                                  distribution: { limited_edition: false }
+                                }
+                              }}
+                              className="w-full h-full"
+                              autoEnable={true}
+                              effects={effectValues}
+                              onModeChange={() => {}}
+                              fallbackComponent={
+                                <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                                  <div className="text-center text-muted-foreground">
+                                    <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                    <p>Loading 3D Preview...</p>
+                                  </div>
+                                </div>
+                              }
+                            />
+                          )}
                         </div>
                       ) : (
                         <div className="w-80 aspect-[3/4] bg-muted/20 rounded-lg overflow-hidden">
