@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { CreatorCommunityHub } from '@/components/community/CreatorCommunityHub';
+import { CommunityHub } from '@/components/community/CommunityHub';
 
 const CommunityPage: React.FC = () => {
-  return <CreatorCommunityHub />;
+  return <CommunityHub />;
 };
 
 export default CommunityPage;

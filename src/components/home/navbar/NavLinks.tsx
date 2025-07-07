@@ -11,7 +11,6 @@ export const NavLinks = () => {
     { href: '/studio', label: 'Studio' },
     { href: '/collections', label: 'Collections' },
     { href: '/community', label: 'Community' },
-    { href: '/creators', label: 'Creators' },
     { href: '/credits', label: 'Credits' },
     { href: '/subscription', label: 'Subscription' },
     { href: '/creator-dashboard', label: 'Dashboard' }

@@ -17,8 +17,7 @@ import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
 import { UnifiedCreationFlow } from './components/creation/UnifiedCreationFlow';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
-import CommunityHubPage from './pages/CommunityHubPage';
-import CreatorsHubPage from './pages/CreatorsHub';
+import CommunityPage from './pages/CommunityPage';
 import CreatorProfilePage from './pages/CreatorProfile';
 import CreditsDashboardPage from './pages/CreditsDashboard';
 import CreditsPage from './pages/CreditsPage';
@@ -117,15 +116,7 @@ function App() {
                   path="/community" 
                   element={
                     <MainLayout>
-                      <CommunityHubPage />
-                    </MainLayout>
-                  } 
-                />
-                <Route 
-                  path="/creators" 
-                  element={
-                    <MainLayout>
-                      <CreatorsHubPage />
+                      <CommunityPage />
                     </MainLayout>
                   } 
                 />
