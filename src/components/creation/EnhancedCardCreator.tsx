@@ -12,9 +12,11 @@ import { EnhancedImageUploader } from './components/EnhancedImageUploader';
 import { LayerVisualizationPanel } from './components/LayerVisualizationPanel';
 import { FrameConstructor } from './components/FrameConstructor';
 import { EnhancedCardRenderer } from './components/EnhancedCardRenderer';
+import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
+import { EffectsPhase } from '@/components/studio/enhanced/components/EffectsPhase';
 import { 
   Upload, Download, RotateCcw, Eye, EyeOff, Move, Square, 
-  Type, Image as ImageIcon, Layers, Palette, Sparkles 
+  Type, Image as ImageIcon, Layers, Palette, Sparkles, Zap, Box 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -87,6 +89,14 @@ export const EnhancedCardCreator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'upload' | 'layers' | 'frame' | 'effects'>('upload');
   const [selectedLayer, setSelectedLayer] = useState<string>('');
   const [isExporting, setIsExporting] = useState(false);
+  const [is3DMode, setIs3DMode] = useState(false);
+  const [effectValues, setEffectValues] = useState<Record<string, Record<string, any>>>({
+    holographic: { intensity: 0, enabled: false },
+    metallic: { intensity: 0, enabled: false },
+    chrome: { intensity: 0, enabled: false },
+    foil: { intensity: 0, enabled: false },
+    particles: { enabled: false }
+  });
   const cardRendererRef = useRef<{ exportCard: () => Promise<Blob> }>(null);
 
   const handleImageUpload = (file: File, url: string) => {
@@ -127,6 +137,25 @@ export const EnhancedCardCreator: React.FC = () => {
       frameConfig: { ...prev.frameConfig, ...config }
     }));
   };
+
+  const handleEffectChange = (effectId: string, parameterId: string, value: number | boolean | string) => {
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: {
+        ...prev[effectId],
+        [parameterId]: value
+      }
+    }));
+    
+    // Auto-enable 3D mode when effects are used
+    if ((typeof value === 'number' && value > 0) || value === true) {
+      setIs3DMode(true);
+    }
+  };
+
+  const has3DEffects = Object.values(effectValues).some(effect => 
+    effect.enabled || (typeof effect.intensity === 'number' && effect.intensity > 0)
+  );
 
   const addLayer = (type: CardLayer['type']) => {
     const newLayer: CardLayer = {
@@ -308,10 +337,11 @@ export const EnhancedCardCreator: React.FC = () => {
                 )}
 
                 {activeTab === 'effects' && (
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-white">Effects & Filters</h3>
-                    <p className="text-gray-400">Advanced effects coming soon...</p>
-                  </div>
+                  <EffectsPhase
+                    selectedFrame={cardData.frameConfig.style}
+                    onEffectChange={handleEffectChange}
+                    effectValues={effectValues}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -354,23 +384,93 @@ export const EnhancedCardCreator: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-semibold text-white">Live Preview</h3>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-purple-600 text-white">
-                      {cardData.layers.length} layers
-                    </Badge>
-                    <Badge variant="outline" className="border-gray-600 text-gray-300">
-                      {cardData.rarity}
-                    </Badge>
+                  <div className="flex items-center gap-3">
+                    {/* 3D Mode Toggle */}
+                    <Button
+                      variant={is3DMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setIs3DMode(!is3DMode)}
+                      className={`flex items-center gap-2 ${
+                        is3DMode 
+                          ? 'bg-purple-600 hover:bg-purple-700' 
+                          : 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                      }`}
+                      disabled={!cardData.imageUrl}
+                    >
+                      <Box className="w-4 h-4" />
+                      {is3DMode ? '3D View' : '2D View'}
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-purple-600 text-white">
+                        {cardData.layers.length} layers
+                      </Badge>
+                      <Badge variant="outline" className="border-gray-600 text-gray-300">
+                        {cardData.rarity}
+                      </Badge>
+                      {has3DEffects && (
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-purple-500 text-white">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          3D Effects
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 <div className="flex justify-center">
-                  <EnhancedCardRenderer
-                    ref={cardRendererRef}
-                    cardData={cardData}
-                    width={400}
-                    height={560}
-                  />
+                  {is3DMode && cardData.imageUrl ? (
+                    <div className="w-[400px] h-[560px]">
+                      <Enhanced3DCardViewer
+                        card={{
+                          id: 'preview-card',
+                          title: cardData.title,
+                          description: cardData.description,
+                          image_url: cardData.imageUrl,
+                          rarity: cardData.rarity,
+                          tags: ['preview'],
+                          creator_id: 'preview-user',
+                          created_at: new Date().toISOString(),
+                          updated_at: new Date().toISOString(),
+                          user_id: 'preview-user',
+                          template_id: cardData.frameConfig.style,
+                          design_metadata: {
+                            effects: effectValues
+                          },
+                          visibility: 'private',
+                          creator_attribution: {
+                            collaboration_type: 'solo'
+                          },
+                          publishing_options: {
+                            marketplace_listing: false,
+                            crd_catalog_inclusion: false,
+                            print_available: false,
+                            pricing: { currency: 'USD' },
+                            distribution: { limited_edition: false }
+                          }
+                        }}
+                        className="w-full h-full"
+                        autoEnable={true}
+                        effects={effectValues}
+                        selectedFrame={cardData.frameConfig.style}
+                        onModeChange={() => {}}
+                        fallbackComponent={
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-lg border border-gray-600">
+                            <div className="text-center text-gray-300">
+                              <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                              <p>Loading 3D Preview...</p>
+                            </div>
+                          </div>
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <EnhancedCardRenderer
+                      ref={cardRendererRef}
+                      cardData={cardData}
+                      width={400}
+                      height={560}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
