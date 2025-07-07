@@ -13,6 +13,8 @@ import { LayerVisualizationPanel } from './components/LayerVisualizationPanel';
 import { FrameConstructor } from './components/FrameConstructor';
 import { EnhancedCardRenderer } from './components/EnhancedCardRenderer';
 import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
+import { Mobile3DCardViewer } from '@/components/viewer/Mobile3DCardViewer';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { EffectsPhase } from '@/components/studio/enhanced/components/EffectsPhase';
 import { 
   Upload, Download, RotateCcw, Eye, EyeOff, Move, Square, 
@@ -48,6 +50,7 @@ interface CardData {
 }
 
 export const EnhancedCardCreator: React.FC = () => {
+  const isMobile = useIsMobile();
   const [cardData, setCardData] = useState<CardData>({
     title: 'My Enhanced Card',
     description: 'A card created with the enhanced creator',
@@ -420,48 +423,91 @@ export const EnhancedCardCreator: React.FC = () => {
                 <div className="flex justify-center">
                   {is3DMode && cardData.imageUrl ? (
                     <div className="w-[400px] h-[560px]">
-                      <Enhanced3DCardViewer
-                        card={{
-                          id: 'preview-card',
-                          title: cardData.title,
-                          description: cardData.description,
-                          image_url: cardData.imageUrl,
-                          rarity: cardData.rarity,
-                          tags: ['preview'],
-                          creator_id: 'preview-user',
-                          created_at: new Date().toISOString(),
-                          updated_at: new Date().toISOString(),
-                          user_id: 'preview-user',
-                          template_id: cardData.frameConfig.style,
-                          design_metadata: {
-                            effects: effectValues
-                          },
-                          visibility: 'private',
-                          creator_attribution: {
-                            collaboration_type: 'solo'
-                          },
-                          publishing_options: {
-                            marketplace_listing: false,
-                            crd_catalog_inclusion: false,
-                            print_available: false,
-                            pricing: { currency: 'USD' },
-                            distribution: { limited_edition: false }
-                          }
-                        }}
-                        className="w-full h-full"
-                        autoEnable={true}
-                        effects={effectValues}
-                        selectedFrame={cardData.frameConfig.style}
-                        onModeChange={() => {}}
-                        fallbackComponent={
-                          <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-lg border border-gray-600">
-                            <div className="text-center text-gray-300">
-                              <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                              <p>Loading 3D Preview...</p>
+                      {isMobile ? (
+                        <Mobile3DCardViewer
+                          card={{
+                            id: 'preview-card',
+                            title: cardData.title,
+                            description: cardData.description,
+                            image_url: cardData.imageUrl,
+                            rarity: cardData.rarity,
+                            tags: ['preview'],
+                            creator_id: 'preview-user',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            user_id: 'preview-user',
+                            template_id: cardData.frameConfig.style,
+                            design_metadata: {
+                              effects: effectValues
+                            },
+                            visibility: 'private',
+                            creator_attribution: {
+                              collaboration_type: 'solo'
+                            },
+                            publishing_options: {
+                              marketplace_listing: false,
+                              crd_catalog_inclusion: false,
+                              print_available: false,
+                              pricing: { currency: 'USD' },
+                              distribution: { limited_edition: false }
+                            }
+                          }}
+                          className="w-full h-full"
+                          effects={effectValues}
+                          selectedFrame={cardData.frameConfig.style}
+                          fallbackComponent={
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-lg border border-gray-600">
+                              <div className="text-center text-gray-300">
+                                <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                <p>Loading 3D Preview...</p>
+                              </div>
                             </div>
-                          </div>
-                        }
-                      />
+                          }
+                        />
+                      ) : (
+                        <Enhanced3DCardViewer
+                          card={{
+                            id: 'preview-card',
+                            title: cardData.title,
+                            description: cardData.description,
+                            image_url: cardData.imageUrl,
+                            rarity: cardData.rarity,
+                            tags: ['preview'],
+                            creator_id: 'preview-user',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            user_id: 'preview-user',
+                            template_id: cardData.frameConfig.style,
+                            design_metadata: {
+                              effects: effectValues
+                            },
+                            visibility: 'private',
+                            creator_attribution: {
+                              collaboration_type: 'solo'
+                            },
+                            publishing_options: {
+                              marketplace_listing: false,
+                              crd_catalog_inclusion: false,
+                              print_available: false,
+                              pricing: { currency: 'USD' },
+                              distribution: { limited_edition: false }
+                            }
+                          }}
+                          className="w-full h-full"
+                          autoEnable={true}
+                          effects={effectValues}
+                          selectedFrame={cardData.frameConfig.style}
+                          onModeChange={() => {}}
+                          fallbackComponent={
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800 rounded-lg border border-gray-600">
+                              <div className="text-center text-gray-300">
+                                <Box className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                <p>Loading 3D Preview...</p>
+                              </div>
+                            </div>
+                          }
+                        />
+                      )}
                     </div>
                   ) : (
                     <EnhancedCardRenderer

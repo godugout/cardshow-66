@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ArrowLeft, Layers, Eye, Settings, Palette, Upload, Box } from 'lucide-react';
 import { UniversalButton, UniversalCard, UniversalBadge } from '@/components/ui/design-system';
 import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
+import { Mobile3DCardViewer } from '@/components/viewer/Mobile3DCardViewer';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { EffectsPhase } from '@/components/studio/enhanced/components/EffectsPhase';
 import { EnhancedFrameSelector } from '@/components/studio/enhanced/EnhancedFrameSelector';
 import { toast } from 'sonner';
