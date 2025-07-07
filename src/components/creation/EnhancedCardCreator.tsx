@@ -14,6 +14,8 @@ import { FrameConstructor } from './components/FrameConstructor';
 import { EnhancedCardRenderer } from './components/EnhancedCardRenderer';
 import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
 import { Mobile3DCardViewer } from '@/components/viewer/Mobile3DCardViewer';
+import { AdvancedExportDialog } from '@/components/export/AdvancedExportDialog';
+import { cardExporter, CardExportData, ExportOptions } from '@/services/cardExporter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { EffectsPhase } from '@/components/studio/enhanced/components/EffectsPhase';
 import { 
@@ -178,6 +180,27 @@ export const EnhancedCardCreator: React.FC = () => {
       layers: [...prev.layers, newLayer]
     }));
     toast.success(`New ${type} layer added!`);
+  };
+
+  const [showExportDialog, setShowExportDialog] = useState(false);
+
+  const handleExportWithOptions = async (options: ExportOptions) => {
+    try {
+      const exportData: CardExportData = {
+        id: 'preview-card',
+        title: cardData.title,
+        imageUrl: cardData.imageUrl,
+        effectValues,
+        frameConfig: cardData.frameConfig
+      };
+
+      const blob = await cardExporter.exportCard(exportData, options);
+      const filename = `${cardData.title || 'card'}.${options.format}`;
+      cardExporter.downloadBlob(blob, filename);
+    } catch (error) {
+      console.error('Export failed:', error);
+      throw error;
+    }
   };
 
   const removeLayer = (layerId: string) => {
@@ -352,12 +375,12 @@ export const EnhancedCardCreator: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex gap-4">
               <Button
-                onClick={handleExport}
-                disabled={isExporting || !cardData.imageUrl}
+                onClick={() => setShowExportDialog(true)}
+                disabled={!cardData.imageUrl}
                 className="flex-1 bg-purple-600 hover:bg-purple-700"
               >
                 <Download className="w-4 h-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'Export Card'}
+                Advanced Export
               </Button>
               <Button
                 onClick={() => {
@@ -523,6 +546,14 @@ export const EnhancedCardCreator: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Advanced Export Dialog */}
+      <AdvancedExportDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        cardData={cardData}
+        onExport={handleExportWithOptions}
+      />
     </div>
   );
 };
