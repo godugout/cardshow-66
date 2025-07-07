@@ -140,6 +140,27 @@ export const useCredits = () => {
     }
   };
 
+  const purchaseCredits = async (packageType: string) => {
+    if (!user) {
+      toast.error('Please sign in to purchase credits');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('purchase-credits', {
+        body: { packageType }
+      });
+
+      if (error) throw error;
+
+      // Open Stripe checkout in new tab
+      window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Error purchasing credits:', error);
+      toast.error('Failed to initiate credit purchase');
+    }
+  };
+
   const canAfford = (amount: number): boolean => {
     return balance >= amount;
   };
@@ -164,6 +185,7 @@ export const useCredits = () => {
     loading,
     spendCredits,
     earnCredits,
+    purchaseCredits,
     canAfford,
     refreshBalance: fetchCreditBalance,
     refreshTransactions: fetchTransactions

@@ -1,33 +1,33 @@
 import React from 'react';
 import { useCredits } from '@/hooks/useCredits';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Coins, Plus, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Coins, Plus, RefreshCw } from 'lucide-react';
 
 interface CreditBalanceProps {
-  showActions?: boolean;
-  compact?: boolean;
   onPurchaseClick?: () => void;
+  compact?: boolean;
 }
 
-export const CreditBalance: React.FC<CreditBalanceProps> = ({
-  showActions = true,
-  compact = false,
-  onPurchaseClick
+export const CreditBalance: React.FC<CreditBalanceProps> = ({ 
+  onPurchaseClick, 
+  compact = false 
 }) => {
-  const { balance, loading } = useCredits();
+  const { balance, loading, refreshBalance } = useCredits();
 
   if (loading) {
     return (
-      <Card className={compact ? "p-2" : ""}>
-        <CardContent className={compact ? "p-2" : "p-4"}>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-5 rounded-full" />
-            <Skeleton className="h-4 w-16" />
-            {showActions && <Skeleton className="h-8 w-20 ml-auto" />}
-          </div>
+      <Card className={compact ? "w-full" : ""}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Coins className="h-5 w-5 text-primary" />
+            CRD Balance
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-8 w-24" />
+          {!compact && <Skeleton className="h-8 w-32" />}
         </CardContent>
       </Card>
     );
@@ -35,75 +35,53 @@ export const CreditBalance: React.FC<CreditBalanceProps> = ({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 text-sm">
-          <Coins className="h-4 w-4 text-primary" />
-          <span className="font-medium text-foreground">{balance.toLocaleString()}</span>
-        </div>
-        {showActions && (
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={onPurchaseClick}
-            className="h-6 px-2 text-xs"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        )}
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
+        <Coins className="h-4 w-4 text-primary" />
+        <span className="font-medium">{balance.toLocaleString()}</span>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onPurchaseClick}
+          className="h-6 w-6 p-0"
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
       </div>
     );
   }
 
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Coins className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Credit Balance</p>
-              <p className="text-2xl font-bold text-foreground">
-                {balance.toLocaleString()}
-              </p>
-            </div>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Coins className="h-5 w-5 text-primary" />
+            CRD Balance
           </div>
-          
-          {showActions && (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={onPurchaseClick}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Buy Credits
-              </Button>
-            </div>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refreshBalance}
+            className="h-8 w-8 p-0"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          <div className="text-3xl font-bold text-primary">
+            {balance.toLocaleString()}
+          </div>
+          <p className="text-sm text-muted-foreground">CRD Tokens</p>
         </div>
-
-        {/* Credit Status Badges */}
-        <div className="flex gap-2 mt-4">
-          {balance > 1000 && (
-            <Badge className="bg-primary text-primary-foreground">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Rich Account
-            </Badge>
-          )}
-          {balance < 50 && (
-            <Badge variant="outline" className="text-orange-600">
-              Low Balance
-            </Badge>
-          )}
-          {balance === 0 && (
-            <Badge variant="destructive">
-              No Credits
-            </Badge>
-          )}
-        </div>
+        
+        {onPurchaseClick && (
+          <Button onClick={onPurchaseClick} className="w-full">
+            <Plus className="h-4 w-4 mr-2" />
+            Buy More Tokens
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

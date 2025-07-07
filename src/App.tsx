@@ -20,6 +20,8 @@ import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import CreatorsHubPage from './pages/CreatorsHub';
 import CreditsDashboardPage from './pages/CreditsDashboard';
+import CreditsPage from './pages/CreditsPage';
+import CreditsSuccessPage from './pages/credits/SuccessPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
@@ -130,7 +132,15 @@ function App() {
                   path="/credits" 
                   element={
                     <MainLayout>
-                      <CreditsDashboardPage />
+                      <CreditsPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/credits/success" 
+                  element={
+                    <MainLayout>
+                      <CreditsSuccessPage />
                     </MainLayout>
                   } 
                 />

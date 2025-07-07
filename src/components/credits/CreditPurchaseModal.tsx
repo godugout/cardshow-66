@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useUser } from '@/hooks/use-user';
+import React from 'react';
 import { useCredits } from '@/hooks/useCredits';
 import {
   Dialog,
@@ -9,206 +8,137 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coins, Star, Zap, Crown } from 'lucide-react';
-import { toast } from 'sonner';
-
-interface CreditPackage {
-  id: string;
-  name: string;
-  credits: number;
-  price: number;
-  bonus: number;
-  popular?: boolean;
-  icon: React.ReactNode;
-  description: string;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Coins, Zap, Crown, Star, Sparkles } from 'lucide-react';
 
 interface CreditPurchaseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const creditPackages: CreditPackage[] = [
+const CREDIT_PACKAGES = [
   {
-    id: 'starter',
-    name: 'Starter Pack',
+    id: 'small',
+    name: '100 CRD Tokens',
     credits: 100,
-    price: 4.99,
-    bonus: 0,
+    price: '$9.99',
     icon: <Coins className="h-6 w-6" />,
     description: 'Perfect for getting started'
   },
   {
-    id: 'popular',
-    name: 'Popular Pack',
+    id: 'medium',
+    name: '500 CRD Tokens',
     credits: 500,
-    price: 19.99,
-    bonus: 50,
-    popular: true,
-    icon: <Star className="h-6 w-6" />,
-    description: 'Most popular choice'
-  },
-  {
-    id: 'value',
-    name: 'Value Pack',
-    credits: 1000,
-    price: 34.99,
-    bonus: 150,
+    price: '$39.99',
     icon: <Zap className="h-6 w-6" />,
-    description: 'Best value for money'
+    description: 'Great value for regular creators',
+    bonus: '20% Bonus',
+    popular: true
   },
   {
-    id: 'premium',
-    name: 'Premium Pack',
+    id: 'large',
+    name: '1200 CRD Tokens',
+    credits: 1200,
+    price: '$79.99',
+    icon: <Star className="h-6 w-6" />,
+    description: 'Best for power users',
+    bonus: '50% Bonus'
+  },
+  {
+    id: 'mega',
+    name: '2500 CRD Tokens',
     credits: 2500,
-    price: 79.99,
-    bonus: 500,
+    price: '$149.99',
     icon: <Crown className="h-6 w-6" />,
-    description: 'For serious creators'
+    description: 'Maximum value pack',
+    bonus: '67% Bonus'
   }
 ];
 
 export const CreditPurchaseModal: React.FC<CreditPurchaseModalProps> = ({
   open,
-  onOpenChange
+  onOpenChange,
 }) => {
-  const { user } = useUser();
-  const { earnCredits } = useCredits();
-  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const { purchaseCredits } = useCredits();
 
-  const handlePurchase = async (pkg: CreditPackage) => {
-    if (!user?.id) {
-      toast.error('Please sign in to purchase credits');
-      return;
-    }
-
-    setPurchasing(pkg.id);
-
-    try {
-      // TODO: Integrate with Stripe or payment processor
-      // For now, simulate successful purchase for demo
-      const totalCredits = pkg.credits + pkg.bonus;
-      
-      const success = await earnCredits(
-        totalCredits,
-        `Purchased ${pkg.name}`,
-        'purchase',
-        pkg.id,
-        'credit_package'
-      );
-
-      if (success) {
-        toast.success(`Successfully purchased ${totalCredits} credits!`);
-        onOpenChange(false);
-      }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      toast.error('Purchase failed. Please try again.');
-    } finally {
-      setPurchasing(null);
-    }
+  const handlePurchase = (packageId: string) => {
+    purchaseCredits(packageId);
+    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Coins className="h-6 w-6 text-primary" />
-            Purchase Credits
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <Sparkles className="h-6 w-6 text-primary" />
+            Buy CRD Tokens
           </DialogTitle>
           <DialogDescription>
-            Choose a credit package to unlock premium templates, effects, and features
+            Choose a token package to power your card creation and marketplace activities.
+            Unused tokens never expire!
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          {creditPackages.map((pkg) => (
+          {CREDIT_PACKAGES.map((pkg) => (
             <Card 
               key={pkg.id}
-              className={`relative cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                pkg.popular ? 'ring-2 ring-primary' : ''
-              }`}
+              className={`relative ${pkg.popular ? 'border-primary ring-2 ring-primary/20' : ''}`}
             >
               {pkg.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">
-                    Most Popular
-                  </Badge>
-                </div>
+                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+                  Most Popular
+                </Badge>
               )}
               
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    {pkg.icon}
+              <CardHeader className="text-center pb-4">
+                <div className="flex items-center justify-center mb-2">
+                  {pkg.icon}
+                </div>
+                <CardTitle className="text-lg">{pkg.name}</CardTitle>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-2xl font-bold">{pkg.price}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                {pkg.bonus && (
+                  <Badge variant="secondary" className="text-xs">
+                    {pkg.bonus}
+                  </Badge>
+                )}
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <div className="text-center space-y-2">
+                  <div className="text-xl font-semibold text-primary">
+                    {pkg.credits.toLocaleString()} Tokens
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-foreground">
-                      {pkg.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {pkg.description}
-                    </p>
+                  <div className="text-sm text-muted-foreground">
+                    ≈ ${(pkg.credits * 0.10).toFixed(0)} value per token
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Credits:</span>
-                    <span className="font-medium text-foreground">
-                      {pkg.credits.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  {pkg.bonus > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Bonus:</span>
-                      <span className="font-medium text-green-600">
-                        +{pkg.bonus.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span className="text-sm text-muted-foreground">Total:</span>
-                    <span className="font-bold text-lg text-primary">
-                      {(pkg.credits + pkg.bonus).toLocaleString()} credits
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="text-center">
-                    <span className="text-2xl font-bold text-foreground">
-                      ${pkg.price}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">USD</span>
-                  </div>
-                  
-                  <Button
-                    onClick={() => handlePurchase(pkg)}
-                    disabled={purchasing === pkg.id}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {purchasing === pkg.id ? 'Processing...' : 'Purchase Now'}
-                  </Button>
-                </div>
+                <Button 
+                  onClick={() => handlePurchase(pkg.id)}
+                  className="w-full"
+                  variant={pkg.popular ? "default" : "outline"}
+                >
+                  Purchase Now
+                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
         <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-          <h4 className="font-medium text-foreground mb-2">What can you do with credits?</h4>
+          <h4 className="font-medium mb-2">What can you do with CRD Tokens?</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Unlock premium card templates (50-200 credits)</li>
-            <li>• Apply advanced visual effects (25-100 credits)</li>
-            <li>• Access exclusive case designs (100-300 credits)</li>
-            <li>• Purchase creator-made templates from the marketplace</li>
+            <li>• Create premium cards with advanced effects</li>
+            <li>• Purchase templates from the marketplace</li>
+            <li>• Unlock exclusive frames and designs</li>
+            <li>• Trade and bid on rare cards</li>
+            <li>• Access premium features and tools</li>
           </ul>
         </div>
       </DialogContent>
