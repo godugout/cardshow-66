@@ -89,6 +89,7 @@ const MarketplacePage: React.FC = () => {
     });
   };
 
+  console.log('Marketplace page rendering');
   return (
     <MainLayout>
       <div className="min-h-screen bg-background">

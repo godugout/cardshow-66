@@ -29,8 +29,9 @@ export const UniversalNavbar: React.FC = () => {
     item.public || (item.protected && user)
   );
 
+  console.log('UniversalNavbar rendering');
   return (
-    <nav className="bg-[#1a1f2e]/95 backdrop-blur-md border-b border-[#334155]/50 sticky top-0 z-50">
+    <nav id="universal-navbar-unique" className="bg-[#1a1f2e]/95 backdrop-blur-md border-b border-[#334155]/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -98,8 +99,8 @@ export const UniversalNavbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-[#334155]/50 py-3">
+        {/* Mobile Navigation - TEMPORARILY HIDDEN FOR DEBUG */}
+        <div className="hidden border-t border-[#334155]/50 py-3">
           <div className="flex flex-wrap gap-2">
             {visibleItems.map((item) => (
               <UniversalNavItem
