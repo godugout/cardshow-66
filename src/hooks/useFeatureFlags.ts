@@ -31,7 +31,7 @@ const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   OAK_FEATURES: false,
   
   // Core - Enable gradually
-  REAL_AUTH: false, // Enable after testing
+  REAL_AUTH: true, // ✅ ENABLED - Real Supabase authentication active
   STRIPE_PAYMENTS: true, // Already implemented
   REAL_TIME_FEATURES: false,
   
