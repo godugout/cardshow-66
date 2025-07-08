@@ -3,12 +3,51 @@ import { useState, useEffect } from 'react';
 import { useAppSettings } from './useAppSettings';
 
 export interface FeatureFlags {
+  // Legacy features
   OAK_FEATURES: boolean;
-  // Add more feature flags here as needed
+  
+  // Core features
+  REAL_AUTH: boolean;
+  STRIPE_PAYMENTS: boolean;
+  REAL_TIME_FEATURES: boolean;
+  
+  // Advanced features  
+  ADVANCED_3D_FEATURES: boolean;
+  AR_FEATURES: boolean;
+  AI_RECOMMENDATIONS: boolean;
+  
+  // Experimental features
+  VOICE_COMMANDS: boolean;
+  HAPTIC_FEEDBACK: boolean;
+  COLLABORATION_TOOLS: boolean;
+  
+  // Performance features
+  PERFORMANCE_MONITORING: boolean;
+  ADVANCED_CACHING: boolean;
 }
 
 const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  OAK_FEATURES: false, // Disabled by default for testing
+  // Legacy
+  OAK_FEATURES: false,
+  
+  // Core - Enable gradually
+  REAL_AUTH: false, // Enable after testing
+  STRIPE_PAYMENTS: true, // Already implemented
+  REAL_TIME_FEATURES: false,
+  
+  // Advanced - Enable after core is stable
+  ADVANCED_3D_FEATURES: true, // Already working
+  AR_FEATURES: false,
+  AI_RECOMMENDATIONS: false,
+  
+  // Experimental - Beta users only
+  VOICE_COMMANDS: false,
+  HAPTIC_FEEDBACK: false,
+  COLLABORATION_TOOLS: false,
+  
+  // Performance - Enable for monitoring
+  PERFORMANCE_MONITORING: true,
+  ADVANCED_CACHING: false,
 };
 
 export const useFeatureFlags = () => {
