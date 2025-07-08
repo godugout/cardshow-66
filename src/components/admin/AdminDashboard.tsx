@@ -14,10 +14,16 @@ import {
   Download,
   Settings,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Shield,
+  Flag,
+  BarChart3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthMigrationPanel } from '@/components/auth/AuthMigrationPanel';
+import { FeatureFlagsAdmin } from '@/components/admin/FeatureFlagsAdmin';
+import { MigrationStatus } from '@/components/migration/MigrationStatus';
 
 interface PlatformMetrics {
   totalUsers: number;
@@ -200,8 +206,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = f
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="users" className="space-y-6">
+        <Tabs defaultValue="migration" className="space-y-6">
           <TabsList className="bg-crd-dark border-crd-border">
+            <TabsTrigger value="migration" className="text-gray-300 data-[state=active]:text-white">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Migration Status
+            </TabsTrigger>
+            <TabsTrigger value="auth" className="text-gray-300 data-[state=active]:text-white">
+              <Shield className="w-4 h-4 mr-2" />
+              Authentication
+            </TabsTrigger>
+            <TabsTrigger value="features" className="text-gray-300 data-[state=active]:text-white">
+              <Flag className="w-4 h-4 mr-2" />
+              Feature Flags
+            </TabsTrigger>
             <TabsTrigger value="users" className="text-gray-300 data-[state=active]:text-white">
               User Management
             </TabsTrigger>
@@ -215,6 +233,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = f
               System Health
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="migration" className="space-y-6">
+            <MigrationStatus />
+          </TabsContent>
+
+          <TabsContent value="auth" className="space-y-6">
+            <AuthMigrationPanel />
+          </TabsContent>
+
+          <TabsContent value="features" className="space-y-6">
+            <FeatureFlagsAdmin />
+          </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
             <Card className="bg-crd-dark border-crd-border">
