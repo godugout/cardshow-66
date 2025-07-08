@@ -27,6 +27,7 @@ import SubscriptionPage from './pages/SubscriptionPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
+import MarketplacePage from './pages/Marketplace';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import NotFound from './pages/NotFound';
 import Debug from "./pages/Debug";
@@ -158,6 +159,14 @@ function App() {
                   element={
                     <MainLayout>
                       <Trading />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/marketplace" 
+                  element={
+                    <MainLayout>
+                      <MarketplacePage />
                     </MainLayout>
                   } 
                 />
