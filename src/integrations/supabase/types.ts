@@ -14,17 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      card_likes: {
+        Row: {
+          card_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_likes_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cards: {
         Row: {
           activity_data: Json | null
           activity_type: string | null
+          category: string | null
           created_at: string | null
           creator_name: string | null
           creator_verified: boolean | null
+          current_case: string | null
           description: string | null
+          for_sale: boolean | null
           id: string
           image_url: string | null
           is_public: boolean | null
+          like_count: number | null
           price: number | null
           rarity: string | null
           tags: string[] | null
@@ -38,13 +71,17 @@ export type Database = {
         Insert: {
           activity_data?: Json | null
           activity_type?: string | null
+          category?: string | null
           created_at?: string | null
           creator_name?: string | null
           creator_verified?: boolean | null
+          current_case?: string | null
           description?: string | null
+          for_sale?: boolean | null
           id?: string
           image_url?: string | null
           is_public?: boolean | null
+          like_count?: number | null
           price?: number | null
           rarity?: string | null
           tags?: string[] | null
@@ -58,13 +95,17 @@ export type Database = {
         Update: {
           activity_data?: Json | null
           activity_type?: string | null
+          category?: string | null
           created_at?: string | null
           creator_name?: string | null
           creator_verified?: boolean | null
+          current_case?: string | null
           description?: string | null
+          for_sale?: boolean | null
           id?: string
           image_url?: string | null
           is_public?: boolean | null
+          like_count?: number | null
           price?: number | null
           rarity?: string | null
           tags?: string[] | null
@@ -76,6 +117,45 @@ export type Database = {
           watchers_count?: number | null
         }
         Relationships: []
+      }
+      collection_items: {
+        Row: {
+          added_at: string | null
+          card_id: string
+          collection_id: string
+          id: string
+          position: number | null
+        }
+        Insert: {
+          added_at?: string | null
+          card_id: string
+          collection_id: string
+          id?: string
+          position?: number | null
+        }
+        Update: {
+          added_at?: string | null
+          card_id?: string
+          collection_id?: string
+          id?: string
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collections: {
         Row: {
@@ -291,10 +371,15 @@ export type Database = {
           creator_verified: boolean | null
           credits_balance: number | null
           display_name: string | null
+          email: string | null
+          experience: number | null
           followers_count: number | null
           following_count: number | null
           id: string
+          is_verified: boolean | null
+          level: number | null
           subscription_tier: string | null
+          unlocked_cases: string[] | null
           updated_at: string | null
           user_id: string | null
           username: string | null
@@ -307,10 +392,15 @@ export type Database = {
           creator_verified?: boolean | null
           credits_balance?: number | null
           display_name?: string | null
+          email?: string | null
+          experience?: number | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
+          is_verified?: boolean | null
+          level?: number | null
           subscription_tier?: string | null
+          unlocked_cases?: string[] | null
           updated_at?: string | null
           user_id?: string | null
           username?: string | null
@@ -323,10 +413,15 @@ export type Database = {
           creator_verified?: boolean | null
           credits_balance?: number | null
           display_name?: string | null
+          email?: string | null
+          experience?: number | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
+          is_verified?: boolean | null
+          level?: number | null
           subscription_tier?: string | null
+          unlocked_cases?: string[] | null
           updated_at?: string | null
           user_id?: string | null
           username?: string | null
