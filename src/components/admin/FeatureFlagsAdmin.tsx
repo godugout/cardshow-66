@@ -4,6 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useFeatureFlags, FeatureFlags } from '@/hooks/useFeatureFlags';
 import { AlertTriangle, Zap, Sparkles, FlaskConical } from 'lucide-react';
+import { AuthMigrationPanel } from '@/components/auth/AuthMigrationPanel';
 
 interface FeatureFlagInfo {
   key: keyof FeatureFlags;
@@ -162,6 +163,10 @@ export const FeatureFlagsAdmin: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Authentication Migration Panel */}
+      <AuthMigrationPanel />
+      
+      {/* Feature Flags */}
       <div>
         <h1 className="text-3xl font-bold">Feature Flags</h1>
         <p className="text-muted-foreground">

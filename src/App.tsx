@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -6,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
+const EnhancedSignIn = React.lazy(() => import('./pages/auth/EnhancedSignIn'));
 import Index from "./pages/Index";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
@@ -54,6 +56,14 @@ function App() {
                 <Route 
                   path="/auth/signin" 
                   element={<SignIn />} 
+                />
+                <Route 
+                  path="/auth/enhanced-signin" 
+                  element={
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                      <EnhancedSignIn />
+                    </React.Suspense>
+                  } 
                 />
                 <Route 
                   path="/auth/signup" 
