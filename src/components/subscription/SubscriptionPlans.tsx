@@ -5,12 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Zap, Star } from 'lucide-react';
 
-// Stripe Price IDs - Replace with your actual Stripe price IDs
-const STRIPE_PRICES = {
-  creator: 'price_creator_monthly', // Replace with actual price ID
-  pro: 'price_pro_monthly' // Replace with actual price ID
-};
-
 export const SubscriptionPlans: React.FC = () => {
   const { subscription, createCheckout, loading } = useSubscription();
 
@@ -28,53 +22,63 @@ export const SubscriptionPlans: React.FC = () => {
         'Standard effects',
         'Community access'
       ],
-      limitations: [
-        'Limited monthly cards',
-        'Basic templates only'
-      ]
     },
     {
-      name: 'Creator',
-      tier: 'creator' as const,
-      price: '$9',
-      period: 'month',
-      description: 'For serious card creators',
-      icon: <Zap className="h-6 w-6" />,
-      popular: true,
+      name: 'Collector',
+      tier: 'collector' as const,
+      price: '$2.99',
+      period: 'per month',
+      description: 'For card enthusiasts',
+      icon: <Check className="h-6 w-6" />,
       features: [
-        'Unlimited cards',
-        'All premium templates',
+        '25 cards per month',
+        'Premium templates',
         'Advanced effects',
         'Marketplace access',
         'Priority support'
       ],
-      priceId: STRIPE_PRICES.creator
+    },
+    {
+      name: 'Crafter',
+      tier: 'crafter' as const,
+      price: '$5.99',
+      period: 'per month',
+      description: 'For serious creators',
+      icon: <Zap className="h-6 w-6" />,
+      popular: true,
+      features: [
+        '100 cards per month',
+        'All templates',
+        'Professional effects',
+        'Marketplace selling',
+        'Analytics dashboard',
+        'Custom frames'
+      ],
     },
     {
       name: 'Pro',
       tier: 'pro' as const,
-      price: '$29',
-      period: 'month',
-      description: 'Maximum creative power',
+      price: '$9.99',
+      period: 'per month',
+      description: 'For professionals',
       icon: <Crown className="h-6 w-6" />,
       features: [
-        'Everything in Creator',
-        'Advanced 3D effects',
-        'Analytics dashboard',
-        'White-label options',
+        'Unlimited cards',
+        'All premium features',
         'API access',
-        'Premium support'
+        'White-label options',
+        'Advanced analytics',
+        'Priority support'
       ],
-      priceId: STRIPE_PRICES.pro
     }
   ];
 
-  const handleSubscribe = (tier: 'creator' | 'pro', priceId: string) => {
-    createCheckout(priceId, tier);
+  const handleSubscribe = (tier: 'collector' | 'crafter' | 'pro') => {
+    createCheckout(tier);
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       {plans.map((plan) => {
         const isCurrentPlan = subscription.subscription_tier === plan.tier;
         const isFreePlan = plan.tier === 'free';
@@ -113,17 +117,6 @@ export const SubscriptionPlans: React.FC = () => {
                 ))}
               </div>
 
-              {/* Limitations for free plan */}
-              {plan.limitations && (
-                <div className="space-y-2 pt-2 border-t">
-                  {plan.limitations.map((limitation, index) => (
-                    <div key={index} className="flex items-center gap-2 opacity-60">
-                      <span className="text-sm">{limitation}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Action Button */}
               <div className="pt-4">
                 {isCurrentPlan ? (
@@ -137,7 +130,7 @@ export const SubscriptionPlans: React.FC = () => {
                 ) : (
                   <Button 
                     className="w-full" 
-                    onClick={() => handleSubscribe(plan.tier, plan.priceId!)}
+                    onClick={() => handleSubscribe(plan.tier)}
                     disabled={loading}
                     variant={plan.popular ? "default" : "outline"}
                   >

@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+  console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -29,6 +29,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
+    // Use service role for database operations
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
@@ -40,9 +47,19 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { tier } = await req.json();
-    if (!tier) throw new Error("Subscription tier is required");
-    logStep("Request data parsed", { tier });
+    const { cardId } = await req.json();
+    if (!cardId) throw new Error("Card ID is required");
+    logStep("Request data parsed", { cardId });
+
+    // Fetch card details
+    const { data: card, error: cardError } = await supabaseService
+      .from('cards')
+      .select('id, title, image_url, user_id')
+      .eq('id', cardId)
+      .single();
+
+    if (cardError || !card) throw new Error("Card not found");
+    logStep("Card found", { cardTitle: card.title });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
@@ -56,19 +73,9 @@ serve(async (req) => {
       logStep("No existing customer found");
     }
 
-    // Define pricing
-    const pricingConfig = {
-      collector: { amount: 299, name: "Collector Plan" },
-      crafter: { amount: 599, name: "Crafter Plan" },
-      pro: { amount: 999, name: "Pro Plan" }
-    };
-
-    const config = pricingConfig[tier as keyof typeof pricingConfig];
-    if (!config) throw new Error("Invalid subscription tier");
-    logStep("Pricing configured", config);
-
     const origin = req.headers.get("origin") || "http://localhost:3000";
     
+    // Create Stripe checkout session for card purchase
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -76,19 +83,41 @@ serve(async (req) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: config.name },
-            unit_amount: config.amount,
-            recurring: { interval: "month" },
+            product_data: { 
+              name: `CRD: ${card.title}`,
+              images: card.image_url ? [card.image_url] : undefined
+            },
+            unit_amount: 99, // $0.99 in cents
           },
           quantity: 1,
         },
       ],
-      mode: "subscription",
-      success_url: `${origin}/subscription?success=true`,
-      cancel_url: `${origin}/subscription?cancelled=true`,
+      mode: "payment",
+      success_url: `${origin}/marketplace?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/marketplace?purchase=cancelled`,
+      metadata: {
+        card_id: cardId,
+        user_id: user.id,
+      },
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    // Create order record
+    const { error: orderError } = await supabaseService
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        card_id: cardId,
+        stripe_session_id: session.id,
+        amount: 99,
+        status: 'pending'
+      });
+
+    if (orderError) {
+      logStep("Error creating order", { error: orderError });
+      throw new Error("Failed to create order record");
+    }
+
+    logStep("Payment session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -96,7 +125,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
+    logStep("ERROR in create-payment", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

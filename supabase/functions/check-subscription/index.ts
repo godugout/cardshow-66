@@ -94,10 +94,12 @@ serve(async (req) => {
       const price = await stripe.prices.retrieve(priceId);
       const amount = price.unit_amount || 0;
       
-      if (amount >= 2900) {
+      if (amount >= 999) {
         subscriptionTier = "pro";
-      } else if (amount >= 900) {
-        subscriptionTier = "creator";
+      } else if (amount >= 599) {
+        subscriptionTier = "crafter";
+      } else if (amount >= 299) {
+        subscriptionTier = "collector";
       } else {
         subscriptionTier = "free";
       }

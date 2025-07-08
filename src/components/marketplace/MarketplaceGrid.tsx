@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { usePayments } from '@/hooks/usePayments';
 import type { Card as CardType } from '@/types/card';
 
 interface MarketplaceListing {
@@ -32,6 +33,7 @@ export const MarketplaceGrid: React.FC = () => {
   const [listings, setListings] = useState<MarketplaceListing[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { purchaseCard, loading: paymentLoading } = usePayments();
 
   useEffect(() => {
     fetchListings();
@@ -84,11 +86,12 @@ export const MarketplaceGrid: React.FC = () => {
     }
   };
 
-  const handlePurchase = async (listingId: string, price: number) => {
-    toast({
-      title: "Purchase Initiated",
-      description: `Purchasing card for $${price}`,
-    });
+  const handlePurchase = async (cardId: string, price: number) => {
+    try {
+      await purchaseCard(cardId);
+    } catch (error) {
+      console.error('Purchase failed:', error);
+    }
   };
 
   const handleMakeOffer = (listingId: string) => {
@@ -149,7 +152,11 @@ export const MarketplaceGrid: React.FC = () => {
                 <Heart className="h-4 w-4 mr-1" />
                 Offer
               </Button>
-              <Button size="sm" onClick={() => handlePurchase(listing.id, listing.price)}>
+              <Button 
+                size="sm" 
+                onClick={() => handlePurchase(listing.card?.id, listing.price)}
+                disabled={paymentLoading}
+              >
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 Buy Now
               </Button>
@@ -176,7 +183,11 @@ export const MarketplaceGrid: React.FC = () => {
                 <Button size="sm" variant="outline" onClick={() => handleMakeOffer(listing.id)}>
                   Offer
                 </Button>
-                <Button size="sm" onClick={() => handlePurchase(listing.id, listing.price)}>
+                <Button 
+                  size="sm" 
+                  onClick={() => handlePurchase(listing.card?.id, listing.price)}
+                  disabled={paymentLoading}
+                >
                   Buy
                 </Button>
               </div>

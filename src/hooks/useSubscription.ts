@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 export interface SubscriptionInfo {
   subscribed: boolean;
-  subscription_tier: 'free' | 'creator' | 'pro';
+  subscription_tier: 'free' | 'collector' | 'crafter' | 'pro';
   subscription_end?: string;
 }
 
@@ -32,7 +32,7 @@ export const useSubscription = () => {
     }
   };
 
-  const createCheckout = async (priceId: string, tier: 'creator' | 'pro') => {
+  const createCheckout = async (tier: 'collector' | 'crafter' | 'pro') => {
     if (!user) {
       toast.error('Please sign in to subscribe');
       return;
@@ -40,7 +40,7 @@ export const useSubscription = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId, tier }
+        body: { tier }
       });
 
       if (error) throw error;
@@ -72,8 +72,8 @@ export const useSubscription = () => {
     }
   };
 
-  const hasFeature = (requiredTier: 'free' | 'creator' | 'pro'): boolean => {
-    const tierHierarchy = { free: 0, creator: 1, pro: 2 };
+  const hasFeature = (requiredTier: 'free' | 'collector' | 'crafter' | 'pro'): boolean => {
+    const tierHierarchy = { free: 0, collector: 1, crafter: 2, pro: 3 };
     return tierHierarchy[subscription.subscription_tier] >= tierHierarchy[requiredTier];
   };
 

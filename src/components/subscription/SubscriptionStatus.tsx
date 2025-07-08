@@ -111,8 +111,11 @@ export const SubscriptionStatus: React.FC = () => {
           {subscription.subscription_tier === 'free' && (
             <p>5 cards per month • Basic templates • Community access</p>
           )}
-          {subscription.subscription_tier === 'creator' && (
-            <p>Unlimited cards • Premium templates • Marketplace access</p>
+          {subscription.subscription_tier === 'collector' && (
+            <p>25 cards per month • Premium templates • Marketplace access</p>
+          )}
+          {subscription.subscription_tier === 'crafter' && (
+            <p>100 cards per month • All templates • Marketplace selling</p>
           )}
           {subscription.subscription_tier === 'pro' && (
             <p>All features • Advanced effects • Analytics • API access</p>
