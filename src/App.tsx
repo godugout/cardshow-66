@@ -7,6 +7,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { GlobalErrorBoundary } from "@/components/layout/GlobalErrorBoundary";
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 const EnhancedSignIn = React.lazy(() => import('./pages/auth/EnhancedSignIn'));
 import Index from "./pages/Index";
 import SignIn from "./pages/auth/SignIn";
@@ -45,13 +47,14 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <div className="min-h-screen">
-              <Toaster />
-              <Routes>
+    <GlobalErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <div className="min-h-screen">
+                <Toaster />
+                <Routes>
                 {/* Auth routes - no navbar */}
                 <Route 
                   path="/auth/signin" 
@@ -225,14 +228,15 @@ function App() {
                   } 
                 />
                 
-                {/* 404 catch-all route */}
-                <Route path="*" element={<NotFound />} />
+                 {/* 404 catch-all route */}
+                <Route path="*" element={<RouteErrorBoundary />} />
               </Routes>
             </div>
           </TooltipProvider>
         </QueryClientProvider>
       </AuthProvider>
     </Router>
+    </GlobalErrorBoundary>
   );
 }
 
