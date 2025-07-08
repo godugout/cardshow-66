@@ -89,11 +89,9 @@ const MarketplacePage: React.FC = () => {
     });
   };
 
-  console.log('Marketplace page rendering');
   return (
-    <MainLayout>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 space-y-8">
           
           {/* Action Button */}
           <div className="flex justify-end">
@@ -178,7 +176,6 @@ const MarketplacePage: React.FC = () => {
           <MarketplaceGrid />
         </div>
       </div>
-    </MainLayout>
   );
 };
 

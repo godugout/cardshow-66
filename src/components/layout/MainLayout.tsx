@@ -11,7 +11,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   children, 
   showNavbar = true 
 }) => {
-  console.log('MainLayout rendering, showNavbar:', showNavbar);
   return (
     <div className="min-h-screen bg-[#0a0a0b]">
       {showNavbar && <UniversalNavbar />}

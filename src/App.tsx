@@ -109,7 +109,11 @@ function App() {
                 />
                 <Route 
                   path="/studio" 
-                  element={<StudioPage />} 
+                  element={
+                    <MainLayout>
+                      <StudioPage />
+                    </MainLayout>
+                  } 
                 />
                 <Route 
                   path="/collections" 
