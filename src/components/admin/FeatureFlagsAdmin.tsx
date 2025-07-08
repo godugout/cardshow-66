@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useFeatureFlags, FeatureFlags } from '@/hooks/useFeatureFlags';
-import { AlertTriangle, Zap, Sparkles, FlaskConical } from 'lucide-react';
+import { AlertTriangle, Zap, Sparkles, FlaskConical, Flag } from 'lucide-react';
 import { AuthMigrationPanel } from '@/components/auth/AuthMigrationPanel';
 
 interface FeatureFlagInfo {
@@ -163,83 +163,80 @@ export const FeatureFlagsAdmin: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Authentication Migration Panel */}
-      <AuthMigrationPanel />
-      
-      {/* Feature Flags */}
-      <div>
-        <h1 className="text-3xl font-bold">Feature Flags</h1>
-        <p className="text-muted-foreground">
-          Safely control feature rollouts and manage experimental functionality
-        </p>
-      </div>
-
-      {Object.entries(groupedFlags).map(([category, flags]) => (
-        <Card key={category} className="border-editor-border bg-editor-dark">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 capitalize">
-              {getCategoryIcon(category)}
-              {category} Features
-            </CardTitle>
-            <CardDescription>
-              {category === 'core' && 'Essential features for basic functionality'}
-              {category === 'advanced' && 'Enhanced features for power users'}
-              {category === 'experimental' && 'Cutting-edge features in development'}
-              {category === 'performance' && 'Features for monitoring and optimization'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {flags.map((flagConfig) => {
-              const dependenciesMet = checkDependencies(flagConfig);
-              const isEnabled = featureFlags[flagConfig.key];
-              
-              return (
-                <div 
-                  key={flagConfig.key}
-                  className="flex items-start justify-between p-4 rounded-lg border border-editor-border bg-editor-darker"
-                >
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{flagConfig.title}</h3>
-                      <Badge className={getCategoryColor(flagConfig.category)}>
-                        {flagConfig.category}
-                      </Badge>
-                      <Badge className={getRiskColor(flagConfig.risk)}>
-                        {flagConfig.risk} risk
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground">
-                      {flagConfig.description}
-                    </p>
-                    
-                    {flagConfig.dependencies && (
-                      <div className="text-xs text-muted-foreground">
-                        Dependencies: {flagConfig.dependencies.join(', ')}
-                        {!dependenciesMet && (
-                          <span className="text-red-500 ml-2">
-                            (Not all dependencies met)
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <Switch
-                    checked={isEnabled}
-                    onCheckedChange={(checked) => {
-                      if (!checked || dependenciesMet) {
-                        updateFeatureFlag(flagConfig.key, checked);
-                      }
-                    }}
-                    disabled={!dependenciesMet && !isEnabled}
-                  />
+      <Card className="bg-card border-border shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="flex items-center gap-2 text-foreground font-semibold">
+            <Flag className="h-5 w-5" />
+            Feature Flags Management
+          </CardTitle>
+          <CardDescription className="text-muted-foreground mt-1">
+            Control feature rollouts and experimental functionality
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-6">
+            {Object.entries(groupedFlags).map(([category, flags]) => (
+              <div key={category} className="space-y-4">
+                <div className="flex items-center gap-3">
+                  {getCategoryIcon(category)}
+                  <h3 className="text-lg font-semibold text-foreground capitalize">{category} Features</h3>
+                  <Badge className={getCategoryColor(category)}>
+                    {flags.length} {flags.length === 1 ? 'feature' : 'features'}
+                  </Badge>
                 </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      ))}
+                
+                <div className="space-y-3">
+                  {flags.map((flagConfig) => {
+                    const dependenciesMet = checkDependencies(flagConfig);
+                    const isEnabled = featureFlags[flagConfig.key];
+                    
+                    return (
+                      <div 
+                        key={flagConfig.key}
+                        className="flex items-start justify-between p-4 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h4 className="font-semibold text-foreground">{flagConfig.title}</h4>
+                            <Badge className={getRiskColor(flagConfig.risk)}>
+                              {flagConfig.risk} risk
+                            </Badge>
+                            {!dependenciesMet && (
+                              <Badge className="bg-red-500/15 text-red-700 border-red-500/30">
+                                Dependencies not met
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {flagConfig.description}
+                          </p>
+                          
+                          {flagConfig.dependencies && (
+                            <div className="text-xs text-muted-foreground font-medium">
+                              Dependencies: {flagConfig.dependencies.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <Switch
+                          checked={isEnabled}
+                          onCheckedChange={(checked) => {
+                            if (!checked || dependenciesMet) {
+                              updateFeatureFlag(flagConfig.key, checked);
+                            }
+                          }}
+                          disabled={!dependenciesMet && !isEnabled}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

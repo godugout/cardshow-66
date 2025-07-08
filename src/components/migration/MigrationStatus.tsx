@@ -145,21 +145,21 @@ export const MigrationStatus: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border-editor-border bg-editor-dark">
-        <CardHeader>
-          <CardTitle>Migration Progress</CardTitle>
-          <CardDescription>
+      <Card className="bg-card border-border shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="text-foreground font-semibold">Migration Progress</CardTitle>
+          <CardDescription className="text-muted-foreground mt-1">
             Overall progress of the Cardshow migration plan
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{completedSteps} of {totalSteps} steps completed</span>
+        <CardContent className="p-6">
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-foreground">Progress</span>
+              <span className="text-muted-foreground">{completedSteps} of {totalSteps} steps completed</span>
             </div>
-            <Progress value={progress} className="h-2" />
-            <p className="text-xs text-muted-foreground">
+            <Progress value={progress} className="h-3" />
+            <p className="text-sm text-muted-foreground font-medium">
               {Math.round(progress)}% complete
             </p>
           </div>
@@ -167,41 +167,43 @@ export const MigrationStatus: React.FC = () => {
       </Card>
 
       {Object.entries(phaseSteps).map(([phase, steps]) => (
-        <Card key={phase} className="border-editor-border bg-editor-dark">
-          <CardHeader>
-            <CardTitle>{phase}</CardTitle>
+        <Card key={phase} className="bg-card border-border shadow-sm">
+          <CardHeader className="border-b border-border pb-4">
+            <CardTitle className="text-foreground font-semibold">{phase}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {steps.map((step) => (
-              <div 
-                key={step.id}
-                className="flex items-start gap-3 p-4 rounded-lg border border-editor-border bg-editor-darker"
-              >
-                {getStatusIcon(step.status)}
-                
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{step.title}</h3>
-                    <Badge className={getStatusColor(step.status)}>
-                      {step.status}
-                    </Badge>
-                    <Badge className={getPriorityColor(step.priority)}>
-                      {step.priority} priority
-                    </Badge>
-                  </div>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {steps.map((step) => (
+                <div 
+                  key={step.id}
+                  className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors"
+                >
+                  {getStatusIcon(step.status)}
                   
-                  <p className="text-sm text-muted-foreground">
-                    {step.description}
-                  </p>
-                  
-                  {step.dependencies && (
-                    <div className="text-xs text-muted-foreground">
-                      Dependencies: {step.dependencies.join(', ')}
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="font-semibold text-foreground">{step.title}</h3>
+                      <Badge className={getStatusColor(step.status)}>
+                        {step.status}
+                      </Badge>
+                      <Badge className={getPriorityColor(step.priority)}>
+                        {step.priority} priority
+                      </Badge>
                     </div>
-                  )}
+                    
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {step.description}
+                    </p>
+                    
+                    {step.dependencies && (
+                      <div className="text-xs text-muted-foreground font-medium">
+                        Dependencies: {step.dependencies.join(', ')}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
       ))}

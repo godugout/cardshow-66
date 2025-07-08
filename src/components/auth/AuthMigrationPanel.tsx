@@ -31,47 +31,47 @@ export const AuthMigrationPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border-editor-border bg-editor-dark">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="bg-card border-border shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="flex items-center gap-2 text-foreground font-semibold">
             <Shield className="h-5 w-5" />
             Authentication Migration
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground mt-1">
             Safely switch between mock and real Supabase authentication
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-6">
           
           {/* Current Status */}
-          <div className="space-y-3">
-            <h3 className="font-medium flex items-center gap-2">
+          <div className="space-y-4">
+            <h3 className="font-semibold flex items-center gap-2 text-foreground">
               Current Status
               {isMockUser ? (
-                <Badge className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20">
+                <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 font-medium">
                   Mock Auth
                 </Badge>
               ) : (
-                <Badge className="bg-green-500/10 text-green-700 border-green-500/20">
+                <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-500/30 font-medium">
                   Real Auth
                 </Badge>
               )}
             </h3>
             
-            <div className="bg-editor-darker p-3 rounded-lg border border-editor-border">
-              <div className="text-sm space-y-1">
-                <div><strong>User ID:</strong> {user?.id || 'None'}</div>
-                <div><strong>Email:</strong> {user?.email || 'None'}</div>
-                <div><strong>Auth Type:</strong> {isMockUser ? 'Mock/Development' : 'Real Supabase'}</div>
-                <div><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</div>
+            <div className="bg-muted/30 p-4 rounded-lg border border-border">
+              <div className="text-sm space-y-2 font-medium">
+                <div className="text-foreground"><strong>User ID:</strong> <span className="text-muted-foreground font-mono text-xs">{user?.id || 'None'}</span></div>
+                <div className="text-foreground"><strong>Email:</strong> <span className="text-muted-foreground">{user?.email || 'None'}</span></div>
+                <div className="text-foreground"><strong>Auth Type:</strong> <span className="text-muted-foreground">{isMockUser ? 'Mock/Development' : 'Real Supabase'}</span></div>
+                <div className="text-foreground"><strong>Loading:</strong> <span className="text-muted-foreground">{loading ? 'Yes' : 'No'}</span></div>
               </div>
             </div>
           </div>
 
           {/* Feature Flag Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-lg border border-editor-border bg-editor-darker">
+          <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
             <div className="space-y-1">
-              <h4 className="font-medium">Enable Real Authentication</h4>
+              <h4 className="font-semibold text-foreground">Enable Real Authentication</h4>
               <p className="text-sm text-muted-foreground">
                 Switch from mock authentication to real Supabase auth
               </p>
@@ -114,21 +114,25 @@ export const AuthMigrationPanel: React.FC = () => {
           )}
 
           {/* Migration Safety Features */}
-          <div className="space-y-3">
-            <h3 className="font-medium">Migration Safety Features</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div className="bg-editor-darker p-3 rounded-lg border border-editor-border">
-                <div className="font-medium text-green-400 mb-1">✓ Preserved Features</div>
-                <ul className="space-y-1 text-muted-foreground">
+          <div className="space-y-4">
+            <h3 className="font-semibold text-foreground">Migration Safety Features</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-muted/30 p-4 rounded-lg border border-border">
+                <div className="font-semibold text-emerald-600 mb-2 flex items-center gap-1">
+                  ✓ Preserved Features
+                </div>
+                <ul className="space-y-1 text-sm text-muted-foreground">
                   <li>• User profiles & subscriptions</li>
                   <li>• Card creation & ownership</li>
                   <li>• Trading system</li>
                   <li>• Marketplace purchases</li>
                 </ul>
               </div>
-              <div className="bg-editor-darker p-3 rounded-lg border border-editor-border">
-                <div className="font-medium text-blue-400 mb-1">⚡ Safety Measures</div>
-                <ul className="space-y-1 text-muted-foreground">
+              <div className="bg-muted/30 p-4 rounded-lg border border-border">
+                <div className="font-semibold text-blue-600 mb-2 flex items-center gap-1">
+                  ⚡ Safety Measures
+                </div>
+                <ul className="space-y-1 text-sm text-muted-foreground">
                   <li>• Feature flag controlled</li>
                   <li>• Adapter pattern compatibility</li>
                   <li>• Gradual migration support</li>
