@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, CreditCard, Bookmark, Settings, LogOut, Coins } from "lucide-react";
+import { User, CreditCard, Bookmark, Settings, LogOut, Coins, Trophy } from "lucide-react";
 import { ProfileService } from "@/features/auth/services/profileService";
 
 export const ProfileDropdown = () => {
@@ -79,6 +79,12 @@ export const ProfileDropdown = () => {
           <Link to="/subscription" className="flex items-center">
             <Coins className="mr-2 h-4 w-4" />
             <span>Subscription</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="text-crd-white hover:bg-crd-mediumGray focus:bg-crd-mediumGray cursor-pointer">
+          <Link to="/creator-dashboard" className="flex items-center">
+            <Trophy className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-crd-mediumGray" />

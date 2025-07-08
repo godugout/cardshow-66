@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { UniversalButton } from '../atoms/UniversalButton';
 import { UniversalNavItem } from '../molecules/UniversalNavItem';
 import { 
-  Home, Plus, Palette, Users, Trophy, 
+  Home, Plus, Palette, Users, ShoppingBag, 
   FileImage, Shield, Sparkles, User, Settings 
 } from 'lucide-react';
 
@@ -15,9 +15,9 @@ const navigationItems = [
   { href: '/studio', label: 'Studio', icon: <Palette className="w-4 h-4" />, protected: true },
   { href: '/collections', label: 'Collections', icon: <FileImage className="w-4 h-4" />, public: true },
   { href: '/community', label: 'Community', icon: <Users className="w-4 h-4" />, public: true },
-  { href: '/creator-dashboard', label: 'Dashboard', icon: <Trophy className="w-4 h-4" />, protected: true },
-  { href: '/debug/psd-preview', label: 'PSD Analysis', icon: <FileImage className="w-4 h-4" />, protected: true },
+  { href: '/marketplace', label: 'Marketplace', icon: <ShoppingBag className="w-4 h-4" />, public: true },
   ...(process.env.NODE_ENV === 'development' ? [
+    { href: '/debug/psd-preview', label: 'PSD Analysis', icon: <FileImage className="w-4 h-4" />, protected: true },
     { href: '/admin', label: 'Admin', icon: <Shield className="w-4 h-4" />, protected: true }
   ] : [])
 ];
