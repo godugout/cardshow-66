@@ -52,7 +52,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   }
 
   return (
-    <div className={`fixed inset-0 z-50 bg-black/80 flex items-center justify-center ${className}`}>
+    <div className={`relative inset-0 z-30 bg-transparent flex items-center justify-center ${className}`}>
       <div className="relative w-full max-w-4xl h-full max-h-[90vh] bg-crd-darkest rounded-lg overflow-hidden">
         {/* Close button */}
         {onClose && (
