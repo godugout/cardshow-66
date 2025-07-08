@@ -91,17 +91,11 @@ const MarketplacePage: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="min-h-screen bg-editor-darker">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 space-y-8">
           
-          {/* Header */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-editor-text mb-2">Marketplace</h1>
-              <p className="text-editor-text-muted">
-                Discover and trade unique digital cards from creators worldwide
-              </p>
-            </div>
+          {/* Action Button */}
+          <div className="flex justify-end">
             <Button onClick={handleCreateListing} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               List Your Card
