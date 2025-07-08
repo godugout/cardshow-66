@@ -4,10 +4,10 @@ import { CRDButton } from '@/components/ui/design-system';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const OAuthButtons: React.FC = () => {
-  const { signInWithOAuth } = useAuth();
+  const { signInWithGoogle } = useAuth();
 
   const handleOAuthSignIn = async (provider: 'google' | 'github' | 'discord') => {
-    await signInWithOAuth(provider);
+    await signInWithGoogle();
   };
 
   return (

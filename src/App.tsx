@@ -35,6 +35,8 @@ import MarketplacePage from './pages/Marketplace';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import NotFound from './pages/NotFound';
 import Debug from "./pages/Debug";
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,17 +88,21 @@ function App() {
                 <Route 
                   path="/create" 
                   element={
-                    <MainLayout>
-                      <UnifiedCreationFlow />
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <UnifiedCreationFlow />
+                      </MainLayout>
+                    </ProtectedRoute>
                   } 
                 />
                 <Route 
                   path="/create/enhanced" 
                   element={
-                    <MainLayout>
-                      <EnhancedCardCreationPage />
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <EnhancedCardCreationPage />
+                      </MainLayout>
+                    </ProtectedRoute>
                   } 
                 />
                 <Route 
@@ -110,9 +116,11 @@ function App() {
                 <Route 
                   path="/studio" 
                   element={
-                    <MainLayout>
-                      <StudioPage />
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <StudioPage />
+                      </MainLayout>
+                    </ProtectedRoute>
                   } 
                 />
                 <Route 
@@ -181,10 +189,32 @@ function App() {
                 />
                 <Route 
                   path="/marketplace" 
+                  element={<MarketplacePage />} 
+                />
+                
+                {/* Password Reset Route */}
+                <Route path="/auth/forgot-password" element={<MainLayout showNavbar={false}><ForgotPassword /></MainLayout>} />
+                <Route path="/auth/reset-password" element={<MainLayout showNavbar={false}><ResetPassword /></MainLayout>} />
+                
+                {/* Protected Routes */}
+                <Route 
+                  path="/cards" 
                   element={
-                    <MainLayout>
-                      <MarketplacePage />
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <div className="p-8 text-center text-white">Cards page coming soon!</div>
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <div className="p-8 text-center text-white">Profile page coming soon!</div>
+                      </MainLayout>
+                    </ProtectedRoute>
                   } 
                 />
                 

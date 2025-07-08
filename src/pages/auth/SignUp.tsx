@@ -13,7 +13,7 @@ const SignUp: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInWithOAuth } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +36,7 @@ const SignUp: React.FC = () => {
 
   const handleOAuthSignIn = async (provider: 'google' | 'github') => {
     setLoading(true);
-    await signInWithOAuth(provider);
+    await signInWithGoogle();
     setLoading(false);
   };
 

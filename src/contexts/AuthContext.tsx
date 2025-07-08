@@ -1,318 +1,237 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { User, AuthError, Session } from '@supabase/supabase-js';
-import { toast } from 'sonner';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, username?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ error: AuthError | null }>;
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  loading: true,
-  signIn: async () => ({ error: null }),
-  signUp: async () => ({ error: null }),
-  signOut: async () => {},
-  signInWithOAuth: async () => ({ error: null }),
-  resetPassword: async () => ({ error: null }),
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isFeatureEnabled } = useFeatureFlags();
-  const realAuthEnabled = isFeatureEnabled('REAL_AUTH');
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
 
-  // Fixed mock user with valid UUID format
-  const mockUserId = '00000000-0000-0000-0000-000000000001';
-  const mockUser: User = {
-    id: mockUserId,
-    email: 'demo@cardshow.dev',
-    email_confirmed_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    app_metadata: {},
-    user_metadata: {
-      username: 'demo-user',
-      full_name: 'Demo User',
-      avatar_url: ''
-    },
-    aud: 'authenticated',
-    role: 'authenticated'
-  } as User;
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const mockSession: Session = {
-    access_token: 'mock-token',
-    refresh_token: 'mock-refresh',
-    expires_in: 3600,
-    expires_at: Date.now() + 3600000,
-    token_type: 'bearer',
-    user: mockUser
-  } as Session;
-
-  // Real auth state
-  const [realUser, setRealUser] = useState<User | null>(null);
-  const [realSession, setRealSession] = useState<Session | null>(null);
-  const [realLoading, setRealLoading] = useState(true);
-
-  // Mock auth state
-  const [mockUserState] = useState<User | null>(mockUser);
-  const [mockSessionState] = useState<Session | null>(mockSession);
-  const [mockLoading] = useState(false);
-
-  // Adapter pattern: return real or mock auth based on feature flag
-  const user = realAuthEnabled ? realUser : mockUserState;
-  const session = realAuthEnabled ? realSession : mockSessionState;
-  const loading = realAuthEnabled ? realLoading : mockLoading;
-
-  // Real authentication setup
   useEffect(() => {
-    if (!realAuthEnabled) {
-      setRealLoading(false);
-      return;
-    }
-
-    // Set up real auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        setRealSession(session);
-        setRealUser(session?.user ?? null);
-        setRealLoading(false);
-
-        // Create profile for new users (deferred to avoid deadlock)
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        // Create profile for new users
         if (event === 'SIGNED_IN' && session?.user) {
-          setTimeout(() => {
-            createUserProfile(session.user);
+          setTimeout(async () => {
+            await createUserProfile(session.user);
           }, 0);
         }
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setRealSession(session);
-      setRealUser(session?.user ?? null);
-      setRealLoading(false);
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [realAuthEnabled]);
+  }, []);
 
-  // Mock profile setup
-  useEffect(() => {
-    if (realAuthEnabled) return;
-
-    const createMockProfile = async () => {
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', mockUserId)
-          .single();
-
-        if (error && error.code === 'PGRST116') {
-          // Profile doesn't exist, create it
-          await supabase
-            .from('profiles')
-            .insert({
-              user_id: mockUserId,
-              username: 'demo-user',
-              display_name: 'Demo User',
-              avatar_url: '',
-              bio: 'Demo user for testing'
-            });
-        }
-      } catch (error) {
-        console.log('Mock profile setup:', error);
-      }
-    };
-
-    createMockProfile();
-  }, [realAuthEnabled]);
-
-  // Helper function to create user profile
   const createUserProfile = async (user: User) => {
     try {
       const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('user_id')
+        .select('id')
         .eq('user_id', user.id)
         .single();
 
       if (!existingProfile) {
-        await supabase
+        const { error } = await supabase
           .from('profiles')
           .insert({
             user_id: user.id,
-            username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-            display_name: user.user_metadata?.full_name || user.user_metadata?.name || 'New User',
-            avatar_url: user.user_metadata?.avatar_url || '',
-            bio: ''
+            email: user.email,
+            display_name: user.user_metadata?.display_name || user.email?.split('@')[0],
           });
-      }
-    } catch (error) {
-      console.error('Error creating user profile:', error);
-    }
-  };
 
-  // Auth functions - real or mock based on feature flag
-  const signIn = async (email: string, password: string) => {
-    if (!realAuthEnabled) {
-      console.log('Mock sign in:', { email });
-      toast.success('Signed in successfully (mock)');
-      return { error: null };
-    }
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Signed in successfully');
-      }
-      
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      toast.error('An error occurred during sign in');
-      return { error: authError };
-    }
-  };
-
-  const signUp = async (email: string, password: string) => {
-    if (!realAuthEnabled) {
-      console.log('Mock sign up:', { email });
-      toast.success('Account created successfully (mock)');
-      return { error: null };
-    }
-
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl
+        if (error) {
+          console.error('Error creating profile:', error);
         }
-      });
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Account created! Please check your email for verification.');
       }
-      
-      return { error };
     } catch (error) {
-      const authError = error as AuthError;
-      toast.error('An error occurred during sign up');
-      return { error: authError };
+      console.error('Error checking/creating profile:', error);
     }
+  };
+
+  const signUp = async (email: string, password: string, username?: string) => {
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          display_name: username || email.split('@')[0],
+        }
+      }
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a confirmation link to complete your registration.",
+      });
+    }
+
+    return { error };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: error.message,
+      });
+    }
+
+    return { error };
+  };
+
+  const signInWithGoogle = async () => {
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+      }
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Google sign in failed",
+        description: error.message,
+      });
+    }
+
+    return { error };
+  };
+
+  const signInWithMagicLink = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: redirectUrl,
+      }
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Magic link failed",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a magic link to sign in.",
+      });
+    }
+
+    return { error };
   };
 
   const signOut = async () => {
-    if (!realAuthEnabled) {
-      console.log('Mock sign out');
-      toast.success('Signed out successfully (mock)');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Signed out successfully');
-      }
-    } catch (error) {
-      toast.error('An error occurred during sign out');
-    }
-  };
-
-  const signInWithOAuth = async (provider: 'google' | 'github' | 'discord') => {
-    if (!realAuthEnabled) {
-      console.log('Mock OAuth sign in:', { provider });
-      toast.success(`Signed in with ${provider} successfully (mock)`);
-      return { error: null };
-    }
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign out failed",
+        description: error.message,
       });
-      
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      toast.error(`An error occurred signing in with ${provider}`);
-      return { error: authError };
+    } else {
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
     }
   };
 
   const resetPassword = async (email: string) => {
-    if (!realAuthEnabled) {
-      console.log('Mock reset password:', { email });
-      toast.success('Password reset email sent (mock)');
-      return { error: null };
+    const redirectUrl = `${window.location.origin}/auth/reset-password`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Password reset failed",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link.",
+      });
     }
 
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
-      });
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Password reset email sent');
-      }
-      
-      return { error };
-    } catch (error) {
-      const authError = error as AuthError;
-      toast.error('An error occurred sending reset email');
-      return { error: authError };
-    }
+    return { error };
   };
 
   const value = {
     user,
     session,
     loading,
-    signIn,
     signUp,
+    signIn,
+    signInWithGoogle,
+    signInWithMagicLink,
     signOut,
-    signInWithOAuth,
     resetPassword,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

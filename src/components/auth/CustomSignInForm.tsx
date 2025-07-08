@@ -11,7 +11,7 @@ export const CustomSignInForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signInWithOAuth } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,7 +32,7 @@ export const CustomSignInForm: React.FC = () => {
 
   const handleOAuthSignIn = async (provider: 'google' | 'github') => {
     setLoading(true);
-    await signInWithOAuth(provider);
+    await signInWithGoogle();
     setLoading(false);
   };
 

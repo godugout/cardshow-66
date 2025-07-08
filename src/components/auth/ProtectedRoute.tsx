@@ -1,31 +1,32 @@
-
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoadingState } from '@/components/common/LoadingState';
+import { UnifiedLoading } from '@/components/ui/UnifiedLoading';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
+  requireProfile?: boolean;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requireAuth = true 
+  requireProfile = false 
 }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return <LoadingState message="Authenticating..." fullPage size="lg" />;
+    return <UnifiedLoading />;
   }
 
-  if (requireAuth && !user) {
+  if (!user) {
+    // Redirect to sign in with return URL
     return <Navigate to="/auth/signin" state={{ from: location }} replace />;
   }
 
-  if (!requireAuth && user) {
-    return <Navigate to="/" replace />;
+  // For routes that require a complete profile
+  if (requireProfile && user && !user.user_metadata?.profile_complete) {
+    return <Navigate to="/auth/profile-setup" replace />;
   }
 
   return <>{children}</>;

@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 
 const EnhancedSignIn: React.FC = () => {
-  const { signIn, signInWithOAuth, loading } = useAuth();
+  const { signIn, signInWithGoogle, loading } = useAuth();
   const { isFeatureEnabled } = useFeatureFlags();
   const navigate = useNavigate();
   const location = useLocation();
@@ -88,7 +88,7 @@ const EnhancedSignIn: React.FC = () => {
     }
 
     try {
-      const { error } = await signInWithOAuth(provider);
+      const { error } = await signInWithGoogle();
       if (error) {
         setErrors([error.message]);
       }
