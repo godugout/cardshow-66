@@ -52,12 +52,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // CRD Brand Colors - Updated with new Cardshow logo colors
-        'crd-green': '#4ade80', // Primary green from logo
-        'crd-green-secondary': '#22c55e',
-        'crd-green-accent': '#16a34a',
-        'crd-orange': '#EA6E48',
-        'crd-blue': '#3772FF',
+        // CRD Brand Colors - New Design System
+        'crd-orange': 'hsl(var(--crd-orange))',
+        'crd-green': 'hsl(var(--crd-green))',
+        'crd-blue': 'hsl(var(--crd-blue))',
+        
+        // Legacy CRD colors (will be phased out)
+        'crd-orange-legacy': '#EA6E48',
+        'crd-blue-legacy': '#3772FF',
         'crd-purple': '#9757D7',
         'crd-white': '#FCFCFD',
         'crd-lightGray': '#777E90',
@@ -65,6 +67,7 @@ export default {
         'crd-darkGray': '#23262F',
         'crd-dark': '#1A1A1A',
         'crd-darkest': '#121212',
+        
         // Editor colors
         'editor-dark': '#1a1a1a',
         'editor-darker': '#121212',
