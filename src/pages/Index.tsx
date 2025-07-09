@@ -11,7 +11,7 @@ const Index = () => {
       icon: <Plus className="w-6 h-6" />,
       title: 'Create Cards',
       description: 'Design stunning trading cards with our advanced creation tools',
-      href: '/create/enhanced',
+      href: '/crdmkr',
       badge: 'New',
     },
     {
@@ -75,7 +75,7 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/create/enhanced">
+              <Link to="/crdmkr">
                 <UniversalButton size="lg" className="min-w-[200px]">
                   <Plus className="w-5 h-5" />
                   Start Creating
@@ -172,7 +172,7 @@ const Index = () => {
             Join thousands of creators and start designing professional trading cards today.
           </p>
           
-          <Link to="/create/enhanced">
+          <Link to="/crdmkr">
             <UniversalButton size="lg">
               <Plus className="w-5 h-5" />
               Start Creating Now

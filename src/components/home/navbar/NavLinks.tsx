@@ -7,7 +7,7 @@ export const NavLinks = () => {
   const location = useLocation();
 
   const links = [
-    { href: '/create', label: 'Create' },
+    { href: '/crdmkr', label: 'Create' },
     { href: '/studio', label: 'Studio' },
     { href: '/collections', label: 'Collections' },
     { href: '/community', label: 'Community' },

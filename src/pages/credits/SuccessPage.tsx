@@ -42,7 +42,7 @@ export default function CreditsSuccessPage() {
 
             <div className="space-y-3">
               <Button asChild className="w-full">
-                <Link to="/create">
+                <Link to="/crdmkr">
                   Start Creating Cards
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>

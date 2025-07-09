@@ -91,7 +91,7 @@ export const ProfileTabs = ({
             <h3 className="text-xl font-medium mb-2">No cards yet</h3>
             <p className="text-gray-500 mb-6">Start creating beautiful cards to share with the world</p>
             <Button asChild>
-              <Link to="/create">Create Your First Card</Link>
+              <Link to="/crdmkr">Create Your First Card</Link>
             </Button>
           </div>
         ) : (

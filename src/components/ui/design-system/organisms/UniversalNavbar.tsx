@@ -11,7 +11,7 @@ import {
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: <Home className="w-4 h-4" />, public: true },
-  { href: '/create/enhanced', label: 'Create', icon: <Plus className="w-4 h-4" />, protected: true },
+  { href: '/crdmkr', label: 'Create', icon: <Plus className="w-4 h-4" />, protected: true },
   { href: '/studio', label: 'Studio', icon: <Palette className="w-4 h-4" />, protected: true },
   { href: '/collections', label: 'Collections', icon: <FileImage className="w-4 h-4" />, public: true },
   { href: '/community', label: 'Community', icon: <Users className="w-4 h-4" />, public: true },
