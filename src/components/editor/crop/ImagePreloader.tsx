@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -9,52 +9,73 @@ interface ImagePreloaderProps {
   onError: (error: string) => void;
   maxRetries?: number;
   retryDelay?: number;
+  showDebugInfo?: boolean;
 }
 
 export const ImagePreloader: React.FC<ImagePreloaderProps> = ({
   imageUrl,
   onImageReady,
   onError,
-  maxRetries = 3,
-  retryDelay = 1000
+  maxRetries = 5,
+  retryDelay = 2000,
+  showDebugInfo = false
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [currentUrl, setCurrentUrl] = useState<string>('');
+
+  // Validate image URL accessibility
+  const validateImageUrl = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
 
   const preloadImage = (url: string, attempt: number = 1): Promise<void> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       
-      // Add cache-busting parameter for retries
-      const urlWithCacheBuster = attempt > 1 ? `${url}?t=${Date.now()}&retry=${attempt}` : url;
+      // Progressive fallback URLs for Supabase storage
+      let testUrl = url;
+      if (attempt === 2) {
+        // Try with cache busting
+        testUrl = `${url}?t=${Date.now()}`;
+      } else if (attempt === 3) {
+        // Try with different cache headers
+        testUrl = `${url}?cache=no-cache&t=${Date.now()}`;
+      } else if (attempt > 3) {
+        // Add retry parameter
+        testUrl = `${url}?retry=${attempt}&t=${Date.now()}`;
+      }
+      
+      setCurrentUrl(testUrl);
+      console.log(`Loading image attempt ${attempt}:`, testUrl);
+      
+      const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        reject(new Error(`Image loading timeout (attempt ${attempt})`));
+      }, 15000); // Increased timeout to 15 seconds
       
       img.onload = () => {
+        clearTimeout(timeout);
         console.log(`Image loaded successfully on attempt ${attempt}`);
         resolve();
       };
       
       img.onerror = () => {
-        console.error(`Image failed to load on attempt ${attempt}:`, urlWithCacheBuster);
+        clearTimeout(timeout);
+        console.error(`Image failed to load on attempt ${attempt}:`, testUrl);
         reject(new Error(`Failed to load image (attempt ${attempt})`));
       };
       
-      // Set a timeout for loading
-      const timeout = setTimeout(() => {
-        reject(new Error(`Image loading timeout (attempt ${attempt})`));
-      }, 10000); // 10 second timeout
-      
-      img.onload = () => {
-        clearTimeout(timeout);
-        resolve();
-      };
-      
-      img.onerror = () => {
-        clearTimeout(timeout);
-        reject(new Error(`Failed to load image (attempt ${attempt})`));
-      };
-      
-      img.src = urlWithCacheBuster;
+      // Set crossOrigin for better compatibility
+      img.crossOrigin = 'anonymous';
+      img.src = testUrl;
     });
   };
 
@@ -62,6 +83,21 @@ export const ImagePreloader: React.FC<ImagePreloaderProps> = ({
     try {
       setIsLoading(true);
       setError(null);
+      
+      // For CDN propagation, add initial delay on first attempt for new uploads
+      if (attempt === 1 && imageUrl.includes('supabase')) {
+        console.log('Waiting for CDN propagation...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+      
+      // Pre-validate URL accessibility for faster failure detection
+      if (attempt === 1) {
+        const isAccessible = await validateImageUrl(imageUrl);
+        if (!isAccessible) {
+          console.log('Image not yet accessible, will retry...');
+          throw new Error('Image not yet accessible');
+        }
+      }
       
       await preloadImage(imageUrl, attempt);
       
@@ -73,15 +109,22 @@ export const ImagePreloader: React.FC<ImagePreloaderProps> = ({
       console.error(`Image preload attempt ${attempt} failed:`, error);
       
       if (attempt < maxRetries) {
-        // Wait before retrying with exponential backoff
-        const delay = retryDelay * Math.pow(2, attempt - 1);
+        // Progressive backoff: longer delays for CDN propagation
+        let delay = retryDelay;
+        if (attempt <= 2) {
+          delay = 5000; // 5 seconds for CDN propagation
+        } else {
+          delay = retryDelay * Math.pow(1.5, attempt - 1); // Slower exponential backoff
+        }
+        
+        console.log(`Retrying in ${delay}ms...`);
         setTimeout(() => {
           setRetryCount(attempt);
           attemptLoad(attempt + 1);
         }, delay);
       } else {
         // All retries exhausted
-        const errorMessage = `Failed to load image after ${maxRetries} attempts. Please try uploading a different image or check your internet connection.`;
+        const errorMessage = `Failed to load image after ${maxRetries} attempts. This might be due to CDN propagation delays. Please try again in a moment or upload a different image.`;
         setError(errorMessage);
         setIsLoading(false);
         onError(errorMessage);
@@ -128,6 +171,21 @@ export const ImagePreloader: React.FC<ImagePreloaderProps> = ({
         <div className="text-center space-y-2">
           <h3 className="text-white font-semibold">Image Loading Failed</h3>
           <p className="text-muted-foreground text-sm">{error}</p>
+          {showDebugInfo && currentUrl && (
+            <div className="mt-3 p-2 bg-gray-800 rounded text-xs">
+              <p className="text-gray-400 mb-1">Debug Info:</p>
+              <p className="text-white break-all">{currentUrl}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 text-xs"
+                onClick={() => window.open(currentUrl, '_blank')}
+              >
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Test URL
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex gap-3">
           <Button

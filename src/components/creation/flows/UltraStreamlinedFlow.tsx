@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MediaUploadZone } from '@/components/media/MediaUploadZone';
 import { EnhancedImageCropper } from '@/components/editor/crop/EnhancedImageCropper';
+import { ImagePreloader } from '@/components/editor/crop/ImagePreloader';
 import { CRDFrameRenderer } from '@/components/frames/crd/CRDFrameRenderer';
 import { CRDButton } from '@/components/ui/design-system';
 import { supabase } from '@/integrations/supabase/client';
@@ -344,6 +345,23 @@ export const UltraStreamlinedFlow: React.FC<UltraStreamlinedFlowProps> = ({ onCo
             <p className="text-muted-foreground text-sm">Crop and adjust your image for the best card result</p>
           </div>
 
+          {/* Image Preloader with Enhanced Error Recovery */}
+          <div className="mb-6">
+            <ImagePreloader
+              imageUrl={uploadedImage}
+              onImageReady={(url) => {
+                console.log('Image validated and ready for cropping:', url);
+              }}
+              onError={(error) => {
+                console.error('Image preload error:', error);
+                toast.error('Image loading failed. You can skip this step or go back to upload a different image.');
+              }}
+              maxRetries={5}
+              retryDelay={3000}
+              showDebugInfo={true}
+            />
+          </div>
+          
           {/* Enhanced Image Cropper */}
           <div className="mb-6">
             <EnhancedImageCropper
