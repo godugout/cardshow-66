@@ -609,10 +609,12 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
               backgroundColor: '#1a1a1c' // Dark background so grid shows up
             }}
           >
-            <div className="absolute inset-4 flex items-start justify-start">
+            <div className="absolute inset-0 p-8 pt-12 pl-16 flex items-start justify-start">
               <canvas
                 ref={canvasRef}
                 style={{ 
+                  width: '66.67%', // 2/3 of available space
+                  height: '66.67%',
                   maxWidth: '100%', 
                   maxHeight: '100%',
                   backgroundColor: 'transparent'
