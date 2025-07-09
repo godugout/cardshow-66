@@ -55,7 +55,7 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 900,
       height: 650,
-      backgroundColor: 'transparent', // Make transparent so grid shows
+      backgroundColor: null, // Completely transparent - no background
       selection: true,
       preserveObjectStacking: true,
     });
@@ -672,7 +672,11 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
             <div className="absolute inset-4 flex items-start justify-start">
               <canvas
                 ref={canvasRef}
-                style={{ maxWidth: '100%', maxHeight: '100%' }}
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '100%',
+                  backgroundColor: 'transparent'
+                }}
               />
             </div>
           </div>
