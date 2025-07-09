@@ -42,6 +42,23 @@ export const UltraStreamlinedFlow: React.FC = () => {
     if (files.length > 0) {
       const file = files[0];
       setUploadedImageUrl(file.publicUrl);
+      
+      // Check if image is close to standard card dimensions (2.5:3.5 = ~0.714)
+      if (file.metadata?.width && file.metadata?.height) {
+        const aspectRatio = file.metadata.width / file.metadata.height;
+        const cardAspectRatio = 2.5 / 3.5; // ~0.714
+        const tolerance = 0.1; // 10% tolerance
+        
+        if (Math.abs(aspectRatio - cardAspectRatio) <= tolerance) {
+          // Image is already close to card dimensions, skip crop
+          setCroppedImageUrl(file.publicUrl);
+          setCurrentStep('customize');
+          toast.success('Perfect card dimensions detected! Moving to customization.');
+          return;
+        }
+      }
+      
+      // Standard flow - go to crop step
       setCurrentStep('crop');
       toast.success('Image uploaded successfully!');
     }
