@@ -179,67 +179,7 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
     loadImageWithFallback();
   }, [fabricCanvas, imageUrl]);
 
-  // Update grid overlay to fill entire canvas background
-  useEffect(() => {
-    if (!fabricCanvas || !isReady) return;
-
-    // Remove existing grid lines
-    const objects = fabricCanvas.getObjects();
-    objects.forEach(obj => {
-      if (obj.get('isGridLine')) {
-        fabricCanvas.remove(obj);
-      }
-    });
-
-    if (showGrid) {
-      const gridSize = 20;
-      const gridOptions = {
-        stroke: 'rgba(255,255,255,0.08)',
-        strokeWidth: 0.5,
-        selectable: false,
-        evented: false,
-        isGridLine: true,
-      };
-
-      // Fill entire canvas with grid - extend beyond visible area
-      const canvasWidth = fabricCanvas.width!;
-      const canvasHeight = fabricCanvas.height!;
-
-      // Add vertical lines across full canvas width
-      for (let i = 0; i <= canvasWidth; i += gridSize) {
-        const line = new Line([i, 0, i, canvasHeight], gridOptions);
-        fabricCanvas.add(line);
-        fabricCanvas.sendObjectToBack(line);
-      }
-
-      // Add horizontal lines across full canvas height  
-      for (let i = 0; i <= canvasHeight; i += gridSize) {
-        const line = new Line([0, i, canvasWidth, i], gridOptions);
-        fabricCanvas.add(line);
-        fabricCanvas.sendObjectToBack(line);
-      }
-
-      // Add subtle dots at intersections for better visual reference
-      for (let x = 0; x <= canvasWidth; x += gridSize * 4) {
-        for (let y = 0; y <= canvasHeight; y += gridSize * 4) {
-          const dot = new Rect({
-            left: x - 0.5,
-            top: y - 0.5,
-            width: 1,
-            height: 1,
-            fill: 'rgba(255,255,255,0.15)',
-            selectable: false,
-            evented: false,
-            isGridLine: true,
-          });
-          fabricCanvas.add(dot);
-          fabricCanvas.sendObjectToBack(dot);
-        }
-      }
-    }
-
-    fabricCanvas.renderAll();
-  }, [showGrid, fabricCanvas, isReady]);
+  // Remove old grid - now using CSS background grid instead
 
   const createCropArea = useCallback((id: string, name: string, type: 'frame' | 'element') => {
     if (!fabricCanvas || !fabricImage) return null;
