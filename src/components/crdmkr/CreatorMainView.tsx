@@ -100,6 +100,14 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
 
   const currentEffects = getCurrentEffects();
 
+  // Debug logs
+  console.log('CreatorMainView - State:', {
+    uploadedImage: !!state.uploadedImage,
+    currentSide: state.currentSide,
+    currentEffects,
+    cardImageUrl: card.image_url
+  });
+
   // Effect context values that update based on current state
   const effectContextValue = {
     holographic: { intensity: currentEffects.holographic || 0 },
@@ -135,13 +143,17 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
             className="relative overflow-hidden rounded-xl w-full h-full flex items-center justify-center"
             currentEffects={currentEffects}
           >
-            {state.uploadedImage && state.currentSide === 'front' ? (
+            {state.uploadedImage ? (
               <EnhancedCardContainer
-                card={card}
+                card={{
+                  ...card,
+                  image_url: state.uploadedImage // Pass uploaded image to card
+                }}
                 width={cardSize.width}
                 height={cardSize.height}
                 allowFlip={true}
                 showControls={false}
+                forceSide={state.currentSide} // Force showing the current side
                 initialFrontSide={{
                   frameId: state.selectedFrame,
                   material: state.frontMaterial,
@@ -174,16 +186,25 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
                   },
                   lighting: state.backLighting
                 }}
+                key={`card-${state.currentSide}-${JSON.stringify(currentEffects)}`} // Force re-render when side or effects change
               />
             ) : (
-              <StudioCardPreview
-                uploadedImage={state.uploadedImage}
-                selectedFrame={state.selectedFrame}
-                orientation="portrait"
-                show3DPreview={false}
-                cardName={card.title || "New Card"}
-                onImageUpload={handleImageUpload}
-              />
+              <div>
+                <StudioCardPreview
+                  uploadedImage={state.uploadedImage}
+                  selectedFrame={state.selectedFrame}
+                  orientation="portrait"
+                  show3DPreview={false}
+                  cardName={card.title || "New Card"}
+                  onImageUpload={handleImageUpload}
+                />
+                {/* Debug info when no image */}
+                {!state.uploadedImage && (
+                  <div className="absolute bottom-4 left-4 bg-black/70 text-white p-2 rounded text-xs">
+                    No uploaded image. Click to upload.
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Visual Effects Layer */}

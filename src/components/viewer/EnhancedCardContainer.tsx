@@ -47,6 +47,7 @@ interface EnhancedCardContainerProps {
   className?: string;
   allowFlip?: boolean;
   showControls?: boolean;
+  forceSide?: 'front' | 'back'; // Force showing a specific side
 }
 
 export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
@@ -57,7 +58,8 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   height = 630,
   className = '',
   allowFlip = true,
-  showControls = true
+  showControls = true,
+  forceSide
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -116,6 +118,23 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
 
   const currentSide = isFlipped ? backSide : frontSide;
   const currentFrame = getCRDFrameById(currentSide.frameId);
+
+  // Debug logs
+  console.log('EnhancedCardContainer - Debug:', {
+    cardImageUrl: card.image_url,
+    frameId: currentSide.frameId,
+    hasFrame: !!currentFrame,
+    frontSideEffects: frontSide.effects,
+    isFlipped,
+    forceSide
+  });
+
+  // Sync with forced side
+  useEffect(() => {
+    if (forceSide) {
+      setIsFlipped(forceSide === 'back');
+    }
+  }, [forceSide]);
 
   // Update side configurations
   const updateSide = (side: 'front' | 'back', updates: Partial<CardSide>) => {
@@ -234,7 +253,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                 />
                 
                 {/* Frame with Image */}
-                {currentFrame && (
+                {currentFrame ? (
                   <CRDFrameRenderer
                     frame={currentFrame}
                     userImage={card.image_url}
@@ -242,6 +261,10 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                     height={height}
                     className="relative z-10"
                   />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white">
+                    <p>No frame selected</p>
+                  </div>
                 )}
                 
                 {/* Card Edge Effects */}
