@@ -14,6 +14,23 @@ interface StudioCardPreviewProps {
   show3DPreview: boolean;
   cardName: string;
   onImageUpload?: () => void;
+  effects?: {
+    metallic: number;
+    holographic: number;
+    chrome: number;
+    crystal: number;
+    vintage: number;
+    prismatic: number;
+    interference: number;
+    rainbow: number;
+  };
+  material?: string;
+  lighting?: {
+    intensity: number;
+    direction: { x: number; y: number };
+    color: string;
+    environment: string;
+  };
 }
 
 export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
@@ -22,7 +39,10 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
   orientation,
   show3DPreview,
   cardName,
-  onImageUpload
+  onImageUpload,
+  effects,
+  material,
+  lighting
 }) => {
   const cardDimensions = calculateFlexibleCardSize(400, 500, orientation, 3, 0.5);
   const frameTemplate = selectedFrame ? ENHANCED_FRAME_TEMPLATES.find(f => f.id === selectedFrame) : null;
@@ -61,12 +81,21 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
       ) : (
         // Show upload area
         <Card 
-          className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20"
+          className={`bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20 ${
+            effects?.holographic ? 'holographic-effect' : ''
+          } ${
+            effects?.metallic ? 'metallic-effect' : ''
+          } ${
+            effects?.chrome ? 'chrome-effect' : ''
+          }`}
           style={{
             width: cardDimensions.width,
             height: cardDimensions.height,
-            transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
-          }}
+            transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none',
+            '--effect-intensity': effects?.holographic || 0,
+            '--metallic-intensity': effects?.metallic || 0,
+            '--chrome-intensity': effects?.chrome || 0,
+          } as React.CSSProperties}
         >
           <div className="relative w-full h-full p-6">
             <div 
