@@ -37,6 +37,7 @@ import NotFound from './pages/NotFound';
 import Debug from "./pages/Debug";
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import { CardsPage } from './components/cards/CardsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -202,7 +203,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <MainLayout>
-                        <div className="p-8 text-center text-white">Cards page coming soon!</div>
+                        <CardsPage />
                       </MainLayout>
                     </ProtectedRoute>
                   } 
