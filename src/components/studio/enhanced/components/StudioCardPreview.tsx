@@ -57,15 +57,45 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
             transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
           }}
         >
-          <FramePreviewRenderer
-            template={frameTemplate}
-            width={cardDimensions.width}
-            height={cardDimensions.height}
-            showContent={true}
-            uploadedImage={uploadedImage}
-            cardName={cardName}
-            previewMode="interactive"
-          />
+          <div 
+            className={`transition-all duration-300 ${
+              effects?.holographic ? 'holographic-effect' : ''
+            } ${
+              effects?.metallic ? 'metallic-effect' : ''
+            } ${
+              effects?.chrome ? 'chrome-effect' : ''
+            } ${
+              effects?.crystal ? 'crystal-effect' : ''
+            } ${
+              effects?.vintage ? 'vintage-effect' : ''
+            } ${
+              effects?.prismatic ? 'prismatic-effect' : ''
+            } ${
+              effects?.interference ? 'interference-effect' : ''
+            } ${
+              effects?.rainbow ? 'rainbow-effect' : ''
+            }`}
+            style={{
+              '--effect-intensity': effects?.holographic || 0,
+              '--metallic-intensity': effects?.metallic || 0,
+              '--chrome-intensity': effects?.chrome || 0,
+              '--crystal-intensity': effects?.crystal || 0,
+              '--vintage-intensity': effects?.vintage || 0,
+              '--prismatic-intensity': effects?.prismatic || 0,
+              '--interference-intensity': effects?.interference || 0,
+              '--rainbow-intensity': effects?.rainbow || 0,
+            } as React.CSSProperties}
+          >
+            <FramePreviewRenderer
+              template={frameTemplate}
+              width={cardDimensions.width}
+              height={cardDimensions.height}
+              showContent={true}
+              uploadedImage={uploadedImage}
+              cardName={cardName}
+              previewMode="interactive"
+            />
+          </div>
           
           {/* Edit overlay for uploaded image */}
           {uploadedImage && onImageUpload && (
