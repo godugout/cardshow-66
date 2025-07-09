@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw, RotateCw, FlipHorizontal, ZoomIn, ZoomOut, Maximize, Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { useResponsiveLayout, getResponsiveCardSize } from './hooks/useResponsiveLayout';
+import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { supabase } from '@/integrations/supabase/client';
 import type { CardData } from '@/types/card';
 import type { CreatorState } from './types/CreatorState';
 
@@ -70,29 +72,86 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
 }) => {
   const effectContextRef = useRef<any>(null);
   const { screenWidth, screenHeight, isMobile } = useResponsiveLayout();
+  const { user } = useCustomAuth();
   const cardSize = getResponsiveCardSize(screenWidth, screenHeight);
 
-  const handleImageUpload = useCallback(() => {
+  // Upload function to Supabase storage
+  const uploadFileToStorage = useCallback(async (file: File) => {
+    if (!user) {
+      throw new Error('Please sign in to upload files');
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${user.id}/card-images/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from('card-assets')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('card-assets')
+      .getPublicUrl(filePath);
+
+    return {
+      path: data.path,
+      publicUrl,
+      metadata: {
+        originalName: file.name,
+        size: file.size,
+        type: file.type,
+        publicUrl
+      }
+    };
+  }, [user]);
+
+  const handleImageUpload = useCallback(async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = (e) => {
+    
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageUrl = e.target?.result as string;
-          onStateUpdate({ 
-            uploadedImage: imageUrl,
-            currentSide: 'front' // Switch to front when image is uploaded
-          });
-          toast.success('Image uploaded successfully!');
-        };
-        reader.readAsDataURL(file);
+        try {
+          toast.success('Uploading image...');
+          
+          // Upload to Supabase storage
+          const uploadResult = await uploadFileToStorage(file);
+          
+          if (uploadResult?.publicUrl) {
+            onStateUpdate({ 
+              uploadedImage: uploadResult.publicUrl,
+              currentSide: 'front' // Switch to front when image is uploaded
+            });
+            toast.success('Image uploaded successfully!');
+          } else {
+            throw new Error('Failed to get public URL');
+          }
+        } catch (error) {
+          console.error('Upload failed:', error);
+          // Fallback to local file reading for demo purposes
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const imageUrl = e.target?.result as string;
+            onStateUpdate({ 
+              uploadedImage: imageUrl,
+              currentSide: 'front'
+            });
+            toast.success('Image loaded locally (demo mode)');
+          };
+          reader.readAsDataURL(file);
+        }
       }
     };
+    
     input.click();
-  }, [onStateUpdate]);
+  }, [onStateUpdate, uploadFileToStorage]);
 
   const getCurrentEffects = () => {
     return state.currentSide === 'front' ? state.frontEffects : state.backEffects;
