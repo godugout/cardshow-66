@@ -86,8 +86,33 @@ export const CreatorLeftSidebar: React.FC<CreatorLeftSidebarProps> = ({
   });
   const handleImageDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    // Simulate upload
-    onImageUpload('/lovable-uploads/demo-image.png');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+    
+    // Create object URL for immediate preview
+    const objectUrl = URL.createObjectURL(file);
+    onImageUpload(objectUrl);
+  };
+
+  const handleBrowseClick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    };
+    input.click();
   };
   if (!isOpen) {
     return <div className="w-14 flex flex-col items-center py-4 gap-4">
@@ -138,7 +163,7 @@ export const CreatorLeftSidebar: React.FC<CreatorLeftSidebarProps> = ({
                       <p className="text-sm font-medium text-foreground">Drop image here</p>
                       <p className="text-xs text-muted-foreground">or click to browse</p>
                     </div>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={handleBrowseClick}>
                       Browse Files
                     </Button>
                   </div>}

@@ -363,13 +363,13 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-3">
-              <Button className="w-full" size="sm">
+              <Button className="w-full" size="sm" onClick={() => window.parent?.postMessage({ type: 'SAVE_CARD' }, '*')}>
                 Save to Gallery
               </Button>
-              <Button variant="outline" className="w-full" size="sm">
+              <Button variant="outline" className="w-full" size="sm" onClick={() => window.parent?.postMessage({ type: 'EXPORT_PNG' }, '*')}>
                 Download PNG
               </Button>
-              <Button variant="outline" className="w-full" size="sm">
+              <Button variant="outline" className="w-full" size="sm" onClick={() => window.parent?.postMessage({ type: 'EXPORT_PDF' }, '*')}>
                 Download PDF
               </Button>
               <div className="flex items-center justify-between text-sm">

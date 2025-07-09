@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Settings, Save, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { CreatorLeftSidebar } from './CreatorLeftSidebar';
 import { CreatorRightSidebar } from './CreatorRightSidebar';
 import { CreatorMainView } from './CreatorMainView';
 import { CreatorHeader } from './CreatorHeader';
+import { useCardCreator } from './hooks/useCardCreator';
 import type { CardData } from '@/types/card';
 
 export interface CreatorState {
@@ -38,6 +40,7 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [layoutMode, setLayoutMode] = useState<'dual' | 'single-left' | 'single-right'>('dual');
+  const { cardData, updateCardData, saveCard, isSaving } = useCardCreator();
   
   const [creatorState, setCreatorState] = useState<CreatorState>({
     selectedFrame: 'oakland-as-donruss',
@@ -82,6 +85,31 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
     setCreatorState(prev => ({ ...prev, ...updates }));
   };
 
+  // Handle save and export actions
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'SAVE_CARD') {
+        handleSave();
+      } else if (event.data.type === 'EXPORT_PNG') {
+        handleExport('png');
+      } else if (event.data.type === 'EXPORT_PDF') {
+        handleExport('pdf');
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const handleSave = async () => {
+    await saveCard(creatorState);
+  };
+
+  const handleExport = (format: string) => {
+    // For now, just show a toast - this would be implemented with canvas export
+    toast.success(`Exporting as ${format.toUpperCase()}...`);
+  };
+
   const getCurrentEffects = () => {
     return creatorState.currentSide === 'front' ? creatorState.frontEffects : creatorState.backEffects;
   };
@@ -124,8 +152,8 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
       <CreatorHeader 
         layoutMode={layoutMode}
         onLayoutModeChange={setLayoutMode}
-        onSave={() => console.log('Save')}
-        onExport={() => console.log('Export')}
+        onSave={handleSave}
+        onExport={() => handleExport('png')}
       />
 
       {/* Main Content */}
