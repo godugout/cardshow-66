@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AdvancedCropInterface } from '../cropping/AdvancedCropInterface';
+import { InteractiveCropInterface } from '../cropping/InteractiveCropInterface';
 import { CRDButton, CRDCard } from '@/components/ui/design-system';
 import { CRDInput } from '@/components/ui/design-system';
 import { MediaUploadZone } from '@/components/media/MediaUploadZone';
@@ -158,7 +158,7 @@ export const CreateFlowB: React.FC<CreateFlowBProps> = ({ onComplete }) => {
   // Step 2: Crop
   if (currentStep === 'crop') {
     return (
-      <AdvancedCropInterface
+      <InteractiveCropInterface
         imageUrl={uploadedImage}
         onCropComplete={handleCropComplete}
         onBack={() => setCurrentStep('upload')}
