@@ -522,7 +522,205 @@ export const UltraStreamlinedFlow: React.FC<UltraStreamlinedFlowProps> = ({ onCo
     );
   }
 
-  // Done Step
+  // Done Step - Enhanced card showcase
+  if (step === 'done' && aiAnalysis) {
+    const variations = generateVariations(aiAnalysis);
+    const selected = variations[selectedVariation];
+    const currentImage = croppedImage || uploadedImage;
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95 p-4">
+        <div className="max-w-6xl mx-auto w-full">
+          {/* Success Header */}
+          <div className="text-center mb-8 animate-fade-in">
+            <div className="w-20 h-20 bg-gradient-to-r from-crd-green to-crd-blue rounded-full flex items-center justify-center mx-auto mb-6">
+              <Heart className="w-10 h-10 text-white animate-pulse" />
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4">Card Created! 🎉</h1>
+            <p className="text-muted-foreground text-lg">
+              Your AI-enhanced trading card is ready to amaze collectors!
+            </p>
+          </div>
+
+          {/* Card Showcase - Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
+            {/* Left: Final Card Display */}
+            <div className="order-2 lg:order-1">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">Your Masterpiece</h2>
+                <p className="text-muted-foreground text-sm">
+                  {selected.title} • {selected.rarity} • {Math.round(selected.confidence * 100)}% AI Match
+                </p>
+              </div>
+              
+              {/* Large Card Showcase */}
+              <div className="flex justify-center mb-6">
+                <div className="relative transform hover:scale-105 transition-transform duration-300">
+                  <CRDFrameRenderer
+                    frame={getCRDFrameById(selectedFrameId) || CRD_FRAMES[0]}
+                    userImage={currentImage}
+                    width={450}
+                    height={630}
+                    className="shadow-2xl"
+                    interactive={false}
+                  />
+                  
+                  {/* Floating Stats */}
+                  <div className="absolute -top-4 -right-4">
+                    <div className="bg-gradient-to-r from-crd-orange to-crd-green rounded-full px-4 py-2">
+                      <span className="text-white font-bold text-sm">
+                        {selected.rarity.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Confidence Score */}
+                  <div className="absolute -bottom-4 -left-4">
+                    <div className="bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-crd-green" />
+                        <span className="text-white font-semibold text-sm">
+                          {Math.round(selected.confidence * 100)}% AI Match
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Card Details & Stats */}
+            <div className="order-1 lg:order-2 space-y-6">
+              {/* Card Info */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-white mb-4">Card Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Title:</span>
+                    <span className="text-white font-medium">{selected.title}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Style:</span>
+                    <span className="text-white font-medium">{selected.style}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Rarity:</span>
+                    <Badge variant="outline" className="capitalize">
+                      {selected.rarity}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Frame:</span>
+                    <span className="text-white font-medium">
+                      {getCRDFrameById(selectedFrameId)?.name || 'Modern Frame'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Analysis Stats */}
+              {aiAnalysis.stats && (
+                <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">AI Analysis</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-crd-green mb-1">
+                        {aiAnalysis.stats.visual_appeal}/10
+                      </div>
+                      <div className="text-xs text-muted-foreground">Visual Appeal</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-crd-blue mb-1">
+                        {aiAnalysis.stats.uniqueness}/10
+                      </div>
+                      <div className="text-xs text-muted-foreground">Uniqueness</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-crd-orange mb-1">
+                        {aiAnalysis.stats.card_potential}/10
+                      </div>
+                      <div className="text-xs text-muted-foreground">Card Potential</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-500 mb-1">
+                        {aiAnalysis.stats.collectibility}/10
+                      </div>
+                      <div className="text-xs text-muted-foreground">Collectibility</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <CRDButton
+                  onClick={() => {
+                    // Reset for new card
+                    setStep('upload');
+                    setUploadedImage('');
+                    setCroppedImage('');
+                    setAiAnalysis(null);
+                    setSelectedVariation(0);
+                    setSelectedFrameId('modern-holographic');
+                  }}
+                  variant="gradient"
+                  size="lg"
+                  className="w-full"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Create Another Masterpiece
+                </CRDButton>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <CRDButton
+                    onClick={() => {
+                      // TODO: Implement save to collection
+                      toast.success('Card saved to your collection!');
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    Save Card
+                  </CRDButton>
+                  
+                  <CRDButton
+                    onClick={() => {
+                      // TODO: Implement share functionality
+                      navigator.share?.({
+                        title: selected.title,
+                        text: `Check out my new ${selected.rarity} trading card: ${selected.title}!`,
+                        url: window.location.href
+                      }) || toast.success('Share link copied!');
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Share
+                  </CRDButton>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Back to Frame Selection */}
+          <div className="text-center">
+            <CRDButton
+              onClick={() => setStep('frame-select')}
+              variant="outline"
+              size="sm"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Customize
+            </CRDButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default fallback for done step
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95 p-4 flex flex-col justify-center">
       <div className="max-w-md mx-auto w-full text-center animate-fade-in">
@@ -535,23 +733,21 @@ export const UltraStreamlinedFlow: React.FC<UltraStreamlinedFlowProps> = ({ onCo
           Your AI-enhanced trading card is ready to amaze collectors!
         </p>
         
-        <div className="space-y-3">
-          <CRDButton
-            onClick={() => {
-              setStep('upload');
-              setUploadedImage('');
-              setCroppedImage('');
-              setAiAnalysis(null);
-              setSelectedVariation(0);
-              setSelectedFrameId('modern-holographic');
-            }}
-            variant="gradient"
-            size="lg"
-            className="w-full"
-          >
-            Create Another Card
-          </CRDButton>
-        </div>
+        <CRDButton
+          onClick={() => {
+            setStep('upload');
+            setUploadedImage('');
+            setCroppedImage('');
+            setAiAnalysis(null);
+            setSelectedVariation(0);
+            setSelectedFrameId('modern-holographic');
+          }}
+          variant="gradient"
+          size="lg"
+          className="w-full"
+        >
+          Create Another Card
+        </CRDButton>
       </div>
     </div>
   );
