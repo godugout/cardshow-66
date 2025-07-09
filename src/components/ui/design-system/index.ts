@@ -1,4 +1,27 @@
 
+// Core Design System Components
+export { CRDButton, buttonVariants, type ButtonProps } from './Button';
+export { 
+  CRDCard, 
+  CRDCardHeader, 
+  CRDCardTitle, 
+  CRDCardDescription, 
+  CRDCardContent, 
+  CRDCardFooter,
+  cardVariants, 
+  type CardProps 
+} from './Card';
+export { CRDInput, inputVariants, type InputProps } from './Input';
+export { CRDModal, modalVariants, modalContentVariants, type ModalProps } from './Modal';
+export { 
+  CRDSkeleton, 
+  CRDSkeletonText, 
+  CRDSkeletonAvatar, 
+  CRDSkeletonCard,
+  skeletonVariants, 
+  type SkeletonProps 
+} from './Skeleton';
+
 // Enhanced Design System Components Export
 export { designTokens } from './tokens';
 export type { DesignTokens } from './tokens';
@@ -19,8 +42,6 @@ export { UniversalNavbar } from './organisms/UniversalNavbar';
 export { UniversalPageLayout } from './templates/UniversalPageLayout';
 
 // Legacy exports for backward compatibility
-export { CRDInput } from './Input';
-export { CRDButton } from './Button';
 export { Typography, Heading, AccentText } from './Typography';
 export { colors } from './colors';
 export type { BrandColor, NeutralColor, ColorKey } from './colors';
@@ -28,3 +49,6 @@ export { PSDCard } from './PSDCard';
 export { PSDButton } from './PSDButton';
 export { psdTokens } from './psd-tokens';
 export type { LayerCategoryType } from './psd-tokens';
+
+// Re-export utility functions
+export { cn } from '@/lib/utils';

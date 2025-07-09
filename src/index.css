@@ -1,3 +1,5 @@
 
+@import url('./styles/animations/skeleton.css');
+
 /* This file re-exports our organized CSS structure */
 @import './styles/index.css';
