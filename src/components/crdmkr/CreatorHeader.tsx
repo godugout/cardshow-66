@@ -2,38 +2,27 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Save, Download, Settings, Layout, LayoutGrid, LayoutPanelLeft, Monitor } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 interface CreatorHeaderProps {
   layoutMode: 'dual' | 'single-left' | 'single-right';
   onLayoutModeChange: (mode: 'dual' | 'single-left' | 'single-right') => void;
   onSave: () => void;
   onExport: () => void;
 }
-
 export const CreatorHeader: React.FC<CreatorHeaderProps> = ({
   layoutMode,
   onLayoutModeChange,
   onSave,
   onExport
 }) => {
-  return (
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
+  return <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
       {/* Left Section */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-r from-crd-orange to-crd-green rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">C</span>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Card Creator</h1>
-            <p className="text-xs text-muted-foreground">Professional Design Studio</p>
-          </div>
+          
         </div>
         
         <Badge variant="secondary" className="ml-2">
@@ -51,24 +40,15 @@ export const CreatorHeader: React.FC<CreatorHeaderProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center" className="w-48">
-            <DropdownMenuItem 
-              onClick={() => onLayoutModeChange('dual')}
-              className={layoutMode === 'dual' ? 'bg-accent' : ''}
-            >
+            <DropdownMenuItem onClick={() => onLayoutModeChange('dual')} className={layoutMode === 'dual' ? 'bg-accent' : ''}>
               <LayoutGrid className="h-4 w-4 mr-2" />
               Dual Sidebar
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => onLayoutModeChange('single-left')}
-              className={layoutMode === 'single-left' ? 'bg-accent' : ''}
-            >
+            <DropdownMenuItem onClick={() => onLayoutModeChange('single-left')} className={layoutMode === 'single-left' ? 'bg-accent' : ''}>
               <LayoutPanelLeft className="h-4 w-4 mr-2" />
               Left Sidebar
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => onLayoutModeChange('single-right')}
-              className={layoutMode === 'single-right' ? 'bg-accent' : ''}
-            >
+            <DropdownMenuItem onClick={() => onLayoutModeChange('single-right')} className={layoutMode === 'single-right' ? 'bg-accent' : ''}>
               <Monitor className="h-4 w-4 mr-2" />
               Right Sidebar
             </DropdownMenuItem>
@@ -92,6 +72,5 @@ export const CreatorHeader: React.FC<CreatorHeaderProps> = ({
           <Settings className="h-4 w-4" />
         </Button>
       </div>
-    </header>
-  );
+    </header>;
 };
