@@ -56,14 +56,14 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
       rainbow: 0
     },
     backEffects: {
-      metallic: 0.1,
-      holographic: 0.7,
-      chrome: 0,
-      crystal: 0.3,
-      vintage: 0,
-      prismatic: 0.4,
-      interference: 0.2,
-      rainbow: 0.1
+      metallic: 0.8,
+      holographic: 0.9,
+      chrome: 0.6,
+      crystal: 0.7,
+      vintage: 0.2,
+      prismatic: 0.8,
+      interference: 0.6,
+      rainbow: 0.4
     },
     frontMaterial: 'standard',
     backMaterial: 'holographic',
@@ -74,8 +74,8 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
       environment: 'studio'
     },
     backLighting: {
-      intensity: 0.8,
-      direction: { x: 0.3, y: 0.7 },
+      intensity: 1.0,
+      direction: { x: 0.4, y: 0.8 },
       color: '#4FFFB0',
       environment: 'cosmic'
     }

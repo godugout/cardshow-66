@@ -94,20 +94,20 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     type: 'back',
     frameId: 'modern-holographic',
     effects: {
-      metallic: 0.3,
-      holographic: 0.5,
-      chrome: 0,
-      crystal: 0,
-      vintage: 0,
-      prismatic: 0.2,
-      interference: 0,
-      rainbow: 0,
-      particles: false
+      metallic: 0.8,
+      holographic: 0.9,
+      chrome: 0.6,
+      crystal: 0.7,
+      vintage: 0.2,
+      prismatic: 0.8,
+      interference: 0.6,
+      rainbow: 0.4,
+      particles: true
     },
     material: 'holographic',
     lighting: {
-      intensity: 0.7,
-      direction: { x: 0.3, y: 0.7 },
+      intensity: 1.0,
+      direction: { x: 0.4, y: 0.8 },
       color: '#4FFFB0',
       environment: 'cosmic'
     },

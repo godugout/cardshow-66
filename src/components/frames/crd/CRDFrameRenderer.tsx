@@ -50,8 +50,11 @@ export const CRDFrameRenderer: React.FC<CRDFrameProps> = ({
           <img
             src={userImage}
             alt="User uploaded content"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             draggable={false}
+            style={{
+              backgroundColor: 'transparent'
+            }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">

@@ -13,10 +13,10 @@ export const OAKLAND_AS_DONRUSS: CRDFrame = {
     height: 560
   },
   placeholderDimensions: {
-    x: 30,
-    y: 40,
-    width: 340,
-    height: 280
+    x: 20,
+    y: 30,
+    width: 360,
+    height: 300
   },
   elements: [
     {
@@ -116,10 +116,10 @@ export const MODERN_HOLOGRAPHIC: CRDFrame = {
     height: 560
   },
   placeholderDimensions: {
-    x: 40,
-    y: 50,
-    width: 320,
-    height: 260
+    x: 20,
+    y: 30,
+    width: 360,
+    height: 300
   },
   elements: [
     {
