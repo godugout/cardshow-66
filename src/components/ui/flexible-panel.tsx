@@ -16,6 +16,7 @@ interface FlexiblePanelProps {
   className?: string;
   orientation?: 'horizontal' | 'vertical';
   size?: 'sm' | 'md' | 'lg';
+  onTabChange?: (tabId: string) => void;
 }
 
 export const FlexiblePanel: React.FC<FlexiblePanelProps> = ({
@@ -23,7 +24,8 @@ export const FlexiblePanel: React.FC<FlexiblePanelProps> = ({
   defaultTab,
   className,
   orientation = 'horizontal',
-  size = 'md'
+  size = 'md',
+  onTabChange
 }) => {
   const maxTabs = Math.min(tabs.length, 3);
   const visibleTabs = tabs.slice(0, maxTabs);
@@ -36,7 +38,11 @@ export const FlexiblePanel: React.FC<FlexiblePanelProps> = ({
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
-      <Tabs defaultValue={defaultTab || visibleTabs[0]?.id} className="flex flex-col h-full">
+      <Tabs 
+        defaultValue={defaultTab || visibleTabs[0]?.id} 
+        className="flex flex-col h-full"
+        onValueChange={onTabChange}
+      >
         <TabsList className="grid w-full grid-cols-2 bg-black/20 border border-white/10">
           {visibleTabs.map((tab) => (
             <TabsTrigger
