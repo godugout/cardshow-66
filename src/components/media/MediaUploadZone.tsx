@@ -39,8 +39,8 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
     }
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-    const filePath = folder ? `${folder}/${fileName}` : fileName;
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = folder ? `${user.id}/${folder}/${fileName}` : `${user.id}/${fileName}`;
 
     const { data, error } = await supabase.storage
       .from(bucket)
