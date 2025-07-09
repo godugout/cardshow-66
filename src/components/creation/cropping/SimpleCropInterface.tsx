@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { CRDButton, CRDCard } from '@/components/ui/design-system';
 import { CRDInput } from '@/components/ui/design-system';
 import { Slider } from '@/components/ui/slider';
-import { RotateCcw } from 'lucide-react';
+import { FlexiblePanel, FlexiblePanelTab } from '@/components/ui/flexible-panel';
+import { RotateCcw, Frame, Square, Sliders } from 'lucide-react';
+import { FrameCropInterface } from './FrameCropInterface';
+import { FreeformCropInterface } from './FreeformCropInterface';
 
 interface SimpleCropInterfaceProps {
   imageUrl: string;
@@ -82,136 +85,169 @@ export const SimpleCropInterface: React.FC<SimpleCropInterfaceProps> = ({
     setRotation([0]);
   };
 
+  // Slider Mode Component
+  const SliderMode = () => (
+    <div className="grid lg:grid-cols-2 gap-8">
+      {/* Canvas Preview */}
+      <div className="flex flex-col items-center">
+        <CRDCard className="p-6 bg-card/50">
+          <canvas
+            ref={canvasRef}
+            className="border-2 border-crd-green rounded-lg shadow-lg"
+            style={{ maxWidth: '100%', height: 'auto' }}
+          />
+        </CRDCard>
+      </div>
+
+      {/* Controls */}
+      <div className="space-y-6">
+        <CRDCard className="p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Slider Controls</h3>
+          
+          <div className="space-y-6">
+            {/* X Position */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                X Position
+              </label>
+              <Slider
+                value={xPosition}
+                onValueChange={setXPosition}
+                max={100}
+                min={0}
+                step={1}
+                className="w-full"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {xPosition[0]}%
+              </div>
+            </div>
+
+            {/* Y Position */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Y Position
+              </label>
+              <Slider
+                value={yPosition}
+                onValueChange={setYPosition}
+                max={100}
+                min={0}
+                step={1}
+                className="w-full"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {yPosition[0]}%
+              </div>
+            </div>
+
+            {/* Zoom */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Zoom
+              </label>
+              <Slider
+                value={zoom}
+                onValueChange={setZoom}
+                max={200}
+                min={50}
+                step={1}
+                className="w-full"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {zoom[0]}%
+              </div>
+            </div>
+
+            {/* Rotation */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Rotation
+              </label>
+              <Slider
+                value={rotation}
+                onValueChange={setRotation}
+                max={45}
+                min={-45}
+                step={1}
+                className="w-full"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {rotation[0]}°
+              </div>
+            </div>
+
+            {/* Reset Button */}
+            <CRDButton
+              variant="outline"
+              onClick={resetCrop}
+              className="w-full"
+              icon={<RotateCcw className="w-4 h-4" />}
+            >
+              Reset Adjustments
+            </CRDButton>
+            
+            <CRDButton
+              variant="primary"
+              onClick={handleApplyCrop}
+              className="w-full"
+            >
+              Apply Crop
+            </CRDButton>
+          </div>
+        </CRDCard>
+      </div>
+    </div>
+  );
+
+  // Prepare tabs for FlexiblePanel
+  const cropTabs: FlexiblePanelTab[] = [
+    {
+      id: 'sliders',
+      label: 'Sliders',
+      icon: <Sliders className="w-4 h-4" />,
+      content: <SliderMode />
+    },
+    {
+      id: 'frame',
+      label: 'Frame',
+      icon: <Frame className="w-4 h-4" />,
+      content: <FrameCropInterface imageUrl={imageUrl} onCropComplete={onCropComplete} />
+    },
+    {
+      id: 'freeform',
+      label: 'Freeform',
+      icon: <Square className="w-4 h-4" />,
+      content: <FreeformCropInterface imageUrl={imageUrl} onCropComplete={onCropComplete} />
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white mb-2">Crop Your Image</h1>
-          <p className="text-muted-foreground">Adjust the crop area for your card</p>
+          <p className="text-muted-foreground">Choose your preferred cropping method</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Canvas Preview */}
-          <div className="flex flex-col items-center">
-            <CRDCard className="p-6 bg-card/50">
-              <canvas
-                ref={canvasRef}
-                className="border-2 border-crd-green rounded-lg shadow-lg"
-                style={{ maxWidth: '100%', height: 'auto' }}
-              />
-            </CRDCard>
-          </div>
-
-          {/* Controls */}
-          <div className="space-y-6">
-            <CRDCard className="p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Adjustment Controls</h3>
-              
-              <div className="space-y-6">
-                {/* X Position */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    X Position
-                  </label>
-                  <Slider
-                    value={xPosition}
-                    onValueChange={setXPosition}
-                    max={100}
-                    min={0}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {xPosition[0]}%
-                  </div>
-                </div>
-
-                {/* Y Position */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Y Position
-                  </label>
-                  <Slider
-                    value={yPosition}
-                    onValueChange={setYPosition}
-                    max={100}
-                    min={0}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {yPosition[0]}%
-                  </div>
-                </div>
-
-                {/* Zoom */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Zoom
-                  </label>
-                  <Slider
-                    value={zoom}
-                    onValueChange={setZoom}
-                    max={200}
-                    min={50}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {zoom[0]}%
-                  </div>
-                </div>
-
-                {/* Rotation */}
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Rotation
-                  </label>
-                  <Slider
-                    value={rotation}
-                    onValueChange={setRotation}
-                    max={45}
-                    min={-45}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {rotation[0]}°
-                  </div>
-                </div>
-
-                {/* Reset Button */}
-                <CRDButton
-                  variant="outline"
-                  onClick={resetCrop}
-                  className="w-full"
-                  icon={<RotateCcw className="w-4 h-4" />}
-                >
-                  Reset Adjustments
-                </CRDButton>
-              </div>
-            </CRDCard>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mt-8">
+        {/* Back Button */}
+        <div className="flex justify-start mb-6">
           <CRDButton
             variant="outline"
             onClick={onBack}
-            size="lg"
+            size="sm"
           >
-            Back
-          </CRDButton>
-          <CRDButton
-            variant="primary"
-            onClick={handleApplyCrop}
-            size="lg"
-          >
-            Apply Crop
+            ← Back
           </CRDButton>
         </div>
+
+        {/* Tabbed Crop Interface */}
+        <FlexiblePanel
+          tabs={cropTabs}
+          defaultTab="sliders"
+          className="min-h-[600px]"
+        />
       </div>
     </div>
   );
