@@ -81,21 +81,16 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     console.error('Image validation failed:', error);
   }, []);
 
-  // Load and setup image (only when image is validated)
+  // Immediate setup when both canvas and validated URL are ready
   useEffect(() => {
     if (!fabricCanvas || !validatedImageUrl) {
-      console.log('Fabric loading prerequisites check:', { 
-        fabricCanvas: !!fabricCanvas, 
-        validatedImageUrl: !!validatedImageUrl 
-      });
+      console.log('Prerequisites not ready:', { fabricCanvas: !!fabricCanvas, validatedImageUrl: !!validatedImageUrl });
       return;
     }
 
-    console.log('🔥 STARTING FABRIC.JS IMAGE LOADING');
-    console.log('Canvas ready:', !!fabricCanvas);
-    console.log('Validated URL:', validatedImageUrl);
-
-    // Clear any existing objects
+    console.log('🚀 STARTING IMMEDIATE CROP SETUP');
+    
+    // Clear canvas and reset states
     fabricCanvas.clear();
     setFabricImage(null);
     setCropRect(null);
@@ -104,110 +99,63 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
 
     // Clear any existing timeout
     if (fabricLoadingTimeout) {
-      console.log('Clearing existing timeout');
       clearTimeout(fabricLoadingTimeout);
+      setFabricLoadingTimeout(null);
     }
 
-    // Set timeout for Fabric.js loading (8 seconds - reduced for faster feedback)
-    console.log('Setting 8-second timeout for Fabric.js loading');
-    const timeout = setTimeout(() => {
-      console.warn('🚨 FABRIC.JS LOADING TIMED OUT after 8 seconds');
+    // Set up immediate fallback - if not ready in 3 seconds, show skip
+    const immediateTimeout = setTimeout(() => {
+      console.warn('⏰ IMMEDIATE FALLBACK: Setup taking too long');
       setShowSkipOption(true);
-      toast.error('Crop editor is taking too long. You can skip cropping or try again.');
-    }, 8000);
+      toast.error('Crop setup is taking longer than expected', {
+        description: "You can skip cropping or try again"
+      });
+    }, 3000);
+
+    setFabricLoadingTimeout(immediateTimeout);
+
+    // Use standard HTML Image for more control
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
     
-    setFabricLoadingTimeout(timeout);
-
-    // Configure image loading options for CORS and Supabase compatibility
-    const imageOptions = {
-      crossOrigin: 'anonymous' as const
+    img.onload = () => {
+      console.log('✅ HTML Image loaded, creating Fabric image...');
+      
+      // Create Fabric image from the loaded HTML image
+      FabricImage.fromObject({
+        src: validatedImageUrl,
+        crossOrigin: 'anonymous'
+      }).then((fabricImg) => {
+        console.log('✅ Fabric image created successfully');
+        setupImageAndCrop(fabricImg);
+      }).catch((error) => {
+        console.error('❌ Fabric image creation failed:', error);
+        handleLoadingFailure();
+      });
     };
 
-    const loadFabricImage = async (url: string, retryCount = 0): Promise<void> => {
-      console.log(`🎯 Starting Fabric.js attempt #${retryCount + 1}`);
-      console.log('URL:', url);
-      console.log('Image options:', imageOptions);
-      
-      // Create a manual timeout promise that rejects
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          console.error(`❌ Manual timeout: Fabric.js fromURL took too long (attempt ${retryCount + 1})`);
-          reject(new Error(`Fabric.js fromURL timeout after 5 seconds`));
-        }, 5000);
-      });
-
-      try {
-        console.log(`📸 Calling FabricImage.fromURL...`);
-        
-        // Race between the actual loading and our timeout
-        const img = await Promise.race([
-          FabricImage.fromURL(url, imageOptions),
-          timeoutPromise
-        ]);
-        
-        console.log('✅ Fabric.js image loaded successfully!');
-        console.log('Image dimensions:', img.width, 'x', img.height);
-        
-        setupImageAndCrop(img);
-      } catch (error) {
-        console.error(`❌ Fabric.js loading attempt ${retryCount + 1} failed:`, error);
-        
-        if (retryCount < 1) { // Reduced retries to 1 for faster fallback
-          // Try simplified approach on retry
-          let retryUrl = url;
-          if (retryCount === 0) {
-            // Try without any options on first retry
-            console.log('🔄 Retrying without crossOrigin...');
-            setTimeout(() => {
-              loadFabricImageSimple(retryUrl, retryCount + 1);
-            }, 1000);
-            return;
-          }
-        } else {
-          console.error('💥 All Fabric.js loading attempts failed');
-          if (fabricLoadingTimeout) {
-            clearTimeout(fabricLoadingTimeout);
-          }
-          setShowSkipOption(true);
-          toast.error('Crop editor failed to load. Please skip cropping or try again.');
-        }
-      }
+    img.onerror = () => {
+      console.error('❌ HTML Image loading failed');
+      handleLoadingFailure();
     };
 
-    // Simplified loading without crossOrigin options
-    const loadFabricImageSimple = async (url: string, retryCount = 0): Promise<void> => {
-      console.log(`🔄 Simplified Fabric.js attempt #${retryCount + 1} (no CORS)`);
-      
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          console.error(`❌ Simplified timeout: Fabric.js fromURL took too long`);
-          reject(new Error(`Simplified Fabric.js fromURL timeout`));
-        }, 3000);
-      });
+    // Start loading
+    img.src = validatedImageUrl;
 
-      try {
-        // Try without any options - sometimes CORS causes issues
-        const img = await Promise.race([
-          FabricImage.fromURL(url),
-          timeoutPromise
-        ]);
-        
-        console.log('✅ Simplified Fabric.js load succeeded!');
-        setupImageAndCrop(img);
-      } catch (error) {
-        console.error('❌ Simplified loading also failed:', error);
-        if (fabricLoadingTimeout) {
-          clearTimeout(fabricLoadingTimeout);
-        }
-        setShowSkipOption(true);
-        toast.error('Unable to initialize crop editor. Please skip cropping.');
+    const handleLoadingFailure = () => {
+      console.error('💥 Complete loading failure, showing skip option');
+      if (fabricLoadingTimeout) {
+        clearTimeout(fabricLoadingTimeout);
+        setFabricLoadingTimeout(null);
       }
+      setShowSkipOption(true);
+      toast.error('Unable to load image in crop editor');
     };
 
     const setupImageAndCrop = (img: FabricImage) => {
-      console.log('Setting up image and crop rectangle');
+      console.log('🎯 Setting up image and crop...');
       
-      // Clear timeout since we successfully loaded
+      // Clear timeout - we succeeded!
       if (fabricLoadingTimeout) {
         clearTimeout(fabricLoadingTimeout);
         setFabricLoadingTimeout(null);
@@ -262,7 +210,7 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
         mb: false, // middle bottom
         ml: false, // middle left
         mr: false, // middle right
-        mtr: true, // rotation control - this is the correct property in v6
+        mtr: true, // rotation control
       });
 
       // Event handlers for crop rectangle
@@ -295,14 +243,21 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       // Add grid overlay
       addGridOverlay(rect);
       
+      // Canvas is now ready!
       setIsReady(true);
       fabricCanvas.renderAll();
       
-      console.log('Image and crop setup completed successfully');
+      console.log('🎉 Crop editor setup completed successfully!');
+      toast.success('Crop editor ready!');
     };
 
-    // Start the loading process
-    loadFabricImage(validatedImageUrl);
+    // Cleanup function
+    return () => {
+      if (immediateTimeout) {
+        clearTimeout(immediateTimeout);
+      }
+    };
+    
   }, [fabricCanvas, validatedImageUrl, aspectRatio]);
 
   // Reset image loading state when imageUrl changes
