@@ -273,7 +273,7 @@ const CollectionDetail = () => {
               This collection doesn't have any cards yet.
             </p>
             <Button
-              onClick={() => navigate('/cards/create')}
+              onClick={() => navigate('/create')}
               className="bg-crd-green hover:bg-crd-green/90 text-black"
             >
               Create Cards

@@ -96,7 +96,7 @@ function App() {
                    } 
                  />
                  <Route 
-                   path="/create/ultra" 
+                   path="/create/enhanced" 
                    element={
                      <ProtectedRoute>
                        <MainLayout showNavbar={false}>
