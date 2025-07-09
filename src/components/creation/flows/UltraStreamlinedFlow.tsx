@@ -159,19 +159,6 @@ export const UltraStreamlinedFlow: React.FC = () => {
         );
 
       case 'crop':
-        if (!uploadedImageUrl) {
-          return (
-            <ImagePreloader
-              imageUrl={uploadedImageUrl}
-              onImageReady={(url) => setUploadedImageUrl(url)}
-              onError={(error) => {
-                toast.error(error);
-                setCurrentStep('upload');
-              }}
-            />
-          );
-        }
-        
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -179,17 +166,48 @@ export const UltraStreamlinedFlow: React.FC = () => {
               <p className="text-gray-400">Adjust the crop to fit your card perfectly</p>
             </div>
             <Card className="p-6">
-              <EnhancedImageCropper
-                imageUrl={uploadedImageUrl}
-                onCropComplete={handleCropComplete}
-                aspectRatio={2.5 / 3.5}
-                compact={true}
-                className="max-w-2xl mx-auto"
-              />
-              <div className="flex justify-center mt-4">
-                <Button variant="ghost" onClick={handleSkipCrop}>
-                  Skip Crop
-                </Button>
+              {/* Simple image display with basic crop functionality */}
+              <div className="max-w-2xl mx-auto">
+                <div className="relative bg-gray-800 rounded-lg overflow-hidden">
+                  <img 
+                    src={uploadedImageUrl} 
+                    alt="Card to crop" 
+                    className="w-full h-auto max-h-[60vh] object-contain"
+                    onLoad={() => console.log('Image loaded successfully in crop view')}
+                    onError={(e) => {
+                      console.error('Image failed to load in crop view:', e);
+                      toast.error('Failed to load image');
+                    }}
+                  />
+                  {/* Overlay showing crop area */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div 
+                      className="border-2 border-crd-green border-dashed bg-black/20"
+                      style={{
+                        width: '300px',
+                        height: `${300 / (2.5/3.5)}px`,
+                        minWidth: '200px',
+                        maxWidth: '80%'
+                      }}
+                    >
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-white text-sm opacity-75">Card Area</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center gap-3 mt-6">
+                  <Button 
+                    onClick={() => handleCropComplete(uploadedImageUrl)}
+                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                  >
+                    Apply Crop
+                  </Button>
+                  <Button variant="ghost" onClick={handleSkipCrop}>
+                    Skip Crop
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
