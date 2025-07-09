@@ -90,92 +90,89 @@ const MarketplacePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
-          
-          {/* Action Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleCreateListing} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              List Your Card
-            </Button>
-          </div>
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      {/* Action Button */}
+      <div className="flex justify-end">
+        <Button onClick={handleCreateListing} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          List Your Card
+        </Button>
+      </div>
 
-          {/* Marketplace Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-editor-dark border-editor-border p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/20 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-editor-text-muted">Total Listings</p>
-                  <p className="text-xl font-bold text-editor-text">{marketplaceStats.totalListings}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-editor-dark border-editor-border p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Star className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-editor-text-muted">Average Price</p>
-                  <p className="text-xl font-bold text-editor-text">
-                    ${marketplaceStats.averagePrice.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-editor-dark border-editor-border p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Clock className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-editor-text-muted">Recent Sales</p>
-                  <p className="text-xl font-bold text-editor-text">{marketplaceStats.recentSales}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-editor-dark border-editor-border p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Badge className="h-5 w-5 text-purple-500 bg-transparent border-0 p-0">🏆</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-editor-text-muted">Top Category</p>
-                  <p className="text-xl font-bold text-editor-text">Sports</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Search and Filters */}
-          <AdvancedMarketplaceSearch
-            onFiltersChange={handleFiltersChange}
-            availableTags={availableTags}
-          />
-
-          {/* Featured Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-editor-text">Featured Cards</h2>
-              <div className="flex gap-2">
-                <Badge variant="outline">Trending</Badge>
-                <Badge variant="outline">New Releases</Badge>
-                <Badge variant="outline">Staff Picks</Badge>
-              </div>
+      {/* Marketplace Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-editor-dark border-editor-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-editor-text-muted">Total Listings</p>
+              <p className="text-xl font-bold text-editor-text">{marketplaceStats.totalListings}</p>
             </div>
           </div>
+        </Card>
 
-          {/* Marketplace Grid */}
-          <MarketplaceGrid />
+        <Card className="bg-editor-dark border-editor-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-500/20 rounded-lg">
+              <Star className="h-5 w-5 text-green-500" />
+            </div>
+            <div>
+              <p className="text-sm text-editor-text-muted">Average Price</p>
+              <p className="text-xl font-bold text-editor-text">
+                ${marketplaceStats.averagePrice.toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="bg-editor-dark border-editor-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <Clock className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-sm text-editor-text-muted">Recent Sales</p>
+              <p className="text-xl font-bold text-editor-text">{marketplaceStats.recentSales}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="bg-editor-dark border-editor-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-500/20 rounded-lg">
+              <Badge className="h-5 w-5 text-purple-500 bg-transparent border-0 p-0">🏆</Badge>
+            </div>
+            <div>
+              <p className="text-sm text-editor-text-muted">Top Category</p>
+              <p className="text-xl font-bold text-editor-text">Sports</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Search and Filters */}
+      <AdvancedMarketplaceSearch
+        onFiltersChange={handleFiltersChange}
+        availableTags={availableTags}
+      />
+
+      {/* Featured Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-editor-text">Featured Cards</h2>
+          <div className="flex gap-2">
+            <Badge variant="outline">Trending</Badge>
+            <Badge variant="outline">New Releases</Badge>
+            <Badge variant="outline">Staff Picks</Badge>
+          </div>
         </div>
       </div>
+
+      {/* Marketplace Grid */}
+      <MarketplaceGrid />
+    </div>
   );
 };
 

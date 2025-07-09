@@ -181,7 +181,11 @@ function App() {
                 />
                 <Route 
                   path="/marketplace" 
-                  element={<MarketplacePage />} 
+                  element={
+                    <MainLayout>
+                      <MarketplacePage />
+                    </MainLayout>
+                  } 
                 />
                 
                 {/* Password Reset Route */}
