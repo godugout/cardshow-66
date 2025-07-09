@@ -44,7 +44,7 @@ export const FeaturedCardsGrid: React.FC = () => {
             {error ? 'Unable to load cards right now' : 'No featured cards available yet'}
           </p>
           <Link 
-            to="/create/enhanced"
+            to="/create"
             className="inline-flex items-center px-6 py-3 bg-[#4ade80] text-black font-medium rounded-lg hover:bg-[#22c55e] transition-colors"
           >
             Create the First Card

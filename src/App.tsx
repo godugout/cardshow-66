@@ -14,16 +14,10 @@ import Index from "./pages/Index";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
-import CardCreation from "./pages/CardCreation";
-import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
-import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
-import { CreateFlowA } from './components/creation/flows/CreateFlowA';
-import { CreateFlowB } from './components/creation/flows/CreateFlowB';
 import { UltraStreamlinedFlow } from './components/creation/flows/UltraStreamlinedFlow';
-import CreateTestingPage from './pages/CreateTestingPage';
 import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
-import { CardCreationStudio } from './components/creation/CardCreationStudio';
+
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityPage from './pages/CommunityPage';
 import CreatorProfilePage from './pages/CreatorProfile';
@@ -91,64 +85,26 @@ function App() {
                     </MainLayout>
                   } 
                 />
-                <Route 
-                  path="/create" 
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <CreateTestingPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/create/version-a" 
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout showNavbar={false}>
-                        <CreateFlowA />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/create/version-b" 
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout showNavbar={false}>
-                        <CreateFlowB />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/create/ultra" 
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout showNavbar={false}>
-                        <UltraStreamlinedFlow />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/create/enhanced" 
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <EnhancedCardCreationPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/create/functional" 
-                  element={
-                    <MainLayout>
-                      <FunctionalCardCreationPage />
-                    </MainLayout>
-                  } 
-                />
+                 <Route 
+                   path="/create" 
+                   element={
+                     <ProtectedRoute>
+                       <MainLayout showNavbar={false}>
+                         <UltraStreamlinedFlow />
+                       </MainLayout>
+                     </ProtectedRoute>
+                   } 
+                 />
+                 <Route 
+                   path="/create/ultra" 
+                   element={
+                     <ProtectedRoute>
+                       <MainLayout showNavbar={false}>
+                         <UltraStreamlinedFlow />
+                       </MainLayout>
+                     </ProtectedRoute>
+                   } 
+                 />
                 <Route 
                   path="/studio" 
                   element={
