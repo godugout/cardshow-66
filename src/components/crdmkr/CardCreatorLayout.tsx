@@ -40,7 +40,20 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
   }, []);
 
   const handleSave = async () => {
-    await saveCard(creatorState);
+    try {
+      // Save the creator state (effects, materials, etc)
+      await saveCard(creatorState);
+      
+      // Also save the card data with updated design metadata
+      if ((window as any).cardEditorSave) {
+        await (window as any).cardEditorSave();
+      }
+      
+      toast.success('Card saved successfully!');
+    } catch (error) {
+      console.error('Error saving card:', error);
+      toast.error('Failed to save card');
+    }
   };
 
   const handleExport = (format: string) => {
