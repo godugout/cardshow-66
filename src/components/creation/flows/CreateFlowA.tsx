@@ -82,9 +82,9 @@ export const CreateFlowA: React.FC<CreateFlowAProps> = ({ onComplete }) => {
                   <p className="text-muted-foreground mb-4">
                     Choose a high-quality image for your trading card
                   </p>
-                  <CRDButton variant="primary" size="lg">
-                    Select Image
-                  </CRDButton>
+                  <p className="text-crd-green font-medium">
+                    Click here or drag & drop to upload
+                  </p>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Supports JPG, PNG, WebP • Max 10MB

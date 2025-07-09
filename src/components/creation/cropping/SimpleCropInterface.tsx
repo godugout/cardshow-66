@@ -23,6 +23,7 @@ export const SimpleCropInterface: React.FC<SimpleCropInterfaceProps> = ({
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
+    console.log('SimpleCropInterface received imageUrl:', imageUrl);
     if (imageUrl && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
@@ -57,6 +58,11 @@ export const SimpleCropInterface: React.FC<SimpleCropInterfaceProps> = ({
         ctx?.strokeRect(0, 0, canvas.width, canvas.height);
       };
       
+      img.onerror = (error) => {
+        console.error('Failed to load image:', error, 'URL:', imageUrl);
+      };
+      
+      img.crossOrigin = 'anonymous'; // Handle CORS
       img.src = imageUrl;
       imageRef.current = img;
     }
