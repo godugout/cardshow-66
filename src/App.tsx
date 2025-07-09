@@ -41,6 +41,7 @@ import Debug from "./pages/Debug";
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import { CardsPage } from './components/cards/CardsPage';
+import EnhancedCardDemo from './pages/EnhancedCardDemo';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -282,6 +283,14 @@ function App() {
                   element={
                     <MainLayout>
                       <Debug />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/enhanced-card-demo" 
+                  element={
+                    <MainLayout>
+                      <EnhancedCardDemo />
                     </MainLayout>
                   } 
                 />
