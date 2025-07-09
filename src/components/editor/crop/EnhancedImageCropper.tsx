@@ -85,7 +85,13 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     setCropRect(null);
     setIsReady(false);
 
-    FabricImage.fromURL(validatedImageUrl).then((img) => {
+    // Configure image loading options for CORS and Supabase compatibility
+    const imageOptions = {
+      crossOrigin: 'anonymous' as const
+    };
+
+    FabricImage.fromURL(validatedImageUrl, imageOptions).then((img) => {
+      console.log('Fabric.js image loaded successfully');
       // Scale image to fit canvas while maintaining aspect ratio
       const canvasWidth = fabricCanvas.width!;
       const canvasHeight = fabricCanvas.height!;
