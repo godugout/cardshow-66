@@ -91,13 +91,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string, username?: string) => {
     const redirectUrl = `${window.location.origin}/auth/callback`;
     
-    console.log('🔧 Sign up attempt:', { 
-      email, 
-      redirectUrl,
-      origin: window.location.origin,
-      hostname: window.location.hostname 
-    });
-    
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -109,14 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     });
 
-    console.log('🔧 Sign up result:', { 
-      hasError: !!error,
-      errorMessage: error?.message,
-      errorStatus: error?.status
-    });
-
     if (error) {
-      console.error('🔧 Sign up error details:', error);
       toast({
         variant: "destructive",
         title: "Sign up failed",
