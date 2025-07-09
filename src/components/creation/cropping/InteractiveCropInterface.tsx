@@ -55,7 +55,7 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 900,
       height: 650,
-      backgroundColor: '#1a1a1c',
+      backgroundColor: 'transparent', // Make transparent so grid shows
       selection: true,
       preserveObjectStacking: true,
     });
@@ -660,11 +660,18 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
           </div>
 
           {/* Canvas Container */}
-          <div className="flex-1 overflow-hidden relative bg-muted/20">
-            <div className="absolute inset-4 flex items-start justify-start"> {/* Changed to top alignment */}
+          <div 
+            className="flex-1 overflow-hidden relative bg-background"
+            style={{
+              backgroundImage: showGrid ? 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)' : 'none',
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0'
+            }}
+          >
+            <div className="absolute inset-4 flex items-start justify-start">
               <canvas
                 ref={canvasRef}
-                className="border border-border rounded-lg shadow-lg"
+                className="border border-border rounded-lg shadow-lg bg-background"
                 style={{ maxWidth: '100%', maxHeight: '100%' }}
               />
             </div>
