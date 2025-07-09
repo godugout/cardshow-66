@@ -68,49 +68,115 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
     };
   }, []);
 
-  // Load and setup image with top alignment
+  // Enhanced image loading with error handling and CORS support
   useEffect(() => {
     if (!fabricCanvas || !imageUrl) return;
 
-    FabricImage.fromURL(imageUrl).then((img) => {
-      const canvasWidth = fabricCanvas.width!;
-      const canvasHeight = fabricCanvas.height!;
-      const padding = 24; // Same as sidebar margins
-      
-      // Calculate scale to fit image with proper padding
-      const availableWidth = canvasWidth - (padding * 2);
-      const availableHeight = canvasHeight - (padding * 2);
-      const imgAspect = img.width! / img.height!;
-      
-      let scale;
-      if (imgAspect > availableWidth / availableHeight) {
-        scale = availableWidth / img.width!;
-      } else {
-        scale = availableHeight / img.height!;
+    const loadImageWithFallback = async () => {
+      try {
+        // Try primary loading method with CORS
+        const img = await FabricImage.fromURL(imageUrl, {
+          crossOrigin: 'anonymous'
+        });
+
+        if (!img) {
+          throw new Error('Image failed to load');
+        }
+
+        const canvasWidth = fabricCanvas.width!;
+        const canvasHeight = fabricCanvas.height!;
+        const padding = 24; // Same as sidebar margins
+        
+        // Calculate scale to fit image with proper padding
+        const availableWidth = canvasWidth - (padding * 2);
+        const availableHeight = canvasHeight - (padding * 2);
+        const imgAspect = img.width! / img.height!;
+        
+        let scale;
+        if (imgAspect > availableWidth / availableHeight) {
+          scale = availableWidth / img.width!;
+        } else {
+          scale = availableHeight / img.height!;
+        }
+
+        img.scale(scale);
+        img.set({
+          left: padding,
+          top: padding, // Top-aligned with padding
+          selectable: false,
+          evented: false,
+        });
+
+        fabricCanvas.add(img);
+        setFabricImage(img);
+
+        // Create the main crop area
+        const mainCropArea = createCropArea('main', 'Main Card Image', 'frame');
+        if (mainCropArea) {
+          setCropAreas([mainCropArea]);
+          setSelectedAreaId('main');
+        }
+
+        fabricCanvas.renderAll();
+        setIsReady(true);
+        toast.success('Image loaded successfully');
+
+      } catch (primaryError) {
+        console.warn('Primary image loading failed:', primaryError);
+        
+        try {
+          // Fallback: Try without crossOrigin
+          const img = await FabricImage.fromURL(imageUrl);
+          
+          if (!img) {
+            throw new Error('Fallback image loading failed');
+          }
+
+          const canvasWidth = fabricCanvas.width!;
+          const canvasHeight = fabricCanvas.height!;
+          const padding = 24;
+          
+          const availableWidth = canvasWidth - (padding * 2);
+          const availableHeight = canvasHeight - (padding * 2);
+          const imgAspect = img.width! / img.height!;
+          
+          let scale;
+          if (imgAspect > availableWidth / availableHeight) {
+            scale = availableWidth / img.width!;
+          } else {
+            scale = availableHeight / img.height!;
+          }
+
+          img.scale(scale);
+          img.set({
+            left: padding,
+            top: padding,
+            selectable: false,
+            evented: false,
+          });
+
+          fabricCanvas.add(img);
+          setFabricImage(img);
+
+          const mainCropArea = createCropArea('main', 'Main Card Image', 'frame');
+          if (mainCropArea) {
+            setCropAreas([mainCropArea]);
+            setSelectedAreaId('main');
+          }
+
+          fabricCanvas.renderAll();
+          setIsReady(true);
+          toast.success('Image loaded (fallback mode)');
+
+        } catch (fallbackError) {
+          console.error('All image loading methods failed:', fallbackError);
+          toast.error('Failed to load image. Please try uploading a different image or check your connection.');
+          setIsReady(false);
+        }
       }
+    };
 
-      img.scale(scale);
-      img.set({
-        left: padding,
-        top: padding, // Top-aligned with padding
-        selectable: false,
-        evented: false,
-      });
-
-      fabricCanvas.add(img);
-      setFabricImage(img);
-
-      // Create the main crop area
-      const mainCropArea = createCropArea('main', 'Main Card Image', 'frame');
-      setCropAreas([mainCropArea]);
-      setSelectedAreaId('main');
-
-      fabricCanvas.renderAll();
-      setIsReady(true);
-    }).catch((error) => {
-      console.error('Failed to load image:', error);
-      toast.error('Failed to load image');
-    });
+    loadImageWithFallback();
   }, [fabricCanvas, imageUrl]);
 
   // Update grid overlay
