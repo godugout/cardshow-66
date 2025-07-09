@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SimpleCropInterface } from '../cropping/SimpleCropInterface';
 import { CRDButton, CRDCard } from '@/components/ui/design-system';
 import { CRDInput } from '@/components/ui/design-system';
 import { MediaUploadZone } from '@/components/media/MediaUploadZone';
-import { Upload, ArrowRight, ArrowLeft } from 'lucide-react';
+import { DustyChat } from '@/components/chat/DustyChat';
+import { Upload, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 export type CreateFlowStep = 'upload' | 'crop' | 'details' | 'preview';
@@ -21,6 +22,8 @@ export const CreateFlowA: React.FC<CreateFlowAProps> = ({ onComplete }) => {
     description: '',
     category: 'sports'
   });
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [hasAutoFilled, setHasAutoFilled] = useState(false);
 
   const handleUploadComplete = (files: any[]) => {
     if (files.length > 0) {
@@ -35,6 +38,30 @@ export const CreateFlowA: React.FC<CreateFlowAProps> = ({ onComplete }) => {
     setCroppedImage(croppedImageUrl);
     setCurrentStep('details');
     toast.success('Image cropped successfully!');
+  };
+
+  const handleAnalysisComplete = (analysis: any) => {
+    setAiAnalysis(analysis);
+    if (!hasAutoFilled) {
+      setCardDetails({
+        title: analysis.title || '',
+        description: analysis.description || '',
+        category: analysis.category || 'sports'
+      });
+      setHasAutoFilled(true);
+      toast.success('🎉 Dusty auto-filled your card details!');
+    }
+  };
+
+  const handleApplyAiSuggestions = () => {
+    if (aiAnalysis) {
+      setCardDetails({
+        title: aiAnalysis.title || '',
+        description: aiAnalysis.description || '',
+        category: aiAnalysis.category || 'sports'
+      });
+      toast.success('AI suggestions applied!');
+    }
   };
 
   const handleDetailsSubmit = () => {
@@ -112,68 +139,112 @@ export const CreateFlowA: React.FC<CreateFlowAProps> = ({ onComplete }) => {
   if (currentStep === 'details') {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-white mb-2">Card Details</h1>
-            <p className="text-muted-foreground">Add information about your card</p>
+            <p className="text-muted-foreground">Chat with Dusty and add information about your card</p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Preview */}
-            <CRDCard className="p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Preview</h3>
-              <div className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden">
-                <img 
-                  src={croppedImage} 
-                  alt="Card preview" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </CRDCard>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Dusty Chat */}
+            <div className="lg:order-1">
+              <DustyChat 
+                cardImage={croppedImage}
+                onAnalysisComplete={handleAnalysisComplete}
+              />
+            </div>
 
-            {/* Form */}
-            <CRDCard className="p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Information</h3>
-              <div className="space-y-4">
-                <CRDInput
-                  label="Card Title"
-                  value={cardDetails.title}
-                  onChange={(e) => setCardDetails({...cardDetails, title: e.target.value})}
-                  placeholder="Enter card title..."
-                  required
-                />
-                
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={cardDetails.description}
-                    onChange={(e) => setCardDetails({...cardDetails, description: e.target.value})}
-                    placeholder="Enter card description..."
-                    className="w-full p-3 bg-background border border-border rounded-lg text-white placeholder:text-muted-foreground focus:ring-2 focus:ring-crd-green focus:border-transparent"
-                    rows={4}
+            {/* Preview */}
+            <div className="lg:order-2">
+              <CRDCard className="p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Preview</h3>
+                <div className="aspect-[2.5/3.5] bg-muted rounded-lg overflow-hidden">
+                  <img 
+                    src={croppedImage} 
+                    alt="Card preview" 
+                    className="w-full h-full object-cover"
                   />
                 </div>
+                
+                {aiAnalysis && (
+                  <div className="mt-4 p-3 bg-gradient-to-r from-crd-orange/10 to-crd-green/10 rounded-lg border border-crd-green/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-4 h-4 text-crd-green" />
+                      <span className="text-sm font-medium text-white">AI Analysis Ready</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Confidence: {Math.round(aiAnalysis.confidence * 100)}%
+                    </p>
+                    <CRDButton
+                      variant="outline"
+                      size="sm"
+                      onClick={handleApplyAiSuggestions}
+                      className="w-full"
+                    >
+                      Apply AI Suggestions
+                    </CRDButton>
+                  </div>
+                )}
+              </CRDCard>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={cardDetails.category}
-                    onChange={(e) => setCardDetails({...cardDetails, category: e.target.value})}
-                    className="w-full p-3 bg-background border border-border rounded-lg text-white focus:ring-2 focus:ring-crd-green focus:border-transparent"
-                  >
-                    <option value="sports">Sports</option>
-                    <option value="gaming">Gaming</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="art">Art</option>
-                    <option value="other">Other</option>
-                  </select>
+            {/* Form */}
+            <div className="lg:order-3">
+              <CRDCard className="p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Information</h3>
+                <div className="space-y-4">
+                  <CRDInput
+                    label="Card Title"
+                    value={cardDetails.title}
+                    onChange={(e) => setCardDetails({...cardDetails, title: e.target.value})}
+                    placeholder="Enter card title..."
+                    required
+                  />
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={cardDetails.description}
+                      onChange={(e) => setCardDetails({...cardDetails, description: e.target.value})}
+                      placeholder="Enter card description..."
+                      className="w-full p-3 bg-background border border-border rounded-lg text-white placeholder:text-muted-foreground focus:ring-2 focus:ring-crd-green focus:border-transparent"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={cardDetails.category}
+                      onChange={(e) => setCardDetails({...cardDetails, category: e.target.value})}
+                      className="w-full p-3 bg-background border border-border rounded-lg text-white focus:ring-2 focus:ring-crd-green focus:border-transparent"
+                    >
+                      <option value="sports">Sports</option>
+                      <option value="gaming">Gaming</option>
+                      <option value="entertainment">Entertainment</option>
+                      <option value="art">Art</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  
+                  {aiAnalysis && (
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <h4 className="text-sm font-medium text-white mb-2">AI Detected:</h4>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p><strong>Subject:</strong> {aiAnalysis.subject}</p>
+                        <p><strong>Action:</strong> {aiAnalysis.action}</p>
+                        <p><strong>Setting:</strong> {aiAnalysis.setting}</p>
+                        <p><strong>Mood:</strong> {aiAnalysis.mood}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </CRDCard>
+              </CRDCard>
+            </div>
           </div>
 
           <div className="flex justify-center gap-4 mt-8">
