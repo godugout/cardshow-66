@@ -6,6 +6,7 @@ import { CardEffectsLayer } from '@/components/viewer/components/CardEffectsLaye
 import { Button } from '@/components/ui/button';
 import { RotateCcw, RotateCw, FlipHorizontal, ZoomIn, ZoomOut, Maximize, Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
+import { useResponsiveLayout, getResponsiveCardSize } from './hooks/useResponsiveLayout';
 import type { CardData } from '@/types/card';
 import type { CreatorState } from './types/CreatorState';
 
@@ -68,6 +69,8 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
   onStateUpdate
 }) => {
   const effectContextRef = useRef<any>(null);
+  const { screenWidth, screenHeight, isMobile } = useResponsiveLayout();
+  const cardSize = getResponsiveCardSize(screenWidth, screenHeight);
 
   const handleImageUpload = useCallback(() => {
     const input = document.createElement('input');
@@ -109,9 +112,9 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center max-w-2xl mx-auto">
-      {/* Card Container with integrated upload */}
-      <div className="relative">
+    <div className="relative flex flex-col items-center justify-center w-full h-full">
+      {/* Card Container with integrated upload - Responsive sizing */}
+      <div className="relative flex-1 flex items-center justify-center w-full">
         {/* Enhanced Card with Effects */}
         <EffectProvider
           key={`${state.currentSide}-${JSON.stringify(currentEffects)}`} // Force re-render when effects change
@@ -129,14 +132,14 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
           }}
         >
           <EffectInteractiveContainer 
-            className="relative overflow-hidden rounded-xl"
+            className="relative overflow-hidden rounded-xl w-full h-full flex items-center justify-center"
             currentEffects={currentEffects}
           >
             {state.uploadedImage && state.currentSide === 'front' ? (
               <EnhancedCardContainer
                 card={card}
-                width={450}
-                height={630}
+                width={cardSize.width}
+                height={cardSize.height}
                 allowFlip={true}
                 showControls={false}
                 initialFrontSide={{
@@ -207,50 +210,50 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
         </div>
       </div>
 
-      {/* Card Controls */}
-      <div className="mt-6 flex items-center gap-2 bg-card/50 backdrop-blur-sm border border-border rounded-lg p-2">
+      {/* Card Controls - Responsive layout */}
+      <div className="mt-2 sm:mt-4 lg:mt-6 flex flex-wrap items-center justify-center gap-1 sm:gap-2 bg-card/50 backdrop-blur-sm border border-border rounded-lg p-2 w-full max-w-md">
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 touch-manipulation"
           onClick={() => onStateUpdate({ currentSide: state.currentSide === 'front' ? 'back' : 'front' })}
         >
           <FlipHorizontal className="h-4 w-4" />
         </Button>
         
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-6 bg-border hidden sm:block" />
         
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 touch-manipulation">
           <RotateCcw className="h-4 w-4" />
         </Button>
         
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 touch-manipulation">
           <RotateCw className="h-4 w-4" />
         </Button>
         
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-6 bg-border hidden sm:block" />
         
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 touch-manipulation">
           <ZoomOut className="h-4 w-4" />
         </Button>
         
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 touch-manipulation">
           <ZoomIn className="h-4 w-4" />
         </Button>
         
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-6 bg-border hidden sm:block" />
         
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8 touch-manipulation">
           <Maximize className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+      {/* Quick Stats - Responsive layout */}
+      <div className="mt-2 sm:mt-4 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground text-center">
         <span>Frame: {state.selectedFrame}</span>
-        <span>•</span>
+        <span className="hidden sm:block">•</span>
         <span>Material: {state.currentSide === 'front' ? state.frontMaterial : state.backMaterial}</span>
-        <span>•</span>
+        <span className="hidden sm:block">•</span>
         <span>Effects: {Object.values(state.currentSide === 'front' ? state.frontEffects : state.backEffects).filter(v => v > 0).length} active</span>
       </div>
     </div>

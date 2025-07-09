@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { CreatorMainView } from '../CreatorMainView';
 import { CreatorRightSidebar } from '../CreatorRightSidebar';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import type { CreatorState, CardCreatorLayoutProps } from '../types/CreatorState';
 
@@ -85,46 +85,63 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
   }, [cardEditor.saveCard]);
   return (
     <div className="flex-1 flex overflow-hidden">
-      {/* Main Card View */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <CreatorMainView
-          card={{
-            ...card,
-            ...cardEditor.cardData,
-            created_at: card?.created_at || new Date().toISOString(),
-            creator_id: cardEditor.cardData.creator_id || card?.creator_id || ''
-          }}
-          state={creatorState}
-          onStateUpdate={updateCreatorState}
-        />
-      </div>
+      {/* Mobile Layout: Stack vertically on small screens */}
+      <div className="flex flex-col lg:flex-row w-full h-full">
+        {/* Main Card View - Full width on mobile, flex-1 on desktop */}
+        <div className="flex-1 flex items-center justify-center p-2 sm:p-4 lg:p-8 min-h-[50vh] lg:min-h-full">
+          <CreatorMainView
+            card={{
+              ...card,
+              ...cardEditor.cardData,
+              created_at: card?.created_at || new Date().toISOString(),
+              creator_id: cardEditor.cardData.creator_id || card?.creator_id || ''
+            }}
+            state={creatorState}
+            onStateUpdate={updateCreatorState}
+          />
+        </div>
 
-      {/* Right Sidebar */}
-      <div className={cn(
-        "relative bg-card border-l border-border transition-all duration-300",
-        rightSidebarOpen ? "w-96" : "w-14"
-      )}>
-        <CreatorRightSidebar
-          isOpen={rightSidebarOpen}
-          currentSide={creatorState.currentSide}
-          effects={getCurrentEffects()}
-          material={getCurrentMaterial()}
-          lighting={getCurrentLighting()}
-          onSideChange={(side) => updateCreatorState({ currentSide: side })}
-          onEffectsChange={updateCurrentEffects}
-          onMaterialChange={updateCurrentMaterial}
-          onLightingChange={updateCurrentLighting}
-        />
-        
-        {/* Right Sidebar Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute -left-4 top-4 z-10 bg-background border border-border shadow-lg"
-          onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-        >
-          {rightSidebarOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+        {/* Mobile Bottom Sheet & Desktop Sidebar */}
+        <div className={cn(
+          "relative bg-card border-border transition-all duration-300",
+          // Mobile: Bottom sheet that slides up
+          "lg:border-l border-t lg:border-t-0",
+          // Desktop: Traditional sidebar
+          rightSidebarOpen 
+            ? "w-full lg:w-80 xl:w-96 h-[50vh] lg:h-full" 
+            : "w-full lg:w-14 h-16 lg:h-full"
+        )}>
+          <CreatorRightSidebar
+            isOpen={rightSidebarOpen}
+            currentSide={creatorState.currentSide}
+            effects={getCurrentEffects()}
+            material={getCurrentMaterial()}
+            lighting={getCurrentLighting()}
+            onSideChange={(side) => updateCreatorState({ currentSide: side })}
+            onEffectsChange={updateCurrentEffects}
+            onMaterialChange={updateCurrentMaterial}
+            onLightingChange={updateCurrentLighting}
+          />
+          
+          {/* Responsive Sidebar Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "absolute z-10 bg-background border border-border shadow-lg transition-all",
+              "lg:-left-4 lg:top-4",
+              "top-2 left-1/2 -translate-x-1/2 lg:translate-x-0"
+            )}
+            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+          >
+            <div className="lg:hidden">
+              {rightSidebarOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            </div>
+            <div className="hidden lg:block">
+              {rightSidebarOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </div>
+          </Button>
+        </div>
       </div>
     </div>
   );

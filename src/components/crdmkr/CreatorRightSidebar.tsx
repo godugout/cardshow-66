@@ -144,35 +144,48 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
     onEffectsChange(preset.effects);
   };
   if (!isOpen) {
-    return <div className="w-14 flex flex-col items-center py-4 gap-4">
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
+    return (
+      <div className="w-full lg:w-14 h-16 lg:h-full flex lg:flex-col items-center justify-center lg:justify-start lg:py-4 gap-4">
+        <Button variant="ghost" size="icon" className="text-muted-foreground touch-manipulation">
           <Palette className="h-5 w-5" />
         </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
+        <Button variant="ghost" size="icon" className="text-muted-foreground touch-manipulation">
           <Sparkles className="h-5 w-5" />
         </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
+        <Button variant="ghost" size="icon" className="text-muted-foreground touch-manipulation">
           <Sun className="h-5 w-5" />
         </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
+        <Button variant="ghost" size="icon" className="text-muted-foreground touch-manipulation">
           <Share2 className="h-5 w-5" />
         </Button>
-      </div>;
+      </div>
+    );
   }
-  return <div className="w-96 flex flex-col h-full">
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
+  return (
+    <div className="w-full lg:w-80 xl:w-96 flex flex-col h-full">
+      <div className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-start sm:items-center lg:items-start xl:items-center justify-between mb-3 gap-2">
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-1">Visual Effects</h2>
-            <p className="text-sm text-muted-foreground">Materials, effects & lighting</p>
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-1">Visual Effects</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Materials, effects & lighting</p>
           </div>
           
           {/* Side Toggle */}
-          <div className="flex bg-muted rounded-lg p-1">
-            <Button variant={currentSide === 'front' ? 'default' : 'ghost'} size="sm" onClick={() => onSideChange('front')} className="text-xs px-3">
+          <div className="flex bg-muted rounded-lg p-1 w-full sm:w-auto">
+            <Button 
+              variant={currentSide === 'front' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => onSideChange('front')} 
+              className="text-xs px-3 flex-1 sm:flex-none touch-manipulation"
+            >
               Front
             </Button>
-            <Button variant={currentSide === 'back' ? 'default' : 'ghost'} size="sm" onClick={() => onSideChange('back')} className="text-xs px-3">
+            <Button 
+              variant={currentSide === 'back' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => onSideChange('back')} 
+              className="text-xs px-3 flex-1 sm:flex-none touch-manipulation"
+            >
               Back
             </Button>
           </div>
@@ -183,8 +196,8 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
         </Badge>
       </div>
 
-      <ScrollArea className="flex-1 px-4">
-        <div className="space-y-6 pb-4">
+      <ScrollArea className="flex-1 px-3 sm:px-4">
+        <div className="space-y-4 sm:space-y-6 pb-4">
           {/* Materials Section */}
           <Collapsible open={materialsOpen} onOpenChange={setMaterialsOpen}>
             <CollapsibleTrigger asChild>
@@ -226,9 +239,17 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
             <CollapsibleContent className="mt-3 space-y-4">
               {/* Preset Buttons */}
               <div className="grid grid-cols-2 gap-2">
-                {effectPresets.map(preset => <Button key={preset.name} variant="outline" size="sm" onClick={() => applyPreset(preset)} className="text-xs">
+                {effectPresets.map(preset => (
+                  <Button 
+                    key={preset.name} 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => applyPreset(preset)} 
+                    className="text-xs touch-manipulation"
+                  >
                     {preset.name}
-                  </Button>)}
+                  </Button>
+                ))}
               </div>
 
               <Separator />
@@ -311,13 +332,21 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
               <div>
                 <p className="text-sm font-medium mb-2">Environment</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {environments.map(env => <Button key={env.id} variant={lighting.environment === env.id ? "default" : "outline"} size="sm" onClick={() => onLightingChange({
-                  ...lighting,
-                  environment: env.id
-                })} className="justify-start gap-2 text-xs">
-                      <span>{env.icon}</span>
-                      {env.name}
-                    </Button>)}
+                {environments.map(env => (
+                  <Button 
+                    key={env.id} 
+                    variant={lighting.environment === env.id ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => onLightingChange({
+                      ...lighting,
+                      environment: env.id
+                    })} 
+                    className="justify-start gap-2 text-xs touch-manipulation"
+                  >
+                    <span>{env.icon}</span>
+                    {env.name}
+                  </Button>
+                ))}
                 </div>
               </div>
 
@@ -363,13 +392,13 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-3">
-              <Button className="w-full" size="sm">
+              <Button className="w-full touch-manipulation" size="sm">
                 Save to Gallery
               </Button>
-              <Button variant="outline" className="w-full" size="sm">
+              <Button variant="outline" className="w-full touch-manipulation" size="sm">
                 Download PNG
               </Button>
-              <Button variant="outline" className="w-full" size="sm">
+              <Button variant="outline" className="w-full touch-manipulation" size="sm">
                 Download PDF
               </Button>
               <div className="flex items-center justify-between text-sm">
@@ -380,5 +409,6 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
           </Collapsible>
         </div>
       </ScrollArea>
-    </div>;
+    </div>
+  );
 };
