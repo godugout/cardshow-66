@@ -19,7 +19,7 @@ import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
 import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
-import { UnifiedCreationFlow } from './components/creation/UnifiedCreationFlow';
+import { CardCreationStudio } from './components/creation/CardCreationStudio';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityPage from './pages/CommunityPage';
 import CreatorProfilePage from './pages/CreatorProfile';
@@ -90,7 +90,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <MainLayout>
-                        <UnifiedCreationFlow />
+                        <CardCreationStudio />
                       </MainLayout>
                     </ProtectedRoute>
                   } 
