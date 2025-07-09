@@ -219,7 +219,7 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
               <Button variant="ghost" className="w-full justify-between p-0 h-auto">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
-                  <span className="font-medium">Visual Effects</span>
+                  <span className="font-medium">CRD Styles</span>
                 </div>
               </Button>
             </CollapsibleTrigger>
@@ -363,13 +363,13 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 space-y-3">
-              <Button className="w-full" size="sm" onClick={() => window.parent?.postMessage({ type: 'SAVE_CARD' }, '*')}>
+              <Button className="w-full" size="sm">
                 Save to Gallery
               </Button>
-              <Button variant="outline" className="w-full" size="sm" onClick={() => window.parent?.postMessage({ type: 'EXPORT_PNG' }, '*')}>
+              <Button variant="outline" className="w-full" size="sm">
                 Download PNG
               </Button>
-              <Button variant="outline" className="w-full" size="sm" onClick={() => window.parent?.postMessage({ type: 'EXPORT_PDF' }, '*')}>
+              <Button variant="outline" className="w-full" size="sm">
                 Download PDF
               </Button>
               <div className="flex items-center justify-between text-sm">
