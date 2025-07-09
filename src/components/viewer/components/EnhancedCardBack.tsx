@@ -67,7 +67,7 @@ export const EnhancedCardBack: React.FC<EnhancedCardBackProps> = ({
       <div className="absolute inset-0 flex items-center justify-center z-10">
         <div className="relative">
           <img 
-            src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+            src="/crd-logo-gradient.png" 
             alt="CRD Logo" 
             className="w-64 h-auto opacity-90 transition-all duration-500"
             style={{

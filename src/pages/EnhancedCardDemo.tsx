@@ -4,11 +4,11 @@ import type { CardData } from '@/types/card';
 
 const demoCard: CardData = {
   id: '1',
-  title: 'Oakland Athletics Legend',
-  description: 'A legendary player from the golden era',
-  image_url: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
+  title: 'Your Card Title',
+  description: 'Upload an image to create your digital collectible',
+  image_url: null, // No image by default - shows card back with CRD logo
   rarity: 'legendary',
-  tags: ['athletics', 'legend', 'oakland'],
+  tags: ['digital', 'collectible', 'card'],
   creator_id: 'demo-creator',
   creator_name: 'CardShow',
   created_at: new Date().toISOString(),
