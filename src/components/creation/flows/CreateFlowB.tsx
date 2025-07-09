@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AdvancedCropInterface } from '../cropping/AdvancedCropInterface';
 import { CRDButton, CRDCard } from '@/components/ui/design-system';
 import { CRDInput } from '@/components/ui/design-system';
+import { MediaUploadZone } from '@/components/media/MediaUploadZone';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -40,21 +41,12 @@ export const CreateFlowB: React.FC<CreateFlowBProps> = ({ onComplete }) => {
     tags: [] as string[]
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File size must be less than 10MB');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setUploadedImage(imageUrl);
-        setCurrentStep('crop');
-      };
-      reader.readAsDataURL(file);
+  const handleUploadComplete = (files: any[]) => {
+    if (files.length > 0) {
+      const file = files[0];
+      setUploadedImage(file.publicUrl);
+      setCurrentStep('crop');
+      toast.success('Professional image uploaded successfully!');
     }
   };
 
@@ -120,32 +112,28 @@ export const CreateFlowB: React.FC<CreateFlowBProps> = ({ onComplete }) => {
           </div>
 
           <CRDCard className="p-8">
-            <div className="text-center">
-              <div className="border-2 border-dashed border-border rounded-lg p-12 hover:border-crd-blue/50 transition-colors">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-crd-blue/10 rounded-full flex items-center justify-center">
-                    <Upload className="w-8 h-8 text-crd-blue" />
-                  </div>
+            <MediaUploadZone
+              bucket="card-assets"
+              folder="card-images"
+              maxFiles={1}
+              onUploadComplete={handleUploadComplete}
+              className="min-h-[350px]"
+            >
+              <div className="space-y-6">
+                <div className="w-16 h-16 bg-crd-blue/10 rounded-full flex items-center justify-center mx-auto">
+                  <Upload className="w-8 h-8 text-crd-blue" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Upload High-Quality Image</h3>
-                <p className="text-muted-foreground mb-6">
-                  Professional creation tools with advanced cropping and enhancement
-                </p>
-                
-                <label className="cursor-pointer">
-                  <CRDButton variant="gradient" size="lg" className="pointer-events-none">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Upload High-Quality Image</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Professional creation tools with advanced cropping and enhancement
+                  </p>
+                  <CRDButton variant="gradient" size="lg">
                     <Target className="w-4 h-4 mr-2" />
                     Select Professional Image
                   </CRDButton>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-                
-                <div className="grid grid-cols-3 gap-4 mt-6 text-xs text-muted-foreground">
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Layers className="w-3 h-3" />
                     Multi-area cropping
@@ -160,7 +148,7 @@ export const CreateFlowB: React.FC<CreateFlowBProps> = ({ onComplete }) => {
                   </div>
                 </div>
               </div>
-            </div>
+            </MediaUploadZone>
           </CRDCard>
         </div>
       </div>

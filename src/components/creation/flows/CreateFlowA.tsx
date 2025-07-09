@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SimpleCropInterface } from '../cropping/SimpleCropInterface';
 import { CRDButton, CRDCard } from '@/components/ui/design-system';
 import { CRDInput } from '@/components/ui/design-system';
+import { MediaUploadZone } from '@/components/media/MediaUploadZone';
 import { Upload, ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,21 +22,12 @@ export const CreateFlowA: React.FC<CreateFlowAProps> = ({ onComplete }) => {
     category: 'sports'
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File size must be less than 10MB');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setUploadedImage(imageUrl);
-        setCurrentStep('crop');
-      };
-      reader.readAsDataURL(file);
+  const handleUploadComplete = (files: any[]) => {
+    if (files.length > 0) {
+      const file = files[0];
+      setUploadedImage(file.publicUrl);
+      setCurrentStep('crop');
+      toast.success('Image uploaded successfully!');
     }
   };
 
@@ -76,31 +68,29 @@ export const CreateFlowA: React.FC<CreateFlowAProps> = ({ onComplete }) => {
           </div>
 
           <CRDCard className="p-8">
-            <div className="text-center">
-              <div className="border-2 border-dashed border-border rounded-lg p-12 hover:border-crd-green/50 transition-colors">
-                <Upload className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Upload Your Image</h3>
-                <p className="text-muted-foreground mb-6">
-                  Choose a high-quality image for your trading card
-                </p>
-                
-                <label className="cursor-pointer">
-                  <CRDButton variant="primary" size="lg" className="pointer-events-none">
+            <MediaUploadZone
+              bucket="card-assets"
+              folder="card-images"
+              maxFiles={1}
+              onUploadComplete={handleUploadComplete}
+              className="min-h-[300px]"
+            >
+              <div className="space-y-4">
+                <Upload className="w-16 h-16 text-muted-foreground mx-auto" />
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Upload Your Image</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Choose a high-quality image for your trading card
+                  </p>
+                  <CRDButton variant="primary" size="lg">
                     Select Image
                   </CRDButton>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-                
-                <p className="text-xs text-muted-foreground mt-4">
+                </div>
+                <p className="text-xs text-muted-foreground">
                   Supports JPG, PNG, WebP • Max 10MB
                 </p>
               </div>
-            </div>
+            </MediaUploadZone>
           </CRDCard>
         </div>
       </div>
