@@ -43,7 +43,7 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
   const { cardData, updateCardData, saveCard, isSaving } = useCardCreator();
   
   const [creatorState, setCreatorState] = useState<CreatorState>({
-    selectedFrame: 'oakland-as-donruss',
+    selectedFrame: 'crd-default',
     currentSide: 'front',
     frontEffects: {
       metallic: 0.2,
