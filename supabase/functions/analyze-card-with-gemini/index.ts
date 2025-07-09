@@ -63,31 +63,72 @@ serve(async (req) => {
       contents: [{
         parts: [
           {
-            text: `Analyze this trading card or sports card image in detail. Be very specific about what you see. Look for:
+            text: `Analyze this image for creating an AMAZING trading card with ZERO user effort. Be extremely creative, detailed, and make card creation completely effortless! 
 
-1. SPORT/ACTIVITY: What specific sport or activity is shown? (basketball, baseball, football, soccer, hockey, etc.)
-2. PLAYER/SUBJECT: Can you identify the main person or subject? Look for jerseys, uniforms, equipment
-3. ACTION: What specific action is being performed? (pitching, batting, running, jumping, celebrating, etc.)
-4. TEAM/UNIFORM: What team colors, logos, or uniform details are visible?
-5. SETTING: What type of venue or background? (stadium, field, court, outdoor, indoor, etc.)
-6. EQUIPMENT: What sports equipment is visible? (ball, bat, gloves, helmet, etc.)
-7. CARD DETAILS: Any visible text, numbers, logos, or card design elements?
-8. QUALITY/STYLE: What type of photo is this? (action shot, portrait, vintage, modern, etc.)
+Examine EVERYTHING in the image and provide comprehensive analysis:
 
-Be VERY descriptive and specific. Don't say "Unknown" unless you truly cannot determine anything.
+🔍 VISUAL ANALYSIS:
+- Main subject/person/character and their details
+- Dynamic action or pose happening  
+- Sports/activity type and specific details
+- Team colors, uniforms, equipment visible
+- Setting, venue, background environment
+- Lighting, composition, and visual appeal
+- Any text, numbers, logos, or existing card elements
 
-Return ONLY a valid JSON object in this exact format:
+💡 CREATIVE SUGGESTIONS:
+- Perfect catchy title that sells the card
+- Compelling backstory description
+- Best card frame style to match the vibe
+- Ideal cropping focus for maximum impact
+- Enhancement suggestions for wow factor
+- Rarity level based on uniqueness/appeal
+
+📊 MARKET INTELLIGENCE:
+- Collector appeal and trending keywords
+- Similar successful cards in the market
+- Target audience and search optimization
+
+Return ONLY a valid JSON object in this EXACT format:
 {
-  "title": "Descriptive title based on what you see (max 50 chars)",
-  "description": "Detailed 2-3 sentence description of exactly what you observe in the image",
-  "category": "sports|gaming|entertainment|art|other",
-  "subject": "The main person/character/subject you can identify",
+  "title": "Creative, catchy card title (think like a pro card designer)",
+  "description": "Compelling card description that tells a story (3-4 sentences max)",
+  "category": "sports|gaming|entertainment|art|collectibles|other",
+  "subject": "Main subject/person/character in the image",
   "sport": "Specific sport if applicable, null if not sports",
-  "action": "Specific action being performed",
-  "setting": "Specific location/background you can see",
-  "mood": "Energy/mood of the image (dynamic, calm, intense, celebratory, etc.)",
-  "confidence": 0.8,
-  "suggestions": ["2-3 specific suggestions based on what you actually see"]
+  "action": "Dynamic action or pose happening",
+  "setting": "Detailed environment/location description",
+  "mood": "Emotional tone and energy level",
+  "colors": ["primary", "secondary", "accent", "colors"],
+  "composition": "Visual composition and framing analysis",
+  "rarity": "common|uncommon|rare|epic|legendary",
+  "confidence": 0.95,
+  "tags": ["sport", "action", "team", "relevant", "searchable", "tags"],
+  "stats": {
+    "overall_quality": 8,
+    "visual_appeal": 9, 
+    "card_potential": 7,
+    "action_level": 6,
+    "uniqueness": 8
+  },
+  "suggested_frame": "sports|modern|vintage|holographic|artistic",
+  "auto_crop_suggestion": {
+    "focus_area": "Description of what should be the main focus",
+    "crop_style": "portrait|landscape|square|custom",
+    "keep_elements": ["important", "elements", "to", "preserve"]
+  },
+  "enhancement_suggestions": {
+    "brightness": 50,
+    "contrast": 60, 
+    "saturation": 55,
+    "effects": ["suggested", "visual", "effects"]
+  },
+  "market_appeal": {
+    "collector_interest": 8,
+    "trending_keywords": ["popular", "search", "terms"],
+    "similar_cards": "What this reminds me of in the trading card world"
+  },
+  "suggestions": ["Smart card creation tips", "Optimization advice", "Marketing suggestions"]
 }`
           },
           imageContent
@@ -148,18 +189,46 @@ Return ONLY a valid JSON object in this exact format:
         analysisResult = JSON.parse(jsonStr);
         console.log('Successfully parsed JSON:', analysisResult);
         
-        // Ensure all required fields are present
+        // Ensure all required fields are present with enhanced data
         analysisResult = {
-          title: analysisResult.title || 'Trading Card',
-          description: analysisResult.description || 'A trading card with custom artwork.',
+          title: analysisResult.title || 'AI-Enhanced Trading Card',
+          description: analysisResult.description || 'A trading card with AI-optimized design and appeal.',
           category: analysisResult.category || 'other',
           subject: analysisResult.subject || 'Person',
           sport: analysisResult.sport || null,
-          action: analysisResult.action || 'Posed',
-          setting: analysisResult.setting || 'Studio',
-          mood: analysisResult.mood || 'Professional',
-          confidence: Math.max(0.7, analysisResult.confidence || 0.7),
-          suggestions: analysisResult.suggestions || ['Trading card', 'Collectible item']
+          action: analysisResult.action || 'Dynamic pose',
+          setting: analysisResult.setting || 'Professional setting',
+          mood: analysisResult.mood || 'Dynamic',
+          colors: analysisResult.colors || ['vibrant', 'professional'],
+          composition: analysisResult.composition || 'Well-balanced composition',
+          rarity: analysisResult.rarity || 'uncommon',
+          confidence: Math.max(0.8, analysisResult.confidence || 0.8),
+          tags: analysisResult.tags || ['trading', 'card', 'collectible'],
+          stats: analysisResult.stats || {
+            overall_quality: 8,
+            visual_appeal: 7,
+            card_potential: 8,
+            action_level: 6,
+            uniqueness: 7
+          },
+          suggested_frame: analysisResult.suggested_frame || 'modern',
+          auto_crop_suggestion: analysisResult.auto_crop_suggestion || {
+            focus_area: 'Center subject for maximum impact',
+            crop_style: 'portrait',
+            keep_elements: ['main subject', 'important details']
+          },
+          enhancement_suggestions: analysisResult.enhancement_suggestions || {
+            brightness: 50,
+            contrast: 55,
+            saturation: 50,
+            effects: ['clarity boost', 'color enhancement']
+          },
+          market_appeal: analysisResult.market_appeal || {
+            collector_interest: 7,
+            trending_keywords: ['trading card', 'collectible'],
+            similar_cards: 'Modern collectible card'
+          },
+          suggestions: analysisResult.suggestions || ['Perfect for collectors', 'High visual appeal', 'Great design potential']
         };
       } else {
         throw new Error('No valid JSON found in response');

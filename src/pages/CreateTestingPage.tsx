@@ -9,7 +9,8 @@ import {
   TestTube2,
   Target,
   Layers,
-  Palette
+  Palette,
+  Wand2
 } from 'lucide-react';
 
 export const CreateTestingPage = () => {
@@ -29,6 +30,68 @@ export const CreateTestingPage = () => {
             <Badge variant="outline" className="bg-background/50">
               Testing Phase
             </Badge>
+          </div>
+
+          {/* Ultra-Streamlined Flow */}
+          <div className="mb-12">
+            <CRDCard className="p-8 hover:border-crd-orange/50 transition-colors bg-gradient-to-r from-crd-orange/5 to-crd-green/5">
+              <div className="text-center space-y-6">
+                <div className="w-24 h-24 bg-gradient-to-r from-crd-orange to-crd-green rounded-full flex items-center justify-center mx-auto">
+                  <Wand2 className="w-12 h-12 text-white" />
+                </div>
+                
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2">Ultra-Streamlined Flow</h2>
+                  <p className="text-muted-foreground mb-4">3 Swipes + 9 Taps = Perfect Card</p>
+                  <Badge variant="outline" className="bg-gradient-to-r from-crd-orange to-crd-green text-white border-crd-orange">
+                    AI-Powered • Zero Effort
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 bg-crd-orange/20 rounded-full flex items-center justify-center">
+                      <span className="text-crd-orange font-bold">1</span>
+                    </div>
+                    <span>Upload Image</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 bg-crd-green/20 rounded-full flex items-center justify-center">
+                      <span className="text-crd-green font-bold">2</span>
+                    </div>
+                    <span>AI Magic</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 bg-crd-blue/20 rounded-full flex items-center justify-center">
+                      <span className="text-crd-blue font-bold">3</span>
+                    </div>
+                    <span>Choose & Done</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4 text-crd-orange" />
+                    <span>Google AI creates 3 perfect card variations instantly</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Zap className="w-4 h-4 text-crd-green" />
+                    <span>Auto-titles, descriptions, rarity & frame selection</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Target className="w-4 h-4 text-crd-blue" />
+                    <span>Optimized for maximum collector appeal</span>
+                  </div>
+                </div>
+
+                <Link to="/create/ultra" className="block">
+                  <CRDButton variant="gradient" size="lg" className="w-full">
+                    Experience AI Magic
+                    <Wand2 className="w-4 h-4 ml-2" />
+                  </CRDButton>
+                </Link>
+              </div>
+            </CRDCard>
           </div>
 
           {/* Flow Comparison */}

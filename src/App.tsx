@@ -19,6 +19,7 @@ import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
 import { CreateFlowA } from './components/creation/flows/CreateFlowA';
 import { CreateFlowB } from './components/creation/flows/CreateFlowB';
+import { UltraStreamlinedFlow } from './components/creation/flows/UltraStreamlinedFlow';
 import CreateTestingPage from './pages/CreateTestingPage';
 import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
@@ -116,6 +117,16 @@ function App() {
                     <ProtectedRoute>
                       <MainLayout showNavbar={false}>
                         <CreateFlowB />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/create/ultra" 
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout showNavbar={false}>
+                        <UltraStreamlinedFlow />
                       </MainLayout>
                     </ProtectedRoute>
                   } 
