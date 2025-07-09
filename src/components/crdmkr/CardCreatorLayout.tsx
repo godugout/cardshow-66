@@ -43,7 +43,7 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
   const { cardData, updateCardData, saveCard, isSaving } = useCardCreator();
   
   const [creatorState, setCreatorState] = useState<CreatorState>({
-    selectedFrame: 'oakland-as-donruss',
+    selectedFrame: 'crd-default',
     currentSide: 'front',
     frontEffects: {
       metallic: 0.2,
@@ -158,32 +158,6 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        {(layoutMode === 'dual' || layoutMode === 'single-left') && (
-          <div className={cn(
-            "relative bg-card border-r border-border transition-all duration-300",
-            leftSidebarOpen ? "w-80" : "w-14"
-          )}>
-            <CreatorLeftSidebar
-              isOpen={leftSidebarOpen}
-              selectedFrame={creatorState.selectedFrame}
-              uploadedImage={creatorState.uploadedImage}
-              onFrameSelect={(frameId) => updateCreatorState({ selectedFrame: frameId })}
-              onImageUpload={(imageUrl) => updateCreatorState({ uploadedImage: imageUrl })}
-            />
-            
-            {/* Left Sidebar Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute -right-4 top-4 z-10 bg-background border border-border shadow-lg"
-              onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            >
-              {leftSidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          </div>
-        )}
-
         {/* Main Card View */}
         <div className="flex-1 flex items-center justify-center p-8">
           <CreatorMainView
