@@ -30,9 +30,9 @@ export const EnhancedDesktopLayout: React.FC<EnhancedDesktopLayoutProps> = ({
 }) => {
   return (
     <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-2 lg:p-4">
-      <div className="grid grid-cols-4 gap-3 lg:gap-6 h-full min-h-[600px]">
-        {/* Large Card Preview Column - 50% width (2 of 4 columns) */}
-        <div className="col-span-2 flex items-center justify-center">
+      <div className="grid grid-cols-3 gap-3 lg:gap-6 h-full min-h-[600px]">
+        {/* Large Card Preview Column - 33% width (1 of 3 columns) */}
+        <div className="col-span-1 flex items-center justify-center">
           <LargeCardPreview
             frames={frames}
             currentIndex={currentIndex}
@@ -44,7 +44,7 @@ export const EnhancedDesktopLayout: React.FC<EnhancedDesktopLayoutProps> = ({
           />
         </div>
 
-        {/* Frame Selection Panel - 25% width (1 of 4 columns) */}
+        {/* Frame Selection Panel - 33% width (1 of 3 columns) */}
         <div className="col-span-1 overflow-hidden">
           <FrameSelectionPanel
             frames={frames}
@@ -55,7 +55,7 @@ export const EnhancedDesktopLayout: React.FC<EnhancedDesktopLayoutProps> = ({
           />
         </div>
 
-        {/* Upload & Asset Management Panel - 25% width (1 of 4 columns) */}
+        {/* Upload & Asset Management Panel - 33% width (1 of 3 columns) */}
         <div className="col-span-1 overflow-hidden">
           <UploadAssetPanel
             uploadedImage={uploadedImage}
