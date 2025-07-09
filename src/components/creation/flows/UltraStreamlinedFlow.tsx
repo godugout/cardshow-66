@@ -159,11 +159,31 @@ export const UltraStreamlinedFlow: React.FC = () => {
         );
 
       case 'crop':
+        // Debug logging
+        console.log('Crop step - uploadedImageUrl:', uploadedImageUrl);
+        console.log('Crop step - uploadedImageUrl type:', typeof uploadedImageUrl);
+        console.log('Crop step - uploadedImageUrl length:', uploadedImageUrl?.length);
+        
+        if (!uploadedImageUrl || uploadedImageUrl.trim() === '') {
+          return (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-white mb-2">Image Upload Error</h2>
+                <p className="text-gray-400 mb-4">No image URL found. Please try uploading again.</p>
+                <Button onClick={() => setCurrentStep('upload')} variant="outline">
+                  Back to Upload
+                </Button>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-white mb-2">Crop Your Image</h2>
               <p className="text-gray-400">Adjust the crop to fit your card perfectly</p>
+              <p className="text-xs text-gray-500 mt-2">Image URL: {uploadedImageUrl}</p>
             </div>
             <Card className="p-6">
               {/* Simple image display with basic crop functionality */}
@@ -173,11 +193,17 @@ export const UltraStreamlinedFlow: React.FC = () => {
                     src={uploadedImageUrl} 
                     alt="Card to crop" 
                     className="w-full h-auto max-h-[60vh] object-contain"
-                    onLoad={() => console.log('Image loaded successfully in crop view')}
-                    onError={(e) => {
-                      console.error('Image failed to load in crop view:', e);
-                      toast.error('Failed to load image');
+                    onLoad={(e) => {
+                      console.log('Image loaded successfully in crop view');
+                      const img = e.target as HTMLImageElement;
+                      console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
                     }}
+                    onError={(e) => {
+                      console.error('Image failed to load in crop view. URL:', uploadedImageUrl);
+                      console.error('Error event:', e);
+                      toast.error('Failed to load image for cropping');
+                    }}
+                    crossOrigin="anonymous"
                   />
                   {/* Overlay showing crop area */}
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -206,6 +232,9 @@ export const UltraStreamlinedFlow: React.FC = () => {
                   </Button>
                   <Button variant="ghost" onClick={handleSkipCrop}>
                     Skip Crop
+                  </Button>
+                  <Button variant="outline" onClick={() => setCurrentStep('upload')}>
+                    Back to Upload
                   </Button>
                 </div>
               </div>
