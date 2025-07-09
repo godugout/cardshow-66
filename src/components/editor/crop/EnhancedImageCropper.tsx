@@ -6,6 +6,7 @@ import { CropControls } from './CropControls';
 import { CompactCropControls } from './CompactCropControls';
 import { useCropState } from './useCropState';
 import { exportCroppedImage } from '@/utils/cropUtils';
+import { ImagePreloader } from './ImagePreloader';
 import { toast } from 'sonner';
 
 interface EnhancedImageCropperProps {
@@ -28,6 +29,8 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   const [fabricImage, setFabricImage] = useState<FabricImage | null>(null);
   const [cropRect, setCropRect] = useState<Rect | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [imageLoadingState, setImageLoadingState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [validatedImageUrl, setValidatedImageUrl] = useState<string | null>(null);
 
   const {
     cropState,
@@ -61,11 +64,28 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     };
   }, []);
 
-  // Load and setup image
-  useEffect(() => {
-    if (!fabricCanvas || !imageUrl) return;
+  // Handle validated image URL and setup
+  const handleImageReady = useCallback((validUrl: string) => {
+    setValidatedImageUrl(validUrl);
+    setImageLoadingState('ready');
+  }, []);
 
-    FabricImage.fromURL(imageUrl).then((img) => {
+  const handleImageError = useCallback((error: string) => {
+    setImageLoadingState('error');
+    console.error('Image validation failed:', error);
+  }, []);
+
+  // Load and setup image (only when image is validated)
+  useEffect(() => {
+    if (!fabricCanvas || !validatedImageUrl) return;
+
+    // Clear any existing objects
+    fabricCanvas.clear();
+    setFabricImage(null);
+    setCropRect(null);
+    setIsReady(false);
+
+    FabricImage.fromURL(validatedImageUrl).then((img) => {
       // Scale image to fit canvas while maintaining aspect ratio
       const canvasWidth = fabricCanvas.width!;
       const canvasHeight = fabricCanvas.height!;
@@ -151,10 +171,18 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       setIsReady(true);
       fabricCanvas.renderAll();
     }).catch((error) => {
-      console.error('Failed to load image:', error);
-      toast.error('Failed to load image');
+      console.error('Failed to load image in Fabric.js:', error);
+      setImageLoadingState('error');
+      toast.error('Failed to initialize crop editor');
     });
-  }, [fabricCanvas, imageUrl, aspectRatio]);
+  }, [fabricCanvas, validatedImageUrl, aspectRatio]);
+
+  // Reset image loading state when imageUrl changes
+  useEffect(() => {
+    setImageLoadingState('loading');
+    setValidatedImageUrl(null);
+    setIsReady(false);
+  }, [imageUrl]);
 
   const addGridOverlay = (rect: Rect) => {
     if (!fabricCanvas) return;
@@ -289,6 +317,21 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     addGridOverlay(cropRect);
     fabricCanvas?.renderAll();
   }, [cropState, cropRect, fabricCanvas]);
+
+  // Show image preloader while loading or on error
+  if (imageLoadingState === 'loading' || imageLoadingState === 'error') {
+    return (
+      <div className={`${className}`}>
+        <ImagePreloader
+          imageUrl={imageUrl}
+          onImageReady={handleImageReady}
+          onError={handleImageError}
+          maxRetries={3}
+          retryDelay={1000}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-4 ${className}`}>
