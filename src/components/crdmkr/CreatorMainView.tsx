@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw, RotateCw, FlipHorizontal, ZoomIn, ZoomOut, Maximize, Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CardData } from '@/types/card';
-import type { CreatorState } from './CardCreatorLayout';
+import type { CreatorState } from './types/CreatorState';
 
 interface CreatorMainViewProps {
   card: CardData;
