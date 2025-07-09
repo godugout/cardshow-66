@@ -24,6 +24,8 @@ export const SimpleCropInterface: React.FC<SimpleCropInterfaceProps> = ({
   const [rotation, setRotation] = useState([0]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     console.log('SimpleCropInterface received imageUrl:', imageUrl);
@@ -85,6 +87,41 @@ export const SimpleCropInterface: React.FC<SimpleCropInterfaceProps> = ({
     setRotation([0]);
   };
 
+  // Mouse event handlers for dragging
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDragging(true);
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect) {
+      setDragStart({
+        x: e.clientX - rect.left - (xPosition[0] - 50) * 4,
+        y: e.clientY - rect.top - (yPosition[0] - 50) * 4
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging || !canvasRef.current) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Convert mouse position to percentage
+    const newXPercent = 50 + (mouseX - dragStart.x) / 4;
+    const newYPercent = 50 + (mouseY - dragStart.y) / 4;
+    
+    // Clamp values between 0 and 100
+    const clampedX = Math.max(0, Math.min(100, newXPercent));
+    const clampedY = Math.max(0, Math.min(100, newYPercent));
+    
+    setXPosition([clampedX]);
+    setYPosition([clampedY]);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   // Slider Mode Component
   const SliderMode = () => (
     <div className="grid lg:grid-cols-2 gap-8">
@@ -93,8 +130,12 @@ export const SimpleCropInterface: React.FC<SimpleCropInterfaceProps> = ({
         <CRDCard className="p-6 bg-card/50">
           <canvas
             ref={canvasRef}
-            className="border-2 border-crd-green rounded-lg shadow-lg"
+            className="border-2 border-crd-green rounded-lg shadow-lg cursor-move"
             style={{ maxWidth: '100%', height: 'auto' }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           />
         </CRDCard>
       </div>
