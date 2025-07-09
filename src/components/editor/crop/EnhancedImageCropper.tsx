@@ -31,6 +31,8 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   const [isReady, setIsReady] = useState(false);
   const [imageLoadingState, setImageLoadingState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [validatedImageUrl, setValidatedImageUrl] = useState<string | null>(null);
+  const [fabricLoadingTimeout, setFabricLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showSkipOption, setShowSkipOption] = useState(false);
 
   const {
     cropState,
@@ -61,6 +63,10 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     return () => {
       canvas.dispose();
       setFabricCanvas(null);
+      // Clean up timeout
+      if (fabricLoadingTimeout) {
+        clearTimeout(fabricLoadingTimeout);
+      }
     };
   }, []);
 
@@ -86,6 +92,21 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     setFabricImage(null);
     setCropRect(null);
     setIsReady(false);
+    setShowSkipOption(false);
+
+    // Clear any existing timeout
+    if (fabricLoadingTimeout) {
+      clearTimeout(fabricLoadingTimeout);
+    }
+
+    // Set timeout for Fabric.js loading (10 seconds)
+    const timeout = setTimeout(() => {
+      console.warn('Fabric.js loading timed out after 10 seconds');
+      setShowSkipOption(true);
+      toast.error('Crop editor is taking longer than expected. You can skip cropping or try again.');
+    }, 10000);
+    
+    setFabricLoadingTimeout(timeout);
 
     // Configure image loading options for CORS and Supabase compatibility
     const imageOptions = {
@@ -126,6 +147,12 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
 
     const setupImageAndCrop = (img: FabricImage) => {
       console.log('Setting up image and crop rectangle');
+      
+      // Clear timeout since we successfully loaded
+      if (fabricLoadingTimeout) {
+        clearTimeout(fabricLoadingTimeout);
+        setFabricLoadingTimeout(null);
+      }
       
       // Scale image to fit canvas while maintaining aspect ratio
       const canvasWidth = fabricCanvas.width!;
@@ -380,10 +407,44 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   if (imageLoadingState === 'ready' && !isReady) {
     return (
       <div className={`${className} flex items-center justify-center py-12`}>
-        <div className="text-center space-y-3">
+        <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crd-green mx-auto"></div>
-          <p className="text-white font-medium">Setting up crop editor...</p>
-          <p className="text-muted-foreground text-sm">Initializing canvas with your image</p>
+          <div>
+            <p className="text-white font-medium">Setting up crop editor...</p>
+            <p className="text-muted-foreground text-sm">Initializing canvas with your image</p>
+          </div>
+          
+          {showSkipOption && (
+            <div className="space-y-3">
+              <p className="text-yellow-400 text-sm">Taking longer than expected</p>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  onClick={() => {
+                    console.log('User chose to skip cropping, using original image');
+                    onCropComplete(validatedImageUrl!);
+                    toast.success('Using original image without cropping');
+                  }}
+                  variant="outline"
+                  className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+                >
+                  Skip Crop & Use Original
+                </Button>
+                <Button
+                  onClick={() => {
+                    console.log('User chose to retry crop editor setup');
+                    setShowSkipOption(false);
+                    setImageLoadingState('loading');
+                    setValidatedImageUrl(null);
+                    toast.info('Retrying crop editor...');
+                  }}
+                  variant="outline"
+                  className="border-crd-lightGray text-crd-lightGray hover:bg-crd-lightGray hover:text-black"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
