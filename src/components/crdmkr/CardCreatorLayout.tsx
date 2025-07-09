@@ -43,7 +43,7 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
   const { cardData, updateCardData, saveCard, isSaving } = useCardCreator();
   
   const [creatorState, setCreatorState] = useState<CreatorState>({
-    selectedFrame: 'crd-default',
+    selectedFrame: 'oakland-as-donruss',
     currentSide: 'front',
     frontEffects: {
       metallic: 0.2,
@@ -56,14 +56,14 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
       rainbow: 0
     },
     backEffects: {
-      metallic: 0.8,
-      holographic: 0.9,
-      chrome: 0.6,
-      crystal: 0.7,
-      vintage: 0.2,
-      prismatic: 0.8,
-      interference: 0.6,
-      rainbow: 0.4
+      metallic: 0.1,
+      holographic: 0.7,
+      chrome: 0,
+      crystal: 0.3,
+      vintage: 0,
+      prismatic: 0.4,
+      interference: 0.2,
+      rainbow: 0.1
     },
     frontMaterial: 'standard',
     backMaterial: 'holographic',
@@ -74,8 +74,8 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
       environment: 'studio'
     },
     backLighting: {
-      intensity: 1.0,
-      direction: { x: 0.4, y: 0.8 },
+      intensity: 0.8,
+      direction: { x: 0.3, y: 0.7 },
       color: '#4FFFB0',
       environment: 'cosmic'
     }
@@ -158,6 +158,31 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar */}
+        {(layoutMode === 'dual' || layoutMode === 'single-left') && (
+          <div className={cn(
+            "relative bg-card border-r border-border transition-all duration-300",
+            leftSidebarOpen ? "w-80" : "w-14"
+          )}>
+            <CreatorLeftSidebar
+              isOpen={leftSidebarOpen}
+              selectedFrame={creatorState.selectedFrame}
+              uploadedImage={creatorState.uploadedImage}
+              onFrameSelect={(frameId) => updateCreatorState({ selectedFrame: frameId })}
+              onImageUpload={(imageUrl) => updateCreatorState({ uploadedImage: imageUrl })}
+            />
+            
+            {/* Left Sidebar Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute -right-4 top-4 z-10 bg-background border border-border shadow-lg"
+              onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+            >
+              {leftSidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
 
         {/* Main Card View */}
         <div className="flex-1 flex items-center justify-center p-8">
@@ -165,8 +190,6 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
             card={card}
             state={creatorState}
             onStateUpdate={updateCreatorState}
-            onImageUpload={(imageUrl) => updateCreatorState({ uploadedImage: imageUrl })}
-            onFrameSelect={(frameId) => updateCreatorState({ selectedFrame: frameId })}
           />
         </div>
 

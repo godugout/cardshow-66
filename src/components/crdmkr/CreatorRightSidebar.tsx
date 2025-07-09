@@ -135,12 +135,10 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
   const [lightingOpen, setLightingOpen] = useState(true);
   const [exportOpen, setExportOpen] = useState(false);
   const updateEffect = (effectName: string, value: number) => {
-    const newEffects = {
+    onEffectsChange({
       ...effects,
       [effectName]: value
-    };
-    console.log('Updating effect:', effectName, 'to value:', value, 'new effects:', newEffects);
-    onEffectsChange(newEffects);
+    });
   };
   const applyPreset = (preset: typeof effectPresets[0]) => {
     onEffectsChange(preset.effects);

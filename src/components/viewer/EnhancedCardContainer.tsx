@@ -13,7 +13,6 @@ import { EnhancedDesignControls } from './components/EnhancedDesignControls';
 import { EnhancedMaterialControls } from './components/EnhancedMaterialControls';
 import { EnhancedLightingControls } from './components/EnhancedLightingControls';
 import { getCRDFrameById } from '@/data/crdFrames';
-import { useAutoFlipOnUpload } from './hooks/useAutoFlipOnUpload';
 
 export interface CardSide {
   type: 'front' | 'back';
@@ -54,14 +53,14 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   card,
   initialFrontSide,
   initialBackSide,
-  width = 350, // Updated to 2.5" x 3.5" aspect ratio (5:7)
-  height = 490,
+  width = 450,
+  height = 630,
   className = '',
   allowFlip = true,
   showControls = true
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isFlipped, setIsFlipped] = useState(true); // Default to showing card back with CRD logo
+  const [isFlipped, setIsFlipped] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [isHovering, setIsHovering] = useState(false);
   const [viewMode, setViewMode] = useState<'preview' | 'design' | 'materials' | 'lighting'>('preview');
@@ -95,20 +94,20 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     type: 'back',
     frameId: 'modern-holographic',
     effects: {
-      metallic: 0.8,
-      holographic: 0.9,
-      chrome: 0.6,
-      crystal: 0.7,
-      vintage: 0.2,
-      prismatic: 0.8,
-      interference: 0.6,
-      rainbow: 0.4,
-      particles: true
+      metallic: 0.3,
+      holographic: 0.5,
+      chrome: 0,
+      crystal: 0,
+      vintage: 0,
+      prismatic: 0.2,
+      interference: 0,
+      rainbow: 0,
+      particles: false
     },
     material: 'holographic',
     lighting: {
-      intensity: 1.0,
-      direction: { x: 0.4, y: 0.8 },
+      intensity: 0.7,
+      direction: { x: 0.3, y: 0.7 },
       color: '#4FFFB0',
       environment: 'cosmic'
     },
@@ -117,9 +116,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
 
   const currentSide = isFlipped ? backSide : frontSide;
   const currentFrame = getCRDFrameById(currentSide.frameId);
-
-  // Auto-flip logic: show back when no image, front when image is uploaded
-  useAutoFlipOnUpload(!!card.image_url, setIsFlipped);
 
   // Update side configurations
   const updateSide = (side: 'front' | 'back', updates: Partial<CardSide>) => {
@@ -237,7 +233,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                   isHovering={isHovering}
                 />
                 
-                {/* Frame with Image - Full bleed display */}
+                {/* Frame with Image */}
                 {currentFrame && (
                   <CRDFrameRenderer
                     frame={currentFrame}
@@ -246,17 +242,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                     height={height}
                     className="relative z-10"
                   />
-                )}
-                
-                {/* Upload Prompt when no image */}
-                {!card.image_url && (
-                  <div className="absolute inset-0 flex items-center justify-center z-20">
-                    <div className="text-center text-white/80 bg-black/20 backdrop-blur-sm rounded-lg p-6">
-                      <div className="text-4xl mb-2">📷</div>
-                      <div className="font-medium">Upload your image</div>
-                      <div className="text-sm opacity-75">to see it in full bleed</div>
-                    </div>
-                  </div>
                 )}
                 
                 {/* Card Edge Effects */}

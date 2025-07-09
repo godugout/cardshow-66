@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioCardPreview } from '@/components/studio/enhanced/components/StudioCardPreview';
+import { EnhancedCardContainer } from '@/components/viewer/EnhancedCardContainer';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, RotateCw, FlipHorizontal, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import type { CardData } from '@/types/card';
@@ -9,61 +9,55 @@ interface CreatorMainViewProps {
   card: CardData;
   state: CreatorState;
   onStateUpdate: (updates: Partial<CreatorState>) => void;
-  onImageUpload: (imageUrl: string) => void;
-  onFrameSelect: (frameId: string) => void;
 }
 
 export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
   card,
   state,
-  onStateUpdate,
-  onImageUpload,
-  onFrameSelect
+  onStateUpdate
 }) => {
-  const handleImageUpload = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files && files.length > 0) {
-        // Create object URL for immediate preview
-        const objectUrl = URL.createObjectURL(files[0]);
-        onImageUpload(objectUrl);
-      }
-    };
-    input.click();
-  };
-
-  // Create modified card data with uploaded image
-  const cardWithUploadedImage = {
-    ...card,
-    image_url: state.uploadedImage || card.image_url
-  };
-
   return (
     <div className="relative flex flex-col items-center justify-center max-w-2xl mx-auto">
-      {/* Card Container with integrated upload */}
+      {/* Card Container */}
       <div className="relative">
-        <StudioCardPreview
-          uploadedImage={state.uploadedImage}
-          selectedFrame={state.selectedFrame}
-          orientation="portrait"
-          show3DPreview={true}
-          cardName={card.title}
-          onImageUpload={handleImageUpload}
-          effects={{
-            metallic: state.currentSide === 'front' ? state.frontEffects.metallic || 0 : state.backEffects.metallic || 0,
-            holographic: state.currentSide === 'front' ? state.frontEffects.holographic || 0 : state.backEffects.holographic || 0,
-            chrome: state.currentSide === 'front' ? state.frontEffects.chrome || 0 : state.backEffects.chrome || 0,
-            crystal: state.currentSide === 'front' ? state.frontEffects.crystal || 0 : state.backEffects.crystal || 0,
-            vintage: state.currentSide === 'front' ? state.frontEffects.vintage || 0 : state.backEffects.vintage || 0,
-            prismatic: state.currentSide === 'front' ? state.frontEffects.prismatic || 0 : state.backEffects.prismatic || 0,
-            interference: state.currentSide === 'front' ? state.frontEffects.interference || 0 : state.backEffects.interference || 0,
-            rainbow: state.currentSide === 'front' ? state.frontEffects.rainbow || 0 : state.backEffects.rainbow || 0,
+        <EnhancedCardContainer
+          card={card}
+          width={450}
+          height={630}
+          allowFlip={true}
+          showControls={false}
+          initialFrontSide={{
+            frameId: state.selectedFrame,
+            material: state.frontMaterial,
+            effects: {
+              metallic: state.frontEffects.metallic || 0,
+              holographic: state.frontEffects.holographic || 0,
+              chrome: state.frontEffects.chrome || 0,
+              crystal: state.frontEffects.crystal || 0,
+              vintage: state.frontEffects.vintage || 0,
+              prismatic: state.frontEffects.prismatic || 0,
+              interference: state.frontEffects.interference || 0,
+              rainbow: state.frontEffects.rainbow || 0,
+              particles: Boolean(state.frontEffects.particles)
+            },
+            lighting: state.frontLighting
           }}
-          material={state.currentSide === 'front' ? state.frontMaterial : state.backMaterial}
-          lighting={state.currentSide === 'front' ? state.frontLighting : state.backLighting}
+          initialBackSide={{
+            frameId: state.selectedFrame,
+            material: state.backMaterial,
+            effects: {
+              metallic: state.backEffects.metallic || 0,
+              holographic: state.backEffects.holographic || 0,
+              chrome: state.backEffects.chrome || 0,
+              crystal: state.backEffects.crystal || 0,
+              vintage: state.backEffects.vintage || 0,
+              prismatic: state.backEffects.prismatic || 0,
+              interference: state.backEffects.interference || 0,
+              rainbow: state.backEffects.rainbow || 0,
+              particles: Boolean(state.backEffects.particles)
+            },
+            lighting: state.backLighting
+          }}
         />
         
         {/* Side Indicator */}

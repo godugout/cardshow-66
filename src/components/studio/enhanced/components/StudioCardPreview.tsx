@@ -14,23 +14,6 @@ interface StudioCardPreviewProps {
   show3DPreview: boolean;
   cardName: string;
   onImageUpload?: () => void;
-  effects?: {
-    metallic: number;
-    holographic: number;
-    chrome: number;
-    crystal: number;
-    vintage: number;
-    prismatic: number;
-    interference: number;
-    rainbow: number;
-  };
-  material?: string;
-  lighting?: {
-    intensity: number;
-    direction: { x: number; y: number };
-    color: string;
-    environment: string;
-  };
 }
 
 export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
@@ -39,10 +22,7 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
   orientation,
   show3DPreview,
   cardName,
-  onImageUpload,
-  effects,
-  material,
-  lighting
+  onImageUpload
 }) => {
   const cardDimensions = calculateFlexibleCardSize(400, 500, orientation, 3, 0.5);
   const frameTemplate = selectedFrame ? ENHANCED_FRAME_TEMPLATES.find(f => f.id === selectedFrame) : null;
@@ -57,45 +37,15 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
             transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
           }}
         >
-          <div 
-            className={`transition-all duration-300 ${
-              effects?.holographic ? 'holographic-effect' : ''
-            } ${
-              effects?.metallic ? 'metallic-effect' : ''
-            } ${
-              effects?.chrome ? 'chrome-effect' : ''
-            } ${
-              effects?.crystal ? 'crystal-effect' : ''
-            } ${
-              effects?.vintage ? 'vintage-effect' : ''
-            } ${
-              effects?.prismatic ? 'prismatic-effect' : ''
-            } ${
-              effects?.interference ? 'interference-effect' : ''
-            } ${
-              effects?.rainbow ? 'rainbow-effect' : ''
-            }`}
-            style={{
-              '--effect-intensity': effects?.holographic || 0,
-              '--metallic-intensity': effects?.metallic || 0,
-              '--chrome-intensity': effects?.chrome || 0,
-              '--crystal-intensity': effects?.crystal || 0,
-              '--vintage-intensity': effects?.vintage || 0,
-              '--prismatic-intensity': effects?.prismatic || 0,
-              '--interference-intensity': effects?.interference || 0,
-              '--rainbow-intensity': effects?.rainbow || 0,
-            } as React.CSSProperties}
-          >
-            <FramePreviewRenderer
-              template={frameTemplate}
-              width={cardDimensions.width}
-              height={cardDimensions.height}
-              showContent={true}
-              uploadedImage={uploadedImage}
-              cardName={cardName}
-              previewMode="interactive"
-            />
-          </div>
+          <FramePreviewRenderer
+            template={frameTemplate}
+            width={cardDimensions.width}
+            height={cardDimensions.height}
+            showContent={true}
+            uploadedImage={uploadedImage}
+            cardName={cardName}
+            previewMode="interactive"
+          />
           
           {/* Edit overlay for uploaded image */}
           {uploadedImage && onImageUpload && (
@@ -111,21 +61,12 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
       ) : (
         // Show upload area
         <Card 
-          className={`bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20 ${
-            effects?.holographic ? 'holographic-effect' : ''
-          } ${
-            effects?.metallic ? 'metallic-effect' : ''
-          } ${
-            effects?.chrome ? 'chrome-effect' : ''
-          }`}
+          className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20"
           style={{
             width: cardDimensions.width,
             height: cardDimensions.height,
-            transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none',
-            '--effect-intensity': effects?.holographic || 0,
-            '--metallic-intensity': effects?.metallic || 0,
-            '--chrome-intensity': effects?.chrome || 0,
-          } as React.CSSProperties}
+            transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
+          }}
         >
           <div className="relative w-full h-full p-6">
             <div 

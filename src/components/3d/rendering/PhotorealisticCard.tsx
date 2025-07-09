@@ -3,8 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CinematicLighting } from '../lighting/CinematicLighting';
 import { CardGeometry } from './CardGeometry';
-import { PBRCardMaterial } from '../materials/PBRCardMaterial';
-import { PhotorealisticEngine } from '../engine/PhotorealisticEngine';
 import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
 import type { CardData } from '@/types/card';
 
@@ -58,18 +56,9 @@ export const PhotorealisticCard: React.FC<PhotorealisticCardProps> = ({
     return effects;
   }, [effectLayers]);
 
+  // Simplified card rendering for now
   return (
     <group>
-      <PhotorealisticEngine 
-        quality={quality}
-        colorGrading={{
-          exposure: 1.0,
-          brightness: 0.0,
-          contrast: 1.0,
-          saturation: 1.0
-        }}
-      />
-      
       <CinematicLighting
         preset={lighting.preset as any}
         intensity={lighting.intensity}
@@ -78,14 +67,13 @@ export const PhotorealisticCard: React.FC<PhotorealisticCardProps> = ({
         ambientLight={lighting.ambientLight}
       />
       
-      <CardGeometry card={card} quality={quality}>
-        <PBRCardMaterial
-          textures={{
-            albedo: card.image_url ? new THREE.TextureLoader().load(card.image_url) : undefined
-          }}
-          rarity={(card.rarity === 'mythic' ? 'legendary' : card.rarity) as 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' || 'common'}
-          material={material}
-          effects={processedEffects}
+      <CardGeometry card={card}>
+        <meshPhysicalMaterial
+          color="#ffffff"
+          metalness={material.metalness / 100}
+          roughness={material.roughness / 100}
+          transparent={material.transparency > 0}
+          opacity={1 - (material.transparency / 100)}
         />
       </CardGeometry>
     </group>
