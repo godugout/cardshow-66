@@ -1,7 +1,7 @@
 
 import { CRDFrame } from '@/types/crdFrames';
 
-// Oakland A's Donruss Style Frame
+// Oakland A's Donruss Style Frame (Fixed with CSS-based design)
 export const OAKLAND_AS_DONRUSS: CRDFrame = {
   id: 'oakland-as-donruss',
   name: "Oakland A's Donruss Classic",
@@ -22,71 +22,89 @@ export const OAKLAND_AS_DONRUSS: CRDFrame = {
     {
       id: 'main-border',
       name: 'Main Border',
-      type: 'border',
-      imageUrl: '/lovable-uploads/oakland-as-border.png',
+      type: 'css-border',
+      imageUrl: '', // Use CSS instead
       zIndex: 10,
       position: { x: 0, y: 0 },
-      dimensions: { width: 400, height: 560 }
+      dimensions: { width: 400, height: 560 },
+      cssStyles: {
+        background: 'linear-gradient(145deg, #1f4e3d 0%, #2d5a4a 50%, #1f4e3d 100%)',
+        border: '4px solid #FFD700',
+        borderRadius: '12px',
+        boxShadow: 'inset 0 0 30px rgba(255, 215, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3)'
+      }
     },
     {
-      id: 'donruss-logo',
-      name: 'Donruss Logo',
-      type: 'logo',
-      imageUrl: '/lovable-uploads/donruss-logo.png',
+      id: 'team-header',
+      name: 'Team Header',
+      type: 'text',
+      imageUrl: '',
       zIndex: 15,
       position: { x: 20, y: 20 },
-      dimensions: { width: 80, height: 20 }
-    },
-    {
-      id: 'athletics-logo',
-      name: 'Oakland Athletics Logo',
-      type: 'logo',
-      imageUrl: '/lovable-uploads/athletics-logo.png',
-      zIndex: 15,
-      position: { x: 300, y: 20 },
-      dimensions: { width: 80, height: 80 }
+      dimensions: { width: 360, height: 30 },
+      cssStyles: {
+        color: '#FFD700',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+        fontFamily: 'serif'
+      },
+      textContent: "OAKLAND ATHLETICS"
     },
     {
       id: 'player-nameplate',
       name: 'Player Nameplate',
-      type: 'label',
-      imageUrl: '/lovable-uploads/nameplate-bg.png',
+      type: 'css-panel',
+      imageUrl: '',
       zIndex: 12,
       position: { x: 30, y: 340 },
-      dimensions: { width: 340, height: 60 }
+      dimensions: { width: 340, height: 60 },
+      cssStyles: {
+        background: 'linear-gradient(90deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 215, 0, 0.9) 100%)',
+        border: '2px solid #FFD700',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+      }
     },
     {
-      id: 'corner-accent-tl',
-      name: 'Top Left Corner',
-      type: 'decorative',
-      imageUrl: '/lovable-uploads/corner-accent.png',
-      zIndex: 8,
-      position: { x: 0, y: 0 },
-      dimensions: { width: 50, height: 50 }
-    },
-    {
-      id: 'corner-accent-tr',
-      name: 'Top Right Corner',
-      type: 'decorative',
-      imageUrl: '/lovable-uploads/corner-accent.png',
-      zIndex: 8,
-      position: { x: 350, y: 0 },
-      dimensions: { width: 50, height: 50 },
-      rotation: 90
+      id: 'year-badge',
+      name: 'Year Badge',
+      type: 'text',
+      imageUrl: '',
+      zIndex: 15,
+      position: { x: 320, y: 25 },
+      dimensions: { width: 60, height: 20 },
+      cssStyles: {
+        color: '#1f4e3d',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        background: 'rgba(255, 215, 0, 0.9)',
+        borderRadius: '10px',
+        padding: '2px'
+      },
+      textContent: "2024"
     },
     {
       id: 'stats-panel',
       name: 'Stats Panel',
-      type: 'label',
-      imageUrl: '/lovable-uploads/stats-panel.png',
+      type: 'css-panel',
+      imageUrl: '',
       zIndex: 12,
       position: { x: 30, y: 420 },
-      dimensions: { width: 340, height: 120 }
+      dimensions: { width: 340, height: 120 },
+      cssStyles: {
+        background: 'linear-gradient(135deg, rgba(31, 78, 61, 0.95) 0%, rgba(45, 90, 74, 0.98) 100%)',
+        border: '2px solid #FFD700',
+        borderRadius: '8px',
+        boxShadow: 'inset 0 2px 8px rgba(255, 215, 0, 0.2)'
+      }
     }
   ]
 };
 
-// Modern Holographic Frame
+// Modern Holographic Frame (Fixed with CSS-based design)
 export const MODERN_HOLOGRAPHIC: CRDFrame = {
   id: 'modern-holographic',
   name: 'Modern Holographic',
@@ -107,39 +125,69 @@ export const MODERN_HOLOGRAPHIC: CRDFrame = {
     {
       id: 'holo-border',
       name: 'Holographic Border',
-      type: 'border',
-      imageUrl: '/lovable-uploads/holo-border.png',
+      type: 'css-border',
+      imageUrl: '',
       zIndex: 10,
       position: { x: 0, y: 0 },
-      dimensions: { width: 400, height: 560 }
+      dimensions: { width: 400, height: 560 },
+      cssStyles: {
+        background: 'linear-gradient(45deg, #FF6B4A, #4FFFB0, #4A90FF, #FF6B4A)',
+        backgroundSize: '400% 400%',
+        animation: 'holo-shift 3s ease-in-out infinite',
+        border: '3px solid transparent',
+        borderRadius: '16px',
+        boxShadow: 'inset 0 0 50px rgba(79, 255, 176, 0.3), 0 0 30px rgba(79, 255, 176, 0.5)'
+      }
     },
     {
-      id: 'prism-effect',
+      id: 'prism-overlay',
       name: 'Prism Effect',
-      type: 'decorative',
-      imageUrl: '/lovable-uploads/prism-effect.png',
+      type: 'css-effect',
+      imageUrl: '',
       zIndex: 5,
       position: { x: 0, y: 0 },
       dimensions: { width: 400, height: 560 },
-      opacity: 0.6
+      opacity: 0.6,
+      cssStyles: {
+        background: 'conic-gradient(from 0deg, transparent, rgba(79, 255, 176, 0.3), transparent, rgba(255, 107, 74, 0.3), transparent)',
+        borderRadius: '16px',
+        mixBlendMode: 'screen'
+      }
     },
     {
-      id: 'holo-logo',
-      name: 'Holographic Logo',
-      type: 'logo',
-      imageUrl: '/lovable-uploads/holo-logo.png',
+      id: 'tech-header',
+      name: 'Tech Header',
+      type: 'text',
+      imageUrl: '',
       zIndex: 15,
-      position: { x: 170, y: 20 },
-      dimensions: { width: 60, height: 20 }
+      position: { x: 150, y: 20 },
+      dimensions: { width: 100, height: 25 },
+      cssStyles: {
+        color: '#4FFFB0',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        textShadow: '0 0 10px rgba(79, 255, 176, 0.8)',
+        fontFamily: 'monospace',
+        letterSpacing: '2px'
+      },
+      textContent: "HOLOGRAPHIC"
     },
     {
       id: 'info-panel',
       name: 'Info Panel',
-      type: 'label',
-      imageUrl: '/lovable-uploads/info-panel.png',
+      type: 'css-panel',
+      imageUrl: '',
       zIndex: 12,
       position: { x: 40, y: 330 },
-      dimensions: { width: 320, height: 200 }
+      dimensions: { width: 320, height: 200 },
+      cssStyles: {
+        background: 'linear-gradient(135deg, rgba(79, 255, 176, 0.1) 0%, rgba(74, 144, 255, 0.1) 100%)',
+        border: '2px solid rgba(79, 255, 176, 0.5)',
+        borderRadius: '12px',
+        backdropFilter: 'blur(10px)',
+        boxShadow: 'inset 0 0 20px rgba(79, 255, 176, 0.2)'
+      }
     }
   ]
 };

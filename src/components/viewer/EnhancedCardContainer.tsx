@@ -9,6 +9,9 @@ import { EnhancedCardBack } from './components/EnhancedCardBack';
 import { CardEdgeEffects } from './components/CardEdgeEffects';
 import { AdvancedMaterialSystem } from './components/AdvancedMaterialSystem';
 import { InteractiveLightingEngine } from './components/InteractiveLightingEngine';
+import { EnhancedDesignControls } from './components/EnhancedDesignControls';
+import { EnhancedMaterialControls } from './components/EnhancedMaterialControls';
+import { EnhancedLightingControls } from './components/EnhancedLightingControls';
 import { getCRDFrameById } from '@/data/crdFrames';
 
 export interface CardSide {
@@ -113,6 +116,15 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
 
   const currentSide = isFlipped ? backSide : frontSide;
   const currentFrame = getCRDFrameById(currentSide.frameId);
+
+  // Update side configurations
+  const updateSide = (side: 'front' | 'back', updates: Partial<CardSide>) => {
+    if (side === 'front') {
+      setFrontSide(prev => ({ ...prev, ...updates }));
+    } else {
+      setBackSide(prev => ({ ...prev, ...updates }));
+    }
+  };
 
   // Mouse interaction
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -292,18 +304,41 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         </div>
       )}
 
-      {/* Design Controls */}
+      {/* Enhanced Controls */}
       {viewMode !== 'preview' && (
-        <div className="bg-card rounded-lg p-4 border">
-          <h3 className="font-semibold mb-3">
-            {viewMode === 'design' && 'Frame & Layout Controls'}
-            {viewMode === 'materials' && 'Material Effects'}
-            {viewMode === 'lighting' && 'Lighting & Environment'}
-          </h3>
+        <div className="bg-card rounded-lg border max-h-96 overflow-y-auto">
+          <div className="p-4 border-b">
+            <h3 className="font-semibold">
+              {viewMode === 'design' && 'Frame & Layout Controls'}
+              {viewMode === 'materials' && 'Material Effects'}
+              {viewMode === 'lighting' && 'Lighting & Environment'}
+            </h3>
+          </div>
           
-          {/* Design controls will be implemented in the next phase */}
-          <div className="text-sm text-muted-foreground">
-            {viewMode} controls coming soon...
+          <div className="p-4">
+            {viewMode === 'design' && (
+              <EnhancedDesignControls
+                currentSide={currentSide}
+                isFlipped={isFlipped}
+                onUpdateSide={updateSide}
+              />
+            )}
+            
+            {viewMode === 'materials' && (
+              <EnhancedMaterialControls
+                currentSide={currentSide}
+                isFlipped={isFlipped}
+                onUpdateSide={updateSide}
+              />
+            )}
+            
+            {viewMode === 'lighting' && (
+              <EnhancedLightingControls
+                currentSide={currentSide}
+                isFlipped={isFlipped}
+                onUpdateSide={updateSide}
+              />
+            )}
           </div>
         </div>
       )}

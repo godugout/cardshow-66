@@ -1,4 +1,3 @@
-
 export interface Dimensions {
   width: number;
   height: number;
@@ -12,7 +11,7 @@ export interface Position {
 export interface CRDElement {
   id: string;
   name: string;
-  type: 'border' | 'logo' | 'label' | 'decorative' | 'corner' | 'accent';
+  type: 'border' | 'logo' | 'label' | 'decorative' | 'corner' | 'accent' | 'text' | 'css-border' | 'css-panel' | 'css-effect';
   imageUrl: string;
   zIndex: number;
   position: Position;
@@ -20,6 +19,8 @@ export interface CRDElement {
   opacity?: number;
   rotation?: number;
   scale?: number;
+  cssStyles?: React.CSSProperties;
+  textContent?: string;
 }
 
 export interface CRDFrame {
