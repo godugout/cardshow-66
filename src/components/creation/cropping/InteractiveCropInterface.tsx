@@ -661,17 +661,17 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
 
           {/* Canvas Container */}
           <div 
-            className="flex-1 overflow-hidden relative bg-background"
+            className="flex-1 overflow-hidden relative"
             style={{
               backgroundImage: showGrid ? 'radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)' : 'none',
               backgroundSize: '20px 20px',
-              backgroundPosition: '0 0'
+              backgroundPosition: '0 0',
+              backgroundColor: '#1a1a1c' // Dark background so grid shows up
             }}
           >
             <div className="absolute inset-4 flex items-start justify-start">
               <canvas
                 ref={canvasRef}
-                className="border border-border rounded-lg shadow-lg bg-background"
                 style={{ maxWidth: '100%', maxHeight: '100%' }}
               />
             </div>
