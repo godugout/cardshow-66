@@ -157,26 +157,6 @@ export const EnhancedCardBack: React.FC<EnhancedCardBackProps> = ({
         isHovering={isHovering}
       />
       
-      {/* Brand Text */}
-      <div className="absolute bottom-6 left-0 right-0 text-center z-30">
-        <div 
-          className="text-white font-bold text-xl tracking-wider mb-1"
-          style={{
-            textShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
-            filter: effects.holographic > 0.3 ? 'hue-rotate(180deg)' : 'none'
-          }}
-        >
-          CARDSHOW
-        </div>
-        <div 
-          className="text-white/70 text-sm tracking-widest"
-          style={{
-            textShadow: '0 0 8px rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          DIGITAL COLLECTIBLES
-        </div>
-      </div>
     </div>
   );
 };
