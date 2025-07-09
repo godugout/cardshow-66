@@ -260,7 +260,7 @@ function App() {
                 <Route 
                   path="/crdmkr" 
                   element={
-                    <MainLayout>
+                    <MainLayout showNavbar={false}>
                       <EnhancedCardDemo />
                     </MainLayout>
                   } 
