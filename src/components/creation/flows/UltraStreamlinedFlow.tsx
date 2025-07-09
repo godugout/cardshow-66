@@ -50,6 +50,7 @@ export const UltraStreamlinedFlow: React.FC<UltraStreamlinedFlowProps> = ({ onCo
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedVariation, setSelectedVariation] = useState(0);
   const [selectedFrameId, setSelectedFrameId] = useState<string>('modern-holographic');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleUploadComplete = async (files: any[]) => {
     if (files.length > 0) {
@@ -165,29 +166,59 @@ export const UltraStreamlinedFlow: React.FC<UltraStreamlinedFlowProps> = ({ onCo
     toast.success('Perfect crop! Now choose your frame style');
   };
 
-  const handleCreateCard = () => {
+  const handleCreateCard = async () => {
     if (!aiAnalysis) return;
     
-    const variations = generateVariations(aiAnalysis);
-    const selected = variations[selectedVariation];
+    setIsProcessing(true);
     
-    const cardData = {
-      title: selected.title,
-      description: selected.description,
-      category: aiAnalysis.category,
-      imageUrl: croppedImage || uploadedImage,
-      rarity: selected.rarity,
-      frame: selectedFrameId,
-      tags: aiAnalysis.tags,
-      aiEnhanced: true,
-      confidence: selected.confidence,
-      stats: aiAnalysis.stats,
-      createdAt: new Date().toISOString()
-    };
-    
-    onComplete?.(cardData);
-    setStep('done');
-    toast.success('🎉 Your AI-enhanced card is ready!');
+    try {
+      // Import the composition hook
+      const { useCardComposition } = await import('@/hooks/useCardComposition');
+      const compositionHook = useCardComposition();
+      
+      const variations = generateVariations(aiAnalysis);
+      const selected = variations[selectedVariation];
+      
+      const compositionData = {
+        imageUrl: croppedImage || uploadedImage,
+        frameId: selectedFrameId,
+        effects: {},
+        cardData: {
+          title: selected.title,
+          description: selected.description,
+          rarity: selected.rarity,
+          tags: aiAnalysis.tags,
+        }
+      };
+
+      const createdCard = await compositionHook.generateCard(compositionData);
+      
+      if (createdCard) {
+        const cardData = {
+          title: selected.title,
+          description: selected.description,
+          category: aiAnalysis.category,
+          imageUrl: createdCard.composite_image_url, // Use the composite image
+          rarity: selected.rarity,
+          frame: selectedFrameId,
+          tags: aiAnalysis.tags,
+          aiEnhanced: true,
+          confidence: selected.confidence,
+          stats: aiAnalysis.stats,
+          serialNumber: createdCard.serial_number,
+          createdAt: createdCard.created_at
+        };
+        
+        onComplete?.(cardData);
+        setStep('done');
+        toast.success(`🎉 ${createdCard.serial_number} created successfully!`);
+      }
+    } catch (error) {
+      console.error('Failed to create card:', error);
+      toast.error('Failed to create card');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Upload Step

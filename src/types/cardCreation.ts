@@ -40,4 +40,18 @@ export interface UnifiedCardData {
     particles: boolean;
   };
   imageUrl?: string;
+  image_url?: string;
+  tags?: string[];
+  design_metadata?: {
+    layout_type?: string;
+    frame_id?: string;
+    frame_style?: string;
+    effects?: Record<string, any>;
+    serial_number?: string;
+    card_id?: string;
+  };
+  template_id?: string;
+  visibility?: string;
+  creator_attribution?: Record<string, any>;
+  publishing_options?: Record<string, any>;
 }
