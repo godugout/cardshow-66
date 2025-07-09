@@ -185,13 +185,17 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
     if (!fabricCanvas || !fabricImage) return null;
 
     const imgBounds = fabricImage.getBoundingRect();
-    const aspectRatio = 2.5 / 3.5; // CRD standard aspect ratio
+    const aspectRatio = 2.5 / 3.5; // Standard trading card aspect ratio (0.714)
     
     // Calculate initial size and position
     let width, height;
     if (type === 'frame') {
-      width = Math.min(imgBounds.width * 0.6, 300);
-      height = width / aspectRatio;
+      // Make crop area more prominent relative to image
+      width = Math.min(imgBounds.width * 0.8, 400);
+      height = width / aspectRatio; // This ensures correct 2.5:3.5 ratio
+      
+      console.log(`Card dimensions: ${width.toFixed(1)}px × ${height.toFixed(1)}px`);
+      console.log(`Aspect ratio: ${(width/height).toFixed(3)} (should be ~0.714 for 2.5:3.5)`);
     } else {
       width = 150;
       height = 150;
