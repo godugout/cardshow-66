@@ -258,7 +258,7 @@ function App() {
                   } 
                 />
                 <Route 
-                  path="/enhanced-card-demo" 
+                  path="/crdmkr" 
                   element={
                     <MainLayout>
                       <EnhancedCardDemo />
