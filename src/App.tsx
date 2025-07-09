@@ -17,6 +17,9 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
+import { CreateFlowA } from './components/creation/flows/CreateFlowA';
+import { CreateFlowB } from './components/creation/flows/CreateFlowB';
+import CreateTestingPage from './pages/CreateTestingPage';
 import StudioPage from "@/pages/studio";
 import Collections from './pages/Collections';
 import { CardCreationStudio } from './components/creation/CardCreationStudio';
@@ -91,7 +94,27 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <MainLayout>
-                        <CardCreationStudio />
+                        <CreateTestingPage />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/create/version-a" 
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout showNavbar={false}>
+                        <CreateFlowA />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/create/version-b" 
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout showNavbar={false}>
+                        <CreateFlowB />
                       </MainLayout>
                     </ProtectedRoute>
                   } 
