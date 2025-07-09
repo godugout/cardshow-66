@@ -134,23 +134,23 @@ export const InteractiveCropInterface: React.FC<InteractiveCropInterfaceProps> =
 
           const canvasWidth = fabricCanvas.width!;
           const canvasHeight = fabricCanvas.height!;
-          const padding = 24;
           
-          const availableWidth = canvasWidth - (padding * 2);
-          const availableHeight = canvasHeight - (padding * 2);
-          const imgAspect = img.width! / img.height!;
+          // Scale image to be 2/3 of canvas width
+          const targetWidth = canvasWidth * (2/3);
+          const scale = targetWidth / img.width!;
           
-          let scale;
-          if (imgAspect > availableWidth / availableHeight) {
-            scale = availableWidth / img.width!;
-          } else {
-            scale = availableHeight / img.height!;
-          }
+          // Calculate scaled dimensions
+          const scaledWidth = img.width! * scale;
+          const scaledHeight = img.height! * scale;
+          
+          // Center the image with more padding on left and top
+          const leftPadding = canvasWidth * 0.15; // 15% from left
+          const topPadding = canvasHeight * 0.1;  // 10% from top
 
           img.scale(scale);
           img.set({
-            left: padding,
-            top: padding,
+            left: leftPadding,
+            top: topPadding,
             selectable: false,
             evented: false,
           });
