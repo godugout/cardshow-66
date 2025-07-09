@@ -22,8 +22,8 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
       <div className="relative">
         <EnhancedCardContainer
           card={card}
-          width={450}
-          height={630}
+          width={350} // 2.5" x 3.5" aspect ratio
+          height={490}
           allowFlip={true}
           showControls={false}
           initialFrontSide={{
