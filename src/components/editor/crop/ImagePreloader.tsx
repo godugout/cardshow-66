@@ -101,8 +101,10 @@ export const ImagePreloader: React.FC<ImagePreloaderProps> = ({
       
       await preloadImage(imageUrl, attempt);
       
-      // If successful, pass the original URL (without cache busters)
-      onImageReady(imageUrl);
+      // If successful, pass the validated URL that actually worked
+      const workingUrl = currentUrl || imageUrl;
+      console.log('Image preload successful, passing working URL:', workingUrl);
+      onImageReady(workingUrl);
       setIsLoading(false);
       
     } catch (error) {

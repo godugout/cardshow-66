@@ -79,6 +79,8 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   useEffect(() => {
     if (!fabricCanvas || !validatedImageUrl) return;
 
+    console.log('Starting Fabric.js image loading with validated URL:', validatedImageUrl);
+
     // Clear any existing objects
     fabricCanvas.clear();
     setFabricImage(null);
@@ -90,8 +92,41 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       crossOrigin: 'anonymous' as const
     };
 
-    FabricImage.fromURL(validatedImageUrl, imageOptions).then((img) => {
-      console.log('Fabric.js image loaded successfully');
+    const loadFabricImage = async (url: string, retryCount = 0): Promise<void> => {
+      try {
+        console.log(`Fabric.js loading attempt ${retryCount + 1} with URL:`, url);
+        
+        const img = await FabricImage.fromURL(url, imageOptions);
+        console.log('Fabric.js image loaded successfully');
+        
+        setupImageAndCrop(img);
+      } catch (error) {
+        console.error(`Fabric.js loading attempt ${retryCount + 1} failed:`, error);
+        
+        if (retryCount < 2) {
+          // Try with cache-busting if first attempt fails
+          let retryUrl = url;
+          if (retryCount === 0 && !url.includes('?')) {
+            retryUrl = `${url}?fabric=${Date.now()}`;
+          } else if (retryCount === 1) {
+            retryUrl = `${url}&fabric-retry=${Date.now()}`;
+          }
+          
+          console.log(`Retrying Fabric.js load in 2s with URL:`, retryUrl);
+          setTimeout(() => {
+            loadFabricImage(retryUrl, retryCount + 1);
+          }, 2000);
+        } else {
+          console.error('All Fabric.js loading attempts failed');
+          setImageLoadingState('error');
+          toast.error('Failed to initialize crop editor. Please try uploading the image again.');
+        }
+      }
+    };
+
+    const setupImageAndCrop = (img: FabricImage) => {
+      console.log('Setting up image and crop rectangle');
+      
       // Scale image to fit canvas while maintaining aspect ratio
       const canvasWidth = fabricCanvas.width!;
       const canvasHeight = fabricCanvas.height!;
@@ -176,11 +211,12 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       
       setIsReady(true);
       fabricCanvas.renderAll();
-    }).catch((error) => {
-      console.error('Failed to load image in Fabric.js:', error);
-      setImageLoadingState('error');
-      toast.error('Failed to initialize crop editor');
-    });
+      
+      console.log('Image and crop setup completed successfully');
+    };
+
+    // Start the loading process
+    loadFabricImage(validatedImageUrl);
   }, [fabricCanvas, validatedImageUrl, aspectRatio]);
 
   // Reset image loading state when imageUrl changes
@@ -334,7 +370,21 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
           onError={handleImageError}
           maxRetries={3}
           retryDelay={1000}
+          showDebugInfo={true}
         />
+      </div>
+    );
+  }
+
+  // Show loading state while Fabric.js sets up the image
+  if (imageLoadingState === 'ready' && !isReady) {
+    return (
+      <div className={`${className} flex items-center justify-center py-12`}>
+        <div className="text-center space-y-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crd-green mx-auto"></div>
+          <p className="text-white font-medium">Setting up crop editor...</p>
+          <p className="text-muted-foreground text-sm">Initializing canvas with your image</p>
+        </div>
       </div>
     );
   }
