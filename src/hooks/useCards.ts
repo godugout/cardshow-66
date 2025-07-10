@@ -45,8 +45,9 @@ export const useCards = () => {
             price,
             tags,
             created_at,
-            creator_id,
-            design_metadata,
+            user_id,
+            creator_name,
+            creator_verified,
             is_public
           `)
           .eq('is_public', true) // Only public cards for gallery
@@ -59,35 +60,17 @@ export const useCards = () => {
         
         console.log('Found public cards for gallery:', data?.length || 0);
         
-        // Get creator information for each card
-        const cardsWithCreators = await Promise.all(
-          (data || []).map(async (card) => {
-            let creator_name = 'Unknown Creator';
-            let creator_verified = false;
-            
-            if (card.creator_id) {
-              const { data: profileData } = await supabase
-                .from('crd_profiles')
-                .select('display_name, creator_verified')
-                .eq('id', card.creator_id)
-                .single();
-              
-              if (profileData) {
-                creator_name = profileData.display_name || 'Unknown Creator';
-                creator_verified = profileData.creator_verified || false;
-              }
-            }
-            
-            return {
-              ...card,
-              creator_id: card.creator_id || '',
-              creator_name,
-              creator_verified,
-              tags: card.tags || [],
-              design_metadata: card.design_metadata || {}
-            };
-          })
-        );
+        // Process cards with available data
+        const cardsWithCreators = (data || []).map((card) => {
+          return {
+            ...card,
+            creator_id: card.user_id || '',
+            creator_name: card.creator_name || 'Unknown Creator',
+            creator_verified: card.creator_verified || false,
+            tags: card.tags || [],
+            design_metadata: {} // Not available in current schema
+          };
+        });
         
         setFeaturedCards(cardsWithCreators);
       } catch (err) {

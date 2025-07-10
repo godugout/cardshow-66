@@ -49,7 +49,9 @@ export const useCardData = (cardId?: string) => {
             tags,
             created_at,
             updated_at,
-            creator_id
+            user_id,
+            creator_name,
+            creator_verified
           `)
           .eq('id', cardId)
           .single();
@@ -62,27 +64,13 @@ export const useCardData = (cardId?: string) => {
           throw new Error('Card not found');
         }
         
-        // Get creator information if creator_id exists
-        let creator_name = 'Unknown Creator';
-        let creator_verified = false;
-        
-        if (data.creator_id) {
-          const { data: profileData } = await supabase
-            .from('crd_profiles')
-            .select('display_name, creator_verified')
-            .eq('id', data.creator_id)
-            .single();
-          
-          if (profileData) {
-            creator_name = profileData.display_name || 'Unknown Creator';
-            creator_verified = profileData.creator_verified || false;
-          }
-        }
-        
+        // Process card data with available information
         const cardData: CardData = {
           ...data,
-          creator_name,
-          creator_verified
+          rarity: data.rarity as CardRarity,
+          creator_id: data.user_id,
+          creator_name: data.creator_name || 'Unknown Creator',
+          creator_verified: data.creator_verified || false
         };
         
         setCard(cardData);
@@ -130,7 +118,9 @@ export const useMultipleCards = (cardIds?: string[]) => {
             tags,
             created_at,
             updated_at,
-            creator_id
+            user_id,
+            creator_name,
+            creator_verified
           `)
           .in('id', cardIds);
         
@@ -138,31 +128,15 @@ export const useMultipleCards = (cardIds?: string[]) => {
           throw error;
         }
         
-        const cardsWithCreators = await Promise.all(
-          (data || []).map(async (card) => {
-            let creator_name = 'Unknown Creator';
-            let creator_verified = false;
-            
-            if (card.creator_id) {
-              const { data: profileData } = await supabase
-                .from('crd_profiles')
-                .select('display_name, creator_verified')
-                .eq('id', card.creator_id)
-                .single();
-              
-              if (profileData) {
-                creator_name = profileData.display_name || 'Unknown Creator';
-                creator_verified = profileData.creator_verified || false;
-              }
-            }
-            
-            return {
-              ...card,
-              creator_name,
-              creator_verified
-            };
-          })
-        );
+        const cardsWithCreators = (data || []).map((card) => {
+          return {
+            ...card,
+            rarity: card.rarity as CardRarity,
+            creator_id: card.user_id,
+            creator_name: card.creator_name || 'Unknown Creator',
+            creator_verified: card.creator_verified || false
+          };
+        });
         
         setCards(cardsWithCreators);
       } catch (err) {

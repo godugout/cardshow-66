@@ -23,39 +23,34 @@ export const use3DPreferences = () => {
   const queryClient = useQueryClient();
   const [localPreferences, setLocalPreferences] = useState<User3DPreferences | null>(null);
 
-  // Load preferences from Supabase for authenticated users
+  // Load preferences from localStorage (profiles table doesn't have 3D preferences yet)
   const { data: preferences, isLoading } = useQuery({
     queryKey: ['user-3d-preferences', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
-        .from('crd_profiles')
-        .select('preferences_3d')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.warn('Failed to load 3D preferences:', error);
-        return null;
+      // For now, load from localStorage until we add 3D preferences to profiles table
+      const saved = localStorage.getItem(`crd-3d-preferences-${user.id}`);
+      if (saved) {
+        try {
+          return JSON.parse(saved) as User3DPreferences;
+        } catch (error) {
+          console.warn('Failed to parse 3D preferences:', error);
+        }
       }
       
-      return data?.preferences_3d as User3DPreferences || DEFAULT_PREFERENCES;
+      return DEFAULT_PREFERENCES;
     },
     enabled: !!user?.id
   });
 
-  // Save preferences to Supabase
+  // Save preferences to localStorage (profiles table doesn't have 3D preferences yet)
   const savePreferencesMutation = useMutation({
     mutationFn: async (newPreferences: User3DPreferences) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      const { error } = await supabase
-        .from('crd_profiles')
-        .update({ preferences_3d: newPreferences })
-        .eq('id', user.id);
-      
-      if (error) throw error;
+      // Save to localStorage until we add 3D preferences to profiles table
+      localStorage.setItem(`crd-3d-preferences-${user.id}`, JSON.stringify(newPreferences));
       return newPreferences;
     },
     onSuccess: (newPreferences) => {

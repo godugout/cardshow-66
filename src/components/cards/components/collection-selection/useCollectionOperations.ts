@@ -33,10 +33,9 @@ export const useCollectionOperations = () => {
           id,
           title,
           description,
-          created_at,
-          collection_cards(count)
+          created_at
         `)
-        .eq('owner_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -46,9 +45,9 @@ export const useCollectionOperations = () => {
 
       const formattedCollections: Collection[] = (data || []).map(collection => ({
         id: collection.id,
-        title: collection.title, // Fixed: using title consistently
+        title: collection.title,
         description: collection.description,
-        cardCount: collection.collection_cards?.[0]?.count || 0,
+        cardCount: 0, // Will be calculated separately if needed
         createdAt: new Date(collection.created_at)
       }));
 
@@ -72,10 +71,10 @@ export const useCollectionOperations = () => {
       const { data, error } = await supabase
         .from('collections')
         .insert({
-          title: newCollectionName.trim(), // Fixed: using title instead of name
+          title: newCollectionName.trim(),
           description: newCollectionDescription.trim() || null,
-          owner_id: user.id,
-          visibility: 'private'
+          user_id: user.id,
+          is_public: false
         })
         .select()
         .single();

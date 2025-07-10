@@ -27,10 +27,10 @@ export const useUser = () => {
         id: authUser.id,
         email: authUser.email || '',
         username: data.username || '',
-        full_name: data.full_name,
+        full_name: data.display_name || '',
         avatar_url: data.avatar_url,
         bio: data.bio,
-        team_id: data.team_id,
+        team_id: null, // Teams not implemented yet
         createdAt: authUser.created_at,
         preferences: null,
         profileImage: data.avatar_url,

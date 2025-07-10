@@ -14,7 +14,6 @@ interface Card {
   rarity: string;
   tags: string[];
   created_at: string;
-  design_metadata: any;
 }
 
 export const GeneratedCardsView = () => {

@@ -15,8 +15,9 @@ interface Collection {
   title: string;
   description?: string;
   created_at: string;
-  owner_id: string;
-  card_count?: number;
+  user_id: string;
+  is_public: boolean;
+  updated_at: string;
 }
 
 interface CollectionDetailProps {
@@ -37,7 +38,7 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
         .single();
       
       if (error) throw error;
-      return data as Collection;
+      return data;
     },
     enabled: !!collectionId
   });
@@ -46,18 +47,18 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
     queryKey: ['collection-cards', collectionId],
     queryFn: async (): Promise<Card[]> => {
       // Get cards that are in this collection
-      const { data: collectionCards, error: collectionError } = await supabase
-        .from('collection_cards')
+      const { data: collectionItems, error: collectionError } = await supabase
+        .from('collection_items')
         .select('card_id')
         .eq('collection_id', collectionId);
       
       if (collectionError) throw collectionError;
       
-      if (!collectionCards || collectionCards.length === 0) {
+      if (!collectionItems || collectionItems.length === 0) {
         return [];
       }
 
-      const cardIds = collectionCards.map(cc => cc.card_id);
+      const cardIds = collectionItems.map(ci => ci.card_id);
       
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
@@ -70,71 +71,55 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
           rarity,
           price,
           tags,
-          creator_id,
+          user_id,
           is_public,
-          edition_size,
           created_at,
           updated_at,
-          verification_status,
-          print_metadata,
-          creator_attribution,
-          publishing_options,
-          design_metadata
+          creator_name,
+          creator_verified
         `)
         .in('id', cardIds);
       
       if (cardsError) throw cardsError;
       
-      // Get creator information for each card
-      const cardsWithCreators = await Promise.all(
-        (cardsData || []).map(async (card) => {
-          let creator_name = 'Unknown Creator';
-          let creator_verified = false;
-          
-          if (card.creator_id) {
-            const { data: profileData } = await supabase
-              .from('crd_profiles')
-              .select('display_name, creator_verified')
-              .eq('id', card.creator_id)
-              .single();
-            
-            if (profileData) {
-              creator_name = profileData.display_name || 'Unknown Creator';
-              creator_verified = profileData.creator_verified || false;
-            }
-          }
-          
-          return {
-            ...card,
-            creator_name,
-            creator_verified,
-            price: card.price || 0,
-            tags: card.tags || [],
-            visibility: card.is_public ? 'public' : 'private',
-            edition_size: card.edition_size || 1,
-            created_at: card.created_at || new Date().toISOString(),
-            updated_at: card.updated_at || new Date().toISOString(),
-            verification_status: (card.verification_status as 'pending' | 'verified' | 'rejected') || 'pending',
-            creator_attribution: (card.creator_attribution && typeof card.creator_attribution === 'object') ? card.creator_attribution as any : {},
-            print_metadata: (card.print_metadata && typeof card.print_metadata === 'object') ? card.print_metadata as Record<string, any> : {},
-            publishing_options: (card.publishing_options && typeof card.publishing_options === 'object') ? card.publishing_options as any : {
-              marketplace_listing: false,
-              crd_catalog_inclusion: true,
-              print_available: false
-            },
-            design_metadata: (card.design_metadata && typeof card.design_metadata === 'object') ? card.design_metadata as Record<string, any> : {},
-            collection_id: null,
-            team_id: null,
-            user_id: null,
-            template_id: null,
-            print_available: false,
-            crd_catalog_inclusion: true,
+      // Process cards data to match Card interface
+      const cardsWithCreators = (cardsData || []).map((card) => {
+        return {
+          id: card.id,
+          title: card.title,
+          description: card.description || '',
+          image_url: card.image_url,
+          thumbnail_url: card.thumbnail_url,
+          rarity: card.rarity as CardRarity,
+          price: card.price || 0,
+          tags: card.tags || [],
+          creator_name: card.creator_name || 'Unknown Creator',
+          creator_verified: card.creator_verified || false,
+          creator_id: card.user_id,
+          visibility: card.is_public ? 'public' : 'private',
+          edition_size: 1,
+          created_at: card.created_at || new Date().toISOString(),
+          updated_at: card.updated_at || new Date().toISOString(),
+          verification_status: 'pending' as const,
+          creator_attribution: {},
+          print_metadata: {},
+          publishing_options: {
             marketplace_listing: false,
-            shop_id: null,
-            is_public: card.is_public || false
-          } as Card;
-        })
-      );
+            crd_catalog_inclusion: true,
+            print_available: false
+          },
+          design_metadata: {},
+          collection_id: null,
+          team_id: null,
+          user_id: card.user_id,
+          template_id: null,
+          print_available: false,
+          crd_catalog_inclusion: true,
+          marketplace_listing: false,
+          shop_id: null,
+          is_public: card.is_public || false
+        } as Card;
+      });
       
       return cardsWithCreators;
     },
