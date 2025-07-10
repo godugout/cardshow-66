@@ -20,14 +20,14 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const [imageKey, setImageKey] = useState(0);
   
-  // Retry logic for newly uploaded images
+  // Simplified retry logic - limit to 1 retry to prevent console flooding
   useEffect(() => {
-    if (error && retryCount < 3 && card.imageUrl) {
+    if (error && retryCount < 1 && card.imageUrl) {
       const timer = setTimeout(() => {
         console.log(`CRDImageLayer: Retrying image load (attempt ${retryCount + 1}):`, card.imageUrl);
         setRetryCount(prev => prev + 1);
         setImageKey(prev => prev + 1); // Force image reload
-      }, 1000 * (retryCount + 1)); // Exponential backoff: 1s, 2s, 3s
+      }, 2000); // Single 2-second retry
       
       return () => clearTimeout(timer);
     }
@@ -119,7 +119,7 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
             <div className="text-2xl mb-2">❌</div>
             <div className="text-sm">Failed to load</div>
             <div className="text-xs mt-1 opacity-60">
-              {retryCount < 3 ? `Retrying... (${retryCount}/3)` : 'Check image URL'}
+              {retryCount < 1 ? `Retrying... (${retryCount}/1)` : 'Check image URL'}
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
       
       {/* Actual image */}
       <img
-        key={imageKey} // Force reload on retry
+        key={`crd-image-${imageKey}`} // Force reload on retry with proper key
         src={card.imageUrl}
         alt={card.title || 'Card image'}
         className="w-full h-full object-cover"
@@ -143,10 +143,6 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
         }}
         onError={(e) => {
           console.error('CRDImageLayer: Image failed to load:', card.imageUrl, e);
-          // Try to access the URL directly to check if it exists
-          fetch(card.imageUrl, { mode: 'no-cors' }).catch(() => {
-            console.error('CRDImageLayer: Image URL is not accessible via fetch');
-          });
           onError();
         }}
         draggable={false}

@@ -38,7 +38,7 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
     const filePath = `${user.id}/card-images/${fileName}`;
 
     const { data, error } = await supabase.storage
-      .from('card-assets')
+      .from('card-images')
       .upload(filePath, file);
 
     if (error) {
@@ -47,7 +47,7 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('card-assets')
+      .from('card-images')
       .getPublicUrl(filePath);
 
     return {
