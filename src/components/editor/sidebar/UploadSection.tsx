@@ -3,6 +3,7 @@ import React from 'react';
 import { MediaUploadZone } from '@/components/media/MediaUploadZone';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { CRDMediaManager } from '@/lib/storage/CRDMediaManager';
 import { toast } from 'sonner';
 
 interface UploadSectionProps {
@@ -12,20 +13,36 @@ interface UploadSectionProps {
 export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   const { user } = useCustomAuth();
 
-  const handleUploadComplete = (files: any[]) => {
-    if (files.length > 0 && cardEditor) {
+  const handleUploadComplete = async (files: File[]) => {
+    if (files.length > 0 && cardEditor && user) {
       const file = files[0];
-      const publicUrl = file.metadata.publicUrl;
       
-      // Update card with the uploaded image
-      cardEditor.updateCardField('image_url', publicUrl);
+      // Upload using CRDMediaManager
+      const result = await CRDMediaManager.uploadCRDAsset(file, {
+        bucket: 'card-images',
+        asset_type: 'user_content',
+        folder: `cards`,
+        category: 'card-image',
+        tags: ['card-image'],
+        is_public: false,
+        generateThumbnail: true,
+        optimize: true
+      });
       
-      if (file.thumbnail_path) {
-        cardEditor.updateCardField('thumbnail_url', file.metadata.publicUrl);
-        cardEditor.updateDesignMetadata('thumbnailUrl', file.metadata.publicUrl);
+      if (result) {
+        const publicUrl = CRDMediaManager.getPublicUrl(result.bucket_id, result.file_path);
+        
+        // Update card with the uploaded image
+        cardEditor.updateCardField('image_url', publicUrl);
+        
+        if (result.thumbnail_path) {
+          const thumbnailUrl = CRDMediaManager.getPublicUrl(result.bucket_id, result.thumbnail_path);
+          cardEditor.updateCardField('thumbnail_url', thumbnailUrl);
+          cardEditor.updateDesignMetadata('thumbnailUrl', thumbnailUrl);
+        }
+        
+        toast.success('Card image updated successfully!');
       }
-      
-      toast.success('Card image updated successfully!');
     }
   };
 

@@ -187,6 +187,263 @@ export type Database = {
         }
         Relationships: []
       }
+      crd_elements: {
+        Row: {
+          asset_url: string
+          category: string
+          compatibility_frames: string[] | null
+          created_at: string | null
+          creator_user_id: string | null
+          description: string | null
+          dimensions: Json | null
+          element_type: string
+          id: string
+          is_public: boolean | null
+          metadata: Json | null
+          name: string
+          position_type: string | null
+          positioning: Json | null
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_url: string
+          category?: string
+          compatibility_frames?: string[] | null
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          element_type: string
+          id?: string
+          is_public?: boolean | null
+          metadata?: Json | null
+          name: string
+          position_type?: string | null
+          positioning?: Json | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_url?: string
+          category?: string
+          compatibility_frames?: string[] | null
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          element_type?: string
+          id?: string
+          is_public?: boolean | null
+          metadata?: Json | null
+          name?: string
+          position_type?: string | null
+          positioning?: Json | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crd_frames: {
+        Row: {
+          asset_url: string
+          category: string
+          compatibility_tags: string[] | null
+          created_at: string | null
+          creator_user_id: string | null
+          description: string | null
+          dimensions: Json | null
+          download_count: number | null
+          frame_type: string
+          id: string
+          is_featured: boolean | null
+          is_public: boolean | null
+          metadata: Json | null
+          name: string
+          preview_url: string
+          pricing: Json | null
+          rarity: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_url: string
+          category?: string
+          compatibility_tags?: string[] | null
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          download_count?: number | null
+          frame_type?: string
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          metadata?: Json | null
+          name: string
+          preview_url: string
+          pricing?: Json | null
+          rarity?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_url?: string
+          category?: string
+          compatibility_tags?: string[] | null
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          download_count?: number | null
+          frame_type?: string
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          metadata?: Json | null
+          name?: string
+          preview_url?: string
+          pricing?: Json | null
+          rarity?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crd_materials: {
+        Row: {
+          asset_url: string
+          category: string
+          created_at: string | null
+          creator_user_id: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          is_seamless: boolean | null
+          material_type: string
+          name: string
+          preview_url: string
+          properties: Json | null
+          thumbnail_url: string | null
+          tiling: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_url: string
+          category?: string
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          is_seamless?: boolean | null
+          material_type: string
+          name: string
+          preview_url: string
+          properties?: Json | null
+          thumbnail_url?: string | null
+          tiling?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_url?: string
+          category?: string
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          is_seamless?: boolean | null
+          material_type?: string
+          name?: string
+          preview_url?: string
+          properties?: Json | null
+          thumbnail_url?: string | null
+          tiling?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      crd_templates: {
+        Row: {
+          asset_bundle_url: string | null
+          category: string
+          complexity: string | null
+          created_at: string | null
+          creator_user_id: string | null
+          description: string | null
+          download_count: number | null
+          elements: Json | null
+          frame_id: string | null
+          id: string
+          is_featured: boolean | null
+          is_public: boolean | null
+          layout: Json | null
+          materials: Json | null
+          name: string
+          preview_url: string
+          pricing: Json | null
+          rating: number | null
+          rating_count: number | null
+          style: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_bundle_url?: string | null
+          category?: string
+          complexity?: string | null
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          download_count?: number | null
+          elements?: Json | null
+          frame_id?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          layout?: Json | null
+          materials?: Json | null
+          name: string
+          preview_url: string
+          pricing?: Json | null
+          rating?: number | null
+          rating_count?: number | null
+          style?: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_bundle_url?: string | null
+          category?: string
+          complexity?: string | null
+          created_at?: string | null
+          creator_user_id?: string | null
+          description?: string | null
+          download_count?: number | null
+          elements?: Json | null
+          frame_id?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          layout?: Json | null
+          materials?: Json | null
+          name?: string
+          preview_url?: string
+          pricing?: Json | null
+          rating?: number | null
+          rating_count?: number | null
+          style?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_templates_frame_id_fkey"
+            columns: ["frame_id"]
+            isOneToOne: false
+            referencedRelation: "crd_frames"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_courses: {
         Row: {
           category: string | null
@@ -317,6 +574,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      media_assets: {
+        Row: {
+          access_level: string | null
+          asset_reference_id: string | null
+          asset_type: string
+          bucket_id: string
+          created_at: string | null
+          duration: number | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          height: number | null
+          id: string
+          is_optimized: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          optimization_variants: Json | null
+          tags: string[] | null
+          thumbnail_path: string | null
+          updated_at: string | null
+          user_id: string | null
+          width: number | null
+        }
+        Insert: {
+          access_level?: string | null
+          asset_reference_id?: string | null
+          asset_type: string
+          bucket_id: string
+          created_at?: string | null
+          duration?: number | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          is_optimized?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          optimization_variants?: Json | null
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          width?: number | null
+        }
+        Update: {
+          access_level?: string | null
+          asset_reference_id?: string | null
+          asset_type?: string
+          bucket_id?: string
+          created_at?: string | null
+          duration?: number | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          is_optimized?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          optimization_variants?: Json | null
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          width?: number | null
+        }
+        Relationships: []
       }
       orders: {
         Row: {
