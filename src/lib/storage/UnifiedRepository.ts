@@ -1,5 +1,5 @@
-// Simplified UnifiedRepository with better type safety
-import { supabase } from '@/integrations/supabase/client';
+
+import { supabase } from '@/lib/supabase-client';
 import { localStorageManager } from './LocalStorageManager';
 
 export interface BaseEntity {
@@ -30,33 +30,36 @@ export class UnifiedRepository<T extends BaseEntity> {
 
   async create(data: Omit<T, 'id' | 'created_at' | 'updated_at'>): Promise<T> {
     try {
-      // Use specific table operations instead of generic ones
-      if (this.tableName === 'cards') {
-        const { data: result, error } = await supabase
-          .from('cards')
-          .insert([data as any])
-          .select()
-          .single();
+      const { data: result, error } = await supabase
+        .from(this.tableName)
+        .insert([data])
+        .select()
+        .single();
 
-        if (error) throw error;
-        return result as unknown as T;
-      }
+      if (error) throw error;
 
-      // Fallback for other tables - simplified
-      const offlineData = {
-        ...data,
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        _offline: true
-      } as unknown as T;
-      
+      // Cache offline
       if (this.options.enableOffline) {
-        localStorageManager.setItem(`${this.tableName}_${offlineData.id}`, offlineData, 'card', 'high');
+        localStorageManager.setItem(`${this.tableName}_${result.id}`, result, 'card');
       }
-      
-      return offlineData;
+
+      return result;
     } catch (error) {
       console.error(`Error creating ${this.tableName}:`, error);
+      
+      // Fallback to offline storage
+      if (this.options.enableOffline) {
+        const offlineData = {
+          ...data,
+          id: crypto.randomUUID(),
+          created_at: new Date().toISOString(),
+          _offline: true
+        } as unknown as T;
+        
+        localStorageManager.setItem(`${this.tableName}_${offlineData.id}`, offlineData, 'card', 'high');
+        return offlineData;
+      }
+      
       throw error;
     }
   }
@@ -71,88 +74,133 @@ export class UnifiedRepository<T extends BaseEntity> {
         }
       }
 
-      // Use specific table operations
-      if (this.tableName === 'cards') {
-        const { data, error } = await supabase
-          .from('cards')
-          .select('*')
-          .eq('id', id)
-          .single();
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('id', id)
+        .single();
 
-        if (error && error.code !== 'PGRST116') throw error;
-        return (data as unknown as T) || null;
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      // Update cache
+      if (data && this.options.enableOffline) {
+        localStorageManager.setItem(`${this.tableName}_${id}`, data, 'card');
       }
 
-      return null;
+      return data || null;
     } catch (error) {
       console.error(`Error finding ${this.tableName} by id:`, error);
+      
+      // Fallback to offline storage
+      if (this.options.enableOffline) {
+        return localStorageManager.getItem<T>(`${this.tableName}_${id}`);
+      }
+      
       return null;
     }
   }
 
   async findAll(filters?: Record<string, any>): Promise<T[]> {
     try {
-      // Use specific table operations
-      if (this.tableName === 'cards') {
-        let query = supabase.from('cards').select('*');
-        
-        if (filters) {
-          Object.entries(filters).forEach(([key, value]) => {
-            query = (query as any).eq(key, value);
-          });
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        return (data as unknown as T[]) || [];
+      let query = supabase.from(this.tableName).select('*');
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          query = query.eq(key, value);
+        });
       }
 
-      // For other tables, return empty array for now
-      return [];
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Update cache
+      if (data && this.options.enableOffline) {
+        data.forEach(item => {
+          localStorageManager.setItem(`${this.tableName}_${item.id}`, item, 'card');
+        });
+      }
+
+      return data || [];
     } catch (error) {
       console.error(`Error finding all ${this.tableName}:`, error);
+      
+      // Fallback to offline storage
+      if (this.options.enableOffline) {
+        const allKeys = Object.keys(localStorage).filter(key => 
+          key.startsWith(`${this.tableName}_`)
+        );
+        
+        return allKeys.map(key => {
+          const item = localStorageManager.getItem<T>(key.replace(`${this.tableName}_`, ''));
+          return item;
+        }).filter(Boolean) as T[];
+      }
+      
       return [];
     }
   }
 
   async update(id: string, data: Partial<T>): Promise<T | null> {
     try {
-      // Use specific table operations
-      if (this.tableName === 'cards') {
-        const { data: result, error } = await supabase
-          .from('cards')
-          .update(data as any)
-          .eq('id', id)
-          .select()
-          .single();
+      const { data: result, error } = await supabase
+        .from(this.tableName)
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
 
-        if (error) throw error;
-        return result as unknown as T;
+      if (error) throw error;
+
+      // Update cache
+      if (this.options.enableOffline) {
+        localStorageManager.setItem(`${this.tableName}_${id}`, result, 'card');
       }
 
-      return null;
+      return result;
     } catch (error) {
       console.error(`Error updating ${this.tableName}:`, error);
+      
+      // Fallback to offline storage
+      if (this.options.enableOffline) {
+        const existing = localStorageManager.getItem<T>(`${this.tableName}_${id}`);
+        if (existing) {
+          const updated = { ...existing, ...data, updated_at: new Date().toISOString() };
+          localStorageManager.setItem(`${this.tableName}_${id}`, updated, 'card', 'high');
+          return updated;
+        }
+      }
+      
       return null;
     }
   }
 
   async delete(id: string): Promise<boolean> {
     try {
-      // Use specific table operations
-      if (this.tableName === 'cards') {
-        const { error } = await supabase
-          .from('cards')
-          .delete()
-          .eq('id', id);
+      const { error } = await supabase
+        .from(this.tableName)
+        .delete()
+        .eq('id', id);
 
-        if (error) throw error;
-        return true;
+      if (error) throw error;
+
+      // Remove from cache
+      if (this.options.enableOffline) {
+        localStorageManager.removeItem(`${this.tableName}_${id}`);
       }
 
-      return false;
+      return true;
     } catch (error) {
       console.error(`Error deleting ${this.tableName}:`, error);
+      
+      // Mark as deleted in offline storage
+      if (this.options.enableOffline) {
+        const existing = localStorageManager.getItem<T>(`${this.tableName}_${id}`);
+        if (existing) {
+          localStorageManager.setItem(`${this.tableName}_${id}`, 
+            { ...existing, _deleted: true } as T, 'card', 'high');
+        }
+      }
+      
       return false;
     }
   }

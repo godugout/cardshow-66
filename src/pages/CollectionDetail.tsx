@@ -1,28 +1,41 @@
-import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
+
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, Share2, Eye, Clock, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Card as CardType } from '@/types/cards';
+import { ArrowLeft, Share2, Edit } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase-client';
+import { LoadingState } from '@/components/common/LoadingState';
+import { CardGrid } from '@/components/cards/CardGrid';
+import { toast } from 'sonner';
+import type { Card, CardRarity } from '@/types/cards';
 
 interface Collection {
   id: string;
   title: string;
   description?: string;
-  owner_id: string; // This will be mapped from user_id
-  is_public: boolean;
   created_at: string;
-  updated_at: string;
+  owner_id: string;
+  card_count?: number;
+}
+
+interface CollectionCard {
+  id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  rarity: string;
+  price?: string;
+  creator_name?: string;
+  creator_verified?: boolean;
+  creator_id?: string;
+  tags?: string[];
 }
 
 const CollectionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'cards' | 'activity'>('overview');
+  const navigate = useNavigate();
 
   const { data: collection, isLoading: collectionLoading } = useQuery({
     queryKey: ['collection', id],
@@ -34,282 +47,239 @@ const CollectionDetail = () => {
         .single();
       
       if (error) throw error;
-      
-      // Map user_id to owner_id for compatibility
-      return {
-        ...data,
-        owner_id: data.user_id
-      } as Collection;
+      return data as Collection;
     },
     enabled: !!id
   });
 
   const { data: cards = [], isLoading: cardsLoading } = useQuery({
     queryKey: ['collection-cards', id],
-    queryFn: async (): Promise<CardType[]> => {
-      // Get cards that are in this collection using the correct table
-      const { data: items } = await supabase
-        .from('collection_items')
-        .select(`
-          card_id,
-          cards (
-            id,
-            title,
-            description,
-            image_url,
-            thumbnail_url,
-            price,
-            user_id,
-            tags,
-            rarity,
-            is_public,
-            created_at,
-            updated_at
-          )
-        `)
+    queryFn: async (): Promise<Card[]> => {
+      // Get cards that are in this collection
+      const { data: collectionCards, error: collectionError } = await supabase
+        .from('collection_cards')
+        .select('card_id')
         .eq('collection_id', id);
+      
+      if (collectionError) throw collectionError;
+      
+      if (!collectionCards || collectionCards.length === 0) {
+        return [];
+      }
 
-      if (!items) return [];
-
-      // Transform the data to match our Card type
-      const processedCards: CardType[] = items.map(item => {
-        const card = item.cards as any;
-        if (!card) return null;
-
-        return {
-          ...card,
-          creator_id: card.user_id || '', // Map user_id to creator_id
-          creator_name: 'Unknown Creator',
-          creator_verified: false,
-          price: card.price || 0,
-          tags: card.tags || [],
-          is_public: card.is_public !== false,
-          edition_size: null,
-          verification_status: 'unverified' as any,
-          creator_attribution: { type: 'unknown', value: '' },
-          print_metadata: { dpi: 300, color_profile: 'sRGB' },
-          publishing_options: { 
-            allow_downloads: false, 
-            watermark: true,
-            license_type: 'all_rights_reserved'
-          },
-          design_metadata: { layers: [], effects: [] },
-          current_case: 'penny-sleeve',
-          rarity: card.rarity || 'common',
-          category: '',
-          activity_type: null,
-          activity_data: null,
-          like_count: 0,
-          views_count: 0,
-          watchers_count: 0,
-          for_sale: false
-        } as CardType;
-      }).filter(Boolean) as CardType[];
-
-      return processedCards;
+      const cardIds = collectionCards.map(cc => cc.card_id);
+      
+      const { data: cardsData, error: cardsError } = await supabase
+        .from('cards')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          thumbnail_url,
+          rarity,
+          price,
+          tags,
+          creator_id,
+          visibility,
+          is_public
+        `)
+        .in('id', cardIds);
+      
+      if (cardsError) throw cardsError;
+      
+      // Get creator information for each card
+      const cardsWithCreators = await Promise.all(
+        (cardsData || []).map(async (card) => {
+          let creator_name = 'Unknown Creator';
+          let creator_verified = false;
+          
+          if (card.creator_id) {
+            const { data: profileData } = await supabase
+              .from('crd_profiles')
+              .select('display_name, creator_verified')
+              .eq('id', card.creator_id)
+              .single();
+            
+            if (profileData) {
+              creator_name = profileData.display_name || 'Unknown Creator';
+              creator_verified = profileData.creator_verified || false;
+            }
+          }
+          
+          return {
+            ...card,
+            creator_name,
+            creator_verified,
+            price: card.price ? card.price.toString() : undefined,
+            tags: card.tags || [],
+            rarity: (card.rarity as CardRarity) || 'common', // Fixed type casting
+            visibility: card.visibility || (card.is_public ? 'public' : 'private'),
+            edition_size: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            verification_status: 'pending' as const,
+            creator_attribution: {},
+            print_metadata: {},
+            design_metadata: {}, // Added missing property
+            publishing_options: {
+              marketplace_listing: false,
+              crd_catalog_inclusion: true,
+              print_available: false
+            },
+            print_available: false,
+            crd_catalog_inclusion: true,
+            marketplace_listing: false,
+            shop_id: null,
+            collection_id: null,
+            team_id: null,
+            user_id: null,
+            template_id: null
+          } as Card;
+        })
+      );
+      
+      return cardsWithCreators;
     },
     enabled: !!id
   });
 
+  const handleShare = () => {
+    const shareUrl = window.location.href;
+    const shareText = `Check out this collection: ${collection?.title}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: collection?.title,
+        text: shareText,
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Collection link copied to clipboard!');
+    }
+  };
+
   if (collectionLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Skeleton className="h-8 w-3/4 mb-4" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-2/3 mb-6" />
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} className="aspect-[2.5/3.5] rounded-lg" />
-                ))}
-              </div>
-            </div>
-            <div className="space-y-6">
-              <Skeleton className="h-48 rounded-lg" />
-              <Skeleton className="h-32 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading collection..." />;
   }
 
   if (!collection) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Collection not found</h2>
-          <p className="text-muted-foreground">The collection you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-white mb-4">Collection Not Found</h2>
+          <p className="text-crd-lightGray mb-6">The collection you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/gallery')} className="bg-crd-green hover:bg-crd-green/90 text-black">
+            Back to Gallery
+          </Button>
         </div>
       </div>
     );
   }
 
+  // Convert Card[] to the format expected by CardGrid
+  const cardGridData = cards.map(card => ({
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    price: card.price ? card.price.toString() : undefined, // Fixed price conversion
+    creator_name: card.creator_name,
+    creator_verified: (card as any).creator_verified,
+    creator_id: card.creator_id,
+    tags: card.tags
+  }));
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Collection Header */}
-            <div className="mb-8">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">{collection.title}</h1>
-                  {collection.description && (
-                    <p className="text-muted-foreground mb-4">{collection.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Like
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mb-6">
-                <Badge variant={collection.is_public ? "default" : "secondary"}>
-                  {collection.is_public ? "Public" : "Private"}
-                </Badge>
-                <Badge variant="outline">{cards.length} Cards</Badge>
-              </div>
+    <div className="min-h-screen bg-crd-darkest">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/gallery')}
+              className="text-crd-lightGray hover:text-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Gallery
+            </Button>
+            <div className="h-6 w-px bg-crd-mediumGray" />
+            <div>
+              <h1 className="text-3xl font-bold text-white">{collection.title}</h1>
+              {collection.description && (
+                <p className="text-crd-lightGray mt-1">{collection.description}</p>
+              )}
             </div>
-
-            {/* Tabs */}
-            <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="cards">Cards</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="mt-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {cards.slice(0, 8).map((card) => (
-                    <div key={card.id} className="group cursor-pointer">
-                      <div className="aspect-[2.5/3.5] rounded-lg overflow-hidden bg-card border mb-2">
-                        {card.image_url ? (
-                          <img
-                            src={card.image_url}
-                            alt={card.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
-                            <span className="text-muted-foreground">No Image</span>
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="font-medium text-sm truncate">{card.title}</h3>
-                      <p className="text-xs text-muted-foreground">{card.rarity}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="cards" className="mt-6">
-                {cardsLoading ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <Skeleton key={i} className="aspect-[2.5/3.5] rounded-lg" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {cards.map((card) => (
-                      <div key={card.id} className="group cursor-pointer">
-                        <div className="aspect-[2.5/3.5] rounded-lg overflow-hidden bg-card border mb-2">
-                          {card.image_url ? (
-                            <img
-                              src={card.image_url}
-                              alt={card.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <span className="text-muted-foreground">No Image</span>
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="font-medium text-sm truncate">{card.title}</h3>
-                        <p className="text-xs text-muted-foreground">{card.rarity}</p>
-                        {card.price && card.price > 0 && (
-                          <p className="text-xs font-medium">${card.price}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="activity" className="mt-6">
-                <div className="space-y-4">
-                  <p className="text-muted-foreground">No recent activity</p>
-                </div>
-              </TabsContent>
-            </Tabs>
           </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Collection Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Collection Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Total Cards</span>
-                  </div>
-                  <span className="font-medium">{cards.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Likes</span>
-                  </div>
-                  <span className="font-medium">0</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Created</span>
-                  </div>
-                  <span className="font-medium text-xs">
-                    {new Date(collection.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Creator Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Creator</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Creator</p>
-                    <p className="text-sm text-muted-foreground">Collection Owner</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="border-crd-mediumGray text-crd-lightGray hover:text-white"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
           </div>
         </div>
+
+        {/* Collection Stats */}
+        <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div>
+              <div className="text-3xl font-bold text-crd-green mb-1">
+                {cards.length}
+              </div>
+              <div className="text-sm text-crd-lightGray">Cards</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-crd-green mb-1">
+                {new Set(cards.map(card => card.rarity)).size}
+              </div>
+              <div className="text-sm text-crd-lightGray">Rarities</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-crd-green mb-1">
+                {new Date(collection.created_at).toLocaleDateString()}
+              </div>
+              <div className="text-sm text-crd-lightGray">Created</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cards Grid */}
+        {cards.length > 0 ? (
+          <div>
+            <h2 className="text-xl font-semibold text-white mb-6">
+              Cards in this Collection
+            </h2>
+            <CardGrid 
+              cards={cardGridData} 
+              loading={cardsLoading}
+              viewMode="grid"
+            />
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-white mb-4">No Cards Yet</h3>
+            <p className="text-crd-lightGray mb-6">
+              This collection doesn't have any cards yet.
+            </p>
+            <Button
+              onClick={() => navigate('/create')}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+            >
+              Create Cards
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 // Removed getAppId import - not available
 import type { MemoryListOptions, PaginatedMemories } from '../types';
 import { calculateOffset } from '../core';
@@ -18,9 +18,9 @@ export const getMemoriesByUserId = async (
       search
     } = options;
 
-    let query = (supabase as any)
-      .from('cards')
-      .select('*', { count: 'exact' })
+    let query = supabase
+      .from('memories')
+      .select('*, media(*)', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
       

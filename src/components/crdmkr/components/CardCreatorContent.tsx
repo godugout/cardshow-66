@@ -74,35 +74,17 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
     cardEditor.updateDesignMetadata('lighting', currentLighting);
   }, [JSON.stringify(getCurrentLighting())]);
 
-  // Expose cardEditor functions for the layout to use
+  // Expose cardEditor save function for the layout to use
   useEffect(() => {
     // Store cardEditor save function in window for access from layout
     (window as any).cardEditorSave = cardEditor.saveCard;
     
-    // Store function to update image URL
-    (window as any).cardEditorUpdateImage = (imageUrl: string) => {
-      cardEditor.updateCardField('image_url', imageUrl);
-    };
-    
     return () => {
       delete (window as any).cardEditorSave;
-      delete (window as any).cardEditorUpdateImage;
     };
-  }, [cardEditor.saveCard, cardEditor.updateCardField]);
-
-  // Handle image upload from sidebar
-  const handleImageUpload = (imageUrl: string) => {
-    console.log('CardCreatorContent: Image uploaded:', imageUrl);
-    updateCreatorState({ uploadedImage: imageUrl });
-    
-    // Update card editor with the new image
-    if (cardEditor && cardEditor.updateCardField) {
-      cardEditor.updateCardField('image_url', imageUrl);
-    }
-  };
-
+  }, [cardEditor.saveCard]);
   return (
-    <div className="flex-1 flex overflow-hidden bg-background relative z-10">
+    <div className="flex-1 flex overflow-hidden">
       {/* Mobile Layout: Stack vertically on small screens */}
       <div className="flex flex-col lg:flex-row w-full h-full">
         {/* Main Card View - Full width on mobile, flex-1 on desktop */}
@@ -139,7 +121,6 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
             onEffectsChange={updateCurrentEffects}
             onMaterialChange={updateCurrentMaterial}
             onLightingChange={updateCurrentLighting}
-            onImageUpload={handleImageUpload}
           />
           
           {/* Responsive Sidebar Toggle */}

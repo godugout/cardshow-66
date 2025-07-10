@@ -1,6 +1,6 @@
 
 import { UnifiedRepository } from '../UnifiedRepository';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 
 export interface Collection {
   id: string;
@@ -33,8 +33,10 @@ export class CollectionRepository extends UnifiedRepository<Collection> {
 
   async updateCardCount(collectionId: string): Promise<void> {
     try {
-      // Function doesn't exist in current schema - skip for now
-      console.log('Collection card count update skipped - function not available');
+      const { data, error } = await supabase
+        .rpc('update_collection_card_count', { collection_id: collectionId });
+      
+      if (error) throw error;
     } catch (error) {
       console.error('Error updating card count:', error);
     }

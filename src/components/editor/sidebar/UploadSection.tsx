@@ -1,65 +1,31 @@
-import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+
+import React from 'react';
+import { MediaUploadZone } from '@/components/media/MediaUploadZone';
+import { useCardEditor } from '@/hooks/useCardEditor';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
-import { UploadSection as UploadSectionComponent } from './elements/UploadSection';
 import { toast } from 'sonner';
 
 interface UploadSectionProps {
-  onImageUploaded?: (imageUrl: string) => void;
+  cardEditor?: ReturnType<typeof useCardEditor>;
 }
 
-export const UploadSection: React.FC<UploadSectionProps> = ({ onImageUploaded }) => {
+export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   const { user } = useCustomAuth();
-  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileUpload = async (file: File) => {
-    if (!user) {
-      toast.error('Please sign in to upload images');
-      return;
-    }
-
-    setIsUploading(true);
-    
-    try {
-      console.log('UploadSection: Starting upload...', file.name);
+  const handleUploadComplete = (files: any[]) => {
+    if (files.length > 0 && cardEditor) {
+      const file = files[0];
+      const publicUrl = file.metadata.publicUrl;
       
-      // Create unique filename
-      const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${timestamp}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      // Update card with the uploaded image
+      cardEditor.updateCardField('image_url', publicUrl);
       
-      // Upload to Supabase storage
-      const { data, error } = await supabase.storage
-        .from('card-images')
-        .upload(filePath, file);
-
-      if (error) {
-        console.error('UploadSection: Upload error:', error);
-        toast.error('Upload failed: ' + error.message);
-        return;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('card-images')
-        .getPublicUrl(filePath);
-
-      console.log('UploadSection: Upload successful');
-      console.log('  - File path:', filePath);
-      console.log('  - Public URL:', publicUrl);
-      
-      toast.success('Image uploaded successfully!');
-      
-      if (onImageUploaded) {
-        onImageUploaded(publicUrl);
+      if (file.thumbnail_path) {
+        cardEditor.updateCardField('thumbnail_url', file.metadata.publicUrl);
+        cardEditor.updateDesignMetadata('thumbnailUrl', file.metadata.publicUrl);
       }
       
-    } catch (error) {
-      console.error('UploadSection: Unexpected error:', error);
-      toast.error('An unexpected error occurred');
-    } finally {
-      setIsUploading(false);
+      toast.success('Card image updated successfully!');
     }
   };
 
@@ -72,9 +38,38 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ onImageUploaded })
   }
 
   return (
-    <UploadSectionComponent 
-      onFileSelect={handleFileUpload}
-      isUploading={isUploading}
-    />
+    <div className="space-y-4" role="section" aria-label="File upload section">
+      <h3 className="text-white font-medium">Upload Image</h3>
+      
+      <MediaUploadZone
+        bucket="card-assets"
+        folder="card-images"
+        maxFiles={1}
+        generateThumbnail={true}
+        optimize={true}
+        tags={['card-image']}
+        onUploadComplete={handleUploadComplete}
+        className="min-h-[200px]"
+      >
+        <div className="space-y-4">
+          <div className="w-16 h-16 mx-auto bg-crd-green/20 rounded-full flex items-center justify-center">
+            <span className="text-2xl">🖼️</span>
+          </div>
+          
+          <div>
+            <h3 className="text-white text-lg font-medium mb-2">
+              Upload Card Image
+            </h3>
+            <p className="text-crd-lightGray">
+              Drag & drop your image here or click to browse
+            </p>
+          </div>
+          
+          <div className="text-sm text-crd-lightGray">
+            PNG, JPG, WebP up to 50MB
+          </div>
+        </div>
+      </MediaUploadZone>
+    </div>
   );
 };

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 
 export interface Card {
   id: string;
@@ -45,9 +45,8 @@ export const useCards = () => {
             price,
             tags,
             created_at,
-            user_id,
-            creator_name,
-            creator_verified,
+            creator_id,
+            design_metadata,
             is_public
           `)
           .eq('is_public', true) // Only public cards for gallery
@@ -60,17 +59,35 @@ export const useCards = () => {
         
         console.log('Found public cards for gallery:', data?.length || 0);
         
-        // Process cards with available data
-        const cardsWithCreators = (data || []).map((card) => {
-          return {
-            ...card,
-            creator_id: card.user_id || '',
-            creator_name: card.creator_name || 'Unknown Creator',
-            creator_verified: card.creator_verified || false,
-            tags: card.tags || [],
-            design_metadata: {} // Not available in current schema
-          };
-        });
+        // Get creator information for each card
+        const cardsWithCreators = await Promise.all(
+          (data || []).map(async (card) => {
+            let creator_name = 'Unknown Creator';
+            let creator_verified = false;
+            
+            if (card.creator_id) {
+              const { data: profileData } = await supabase
+                .from('crd_profiles')
+                .select('display_name, creator_verified')
+                .eq('id', card.creator_id)
+                .single();
+              
+              if (profileData) {
+                creator_name = profileData.display_name || 'Unknown Creator';
+                creator_verified = profileData.creator_verified || false;
+              }
+            }
+            
+            return {
+              ...card,
+              creator_id: card.creator_id || '',
+              creator_name,
+              creator_verified,
+              tags: card.tags || [],
+              design_metadata: card.design_metadata || {}
+            };
+          })
+        );
         
         setFeaturedCards(cardsWithCreators);
       } catch (err) {

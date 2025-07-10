@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface User3DPreferences {
@@ -23,34 +23,39 @@ export const use3DPreferences = () => {
   const queryClient = useQueryClient();
   const [localPreferences, setLocalPreferences] = useState<User3DPreferences | null>(null);
 
-  // Load preferences from localStorage (profiles table doesn't have 3D preferences yet)
+  // Load preferences from Supabase for authenticated users
   const { data: preferences, isLoading } = useQuery({
     queryKey: ['user-3d-preferences', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      // For now, load from localStorage until we add 3D preferences to profiles table
-      const saved = localStorage.getItem(`crd-3d-preferences-${user.id}`);
-      if (saved) {
-        try {
-          return JSON.parse(saved) as User3DPreferences;
-        } catch (error) {
-          console.warn('Failed to parse 3D preferences:', error);
-        }
+      const { data, error } = await supabase
+        .from('crd_profiles')
+        .select('preferences_3d')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) {
+        console.warn('Failed to load 3D preferences:', error);
+        return null;
       }
       
-      return DEFAULT_PREFERENCES;
+      return data?.preferences_3d as User3DPreferences || DEFAULT_PREFERENCES;
     },
     enabled: !!user?.id
   });
 
-  // Save preferences to localStorage (profiles table doesn't have 3D preferences yet)
+  // Save preferences to Supabase
   const savePreferencesMutation = useMutation({
     mutationFn: async (newPreferences: User3DPreferences) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      // Save to localStorage until we add 3D preferences to profiles table
-      localStorage.setItem(`crd-3d-preferences-${user.id}`, JSON.stringify(newPreferences));
+      const { error } = await supabase
+        .from('crd_profiles')
+        .update({ preferences_3d: newPreferences })
+        .eq('id', user.id);
+      
+      if (error) throw error;
       return newPreferences;
     },
     onSuccess: (newPreferences) => {

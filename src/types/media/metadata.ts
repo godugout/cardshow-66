@@ -12,5 +12,5 @@ export interface MediaMetadata {
     longitude: number;
   };
   tags?: string[];
-  [key: string]: any; // Make it Json-compatible
+  customFields?: Record<string, any>;
 }

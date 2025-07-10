@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { LoadingState } from '@/components/common/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -14,6 +14,7 @@ interface Card {
   rarity: string;
   tags: string[];
   created_at: string;
+  design_metadata: any;
 }
 
 export const GeneratedCardsView = () => {

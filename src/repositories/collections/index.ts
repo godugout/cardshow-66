@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-client";
 
 export const CollectionRepository = {
   getHotCollections: async (limit = 3) => {

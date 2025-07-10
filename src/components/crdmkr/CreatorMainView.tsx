@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { CRDRenderer } from '@/components/crd/CRDRenderer';
+import { EnhancedCardContainer } from '@/components/viewer/EnhancedCardContainer';
+import { StudioCardPreview } from '@/components/studio/enhanced/components/StudioCardPreview';
+import { EffectProvider, useEffectContext } from '@/components/viewer/contexts/EffectContext';
+import { CardEffectsLayer } from '@/components/viewer/components/CardEffectsLayer';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, RotateCw, FlipHorizontal, ZoomIn, ZoomOut, Maximize, Upload, Camera } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,8 +11,53 @@ import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { supabase } from '@/integrations/supabase/client';
 import type { CardData } from '@/types/card';
 import type { CreatorState } from './types/CreatorState';
-import type { CRDCard } from '@/types/crd';
 
+interface EffectInteractiveContainerProps {
+  children: React.ReactNode;
+  className?: string;
+  currentEffects: Record<string, number>;
+}
+
+const EffectInteractiveContainer: React.FC<EffectInteractiveContainerProps> = ({ 
+  children, 
+  className,
+  currentEffects 
+}) => {
+  const effectContext = useEffectContext();
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!effectContext) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    
+    effectContext.setMousePosition({ x, y });
+  };
+
+  const handleMouseEnter = () => {
+    if (effectContext) {
+      effectContext.setIsHovering(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (effectContext) {
+      effectContext.setIsHovering(false);
+    }
+  };
+
+  return (
+    <div 
+      className={className}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </div>
+  );
+};
 
 interface CreatorMainViewProps {
   card: CardData;
@@ -35,10 +83,10 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${user.id}/${fileName}`;
+    const filePath = `${user.id}/card-images/${fileName}`;
 
     const { data, error } = await supabase.storage
-      .from('card-images')
+      .from('card-assets')
       .upload(filePath, file);
 
     if (error) {
@@ -47,21 +95,8 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('card-images')
+      .from('card-assets')
       .getPublicUrl(filePath);
-
-    console.log('CreatorMainView: Upload successful');
-    console.log('  - File path:', filePath);
-    console.log('  - Data path:', data.path);
-    console.log('  - Public URL:', publicUrl);
-    
-    // Test the URL immediately after upload
-    try {
-      const testResponse = await fetch(publicUrl, { method: 'HEAD' });
-      console.log('CreatorMainView: URL test after upload:', testResponse.status, testResponse.statusText);
-    } catch (testError) {
-      console.error('CreatorMainView: URL not accessible immediately after upload:', testError);
-    }
 
     return {
       path: data.path,
@@ -94,10 +129,6 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
               uploadedImage: uploadResult.publicUrl,
               currentSide: 'front' // Switch to front when image is uploaded
             });
-            // Also update the card editor with the new image
-            if ((window as any).cardEditorUpdateImage) {
-              (window as any).cardEditorUpdateImage(uploadResult.publicUrl);
-            }
             toast.success('Image uploaded successfully!');
           } else {
             throw new Error('Failed to get public URL');
@@ -112,10 +143,6 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
               uploadedImage: imageUrl,
               currentSide: 'front'
             });
-            // Also update the card editor with the new image
-            if ((window as any).cardEditorUpdateImage) {
-              (window as any).cardEditorUpdateImage(imageUrl);
-            }
             toast.success('Image loaded locally (demo mode)');
           };
           reader.readAsDataURL(file);
@@ -130,143 +157,132 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
     return state.currentSide === 'front' ? state.frontEffects : state.backEffects;
   };
 
-  const getCurrentMaterial = () => {
-    return state.currentSide === 'front' ? state.frontMaterial : state.backMaterial;
-  };
-
-  const getCurrentLighting = () => {
-    return state.currentSide === 'front' ? state.frontLighting : state.backLighting;
-  };
-
   const currentEffects = getCurrentEffects();
 
-  // Convert CardData to CRDCard format
-  const materialType = getCurrentMaterial();
-  const validMaterialType = ['standard', 'holographic', 'metallic', 'chrome', 'crystal', 'vintage', 'prismatic'].includes(materialType) 
-    ? materialType as 'standard' | 'holographic' | 'metallic' | 'chrome' | 'crystal' | 'vintage' | 'prismatic'
-    : 'standard';
-
-  const lighting = getCurrentLighting();
-  
-  const crdCard: CRDCard = {
-    id: card.id || 'temp-id',
-    frameId: state.selectedFrame,
-    imageUrl: state.uploadedImage || card.image_url || null,
-    title: card.title,
-    description: card.description || '',
-    material: {
-      type: validMaterialType,
-      intensity: 50,
-      surface: {
-        roughness: 50,
-        reflectivity: 50,
-        transparency: 0
-      },
-      animation: {
-        enabled: false,
-        speed: 1,
-        pattern: 'linear'
-      }
-    },
-    effects: {
-      metallic: currentEffects.metallic || 0,
-      holographic: currentEffects.holographic || 0,
-      chrome: currentEffects.chrome || 0,
-      crystal: currentEffects.crystal || 0,
-      vintage: currentEffects.vintage || 0,
-      prismatic: currentEffects.prismatic || 0,
-      interference: currentEffects.interference || 0,
-      rainbow: currentEffects.rainbow || 0,
-      particles: Boolean(currentEffects.particles),
-      glow: {
-        enabled: false,
-        color: '#ffffff',
-        intensity: 0,
-        radius: 10
-      },
-      distortion: {
-        enabled: false,
-        type: 'wave',
-        intensity: 0
-      }
-    },
-    lighting: {
-      environment: 'studio',
-      intensity: lighting.intensity || 80,
-      color: {
-        primary: '#ffffff',
-        secondary: '#f0f0f0',
-        ambient: '#e8e8e8'
-      },
-      shadows: {
-        enabled: true,
-        softness: 70,
-        intensity: 40
-      },
-      highlights: {
-        enabled: true,
-        sharpness: 60,
-        intensity: 80
-      }
-    }
-  };
-
   // Debug logs
-  console.log('CreatorMainView - CRD Card:', {
-    hasImage: !!crdCard.imageUrl,
+  console.log('CreatorMainView - State:', {
+    uploadedImage: !!state.uploadedImage,
     currentSide: state.currentSide,
-    effects: crdCard.effects,
-    uploadedImage: state.uploadedImage
+    currentEffects,
+    cardImageUrl: card.image_url
   });
+
+  // Effect context values that update based on current state
+  const effectContextValue = {
+    holographic: { intensity: currentEffects.holographic || 0 },
+    chrome: { intensity: currentEffects.chrome || 0 },
+    crystal: { intensity: currentEffects.crystal || 0 },
+    metallic: { intensity: currentEffects.metallic || 0 },
+    vintage: { intensity: currentEffects.vintage || 0 },
+    prismatic: { intensity: currentEffects.prismatic || 0 },
+    rainbow: { intensity: currentEffects.rainbow || 0 }
+  };
 
   return (
     <div className="relative flex flex-col items-center justify-center w-full h-full">
       {/* Card Container with integrated upload - Responsive sizing */}
       <div className="relative flex-1 flex items-center justify-center w-full">
-        {/* CRD Renderer with simplified image handling */}
-        <div className="relative">
-          <CRDRenderer
-            card={crdCard}
-            width={cardSize.width}
-            height={cardSize.height}
-            className="relative"
-            interactive={true}
-            performance="medium"
-            key={`crd-${state.currentSide}-${JSON.stringify(currentEffects)}-${state.uploadedImage || 'default'}`}
-          />
-          
-          {/* Upload overlay - only show if no image */}
-          {!crdCard.imageUrl && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm z-50 rounded-xl">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-crd-orange/20 rounded-full flex items-center justify-center mx-auto">
-                  <Camera className="w-8 h-8 text-crd-orange" />
+        {/* Enhanced Card with Effects */}
+        <EffectProvider
+          key={`${state.currentSide}-${JSON.stringify(currentEffects)}`} // Force re-render when effects change
+          initialEffects={effectContextValue}
+          initialValues={{
+            showEffects: true,
+            isHovering: false,
+            materialSettings: {
+              metalness: 0.5,
+              roughness: 0.3,
+              clearcoat: 0.1,
+              transmission: 0,
+              reflectivity: 80
+            }
+          }}
+        >
+          <EffectInteractiveContainer 
+            className="relative overflow-hidden rounded-xl w-full h-full flex items-center justify-center"
+            currentEffects={currentEffects}
+          >
+            <EnhancedCardContainer
+              card={{
+                ...card,
+                image_url: state.uploadedImage || card.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png' // Fallback image
+              }}
+              width={cardSize.width}
+              height={cardSize.height}
+              allowFlip={true}
+              showControls={false}
+              forceSide={state.currentSide} // Force showing the current side
+              initialFrontSide={{
+                frameId: state.selectedFrame,
+                material: state.frontMaterial,
+                effects: {
+                  metallic: state.frontEffects.metallic || 0,
+                  holographic: state.frontEffects.holographic || 0,
+                  chrome: state.frontEffects.chrome || 0,
+                  crystal: state.frontEffects.crystal || 0,
+                  vintage: state.frontEffects.vintage || 0,
+                  prismatic: state.frontEffects.prismatic || 0,
+                  interference: state.frontEffects.interference || 0,
+                  rainbow: state.frontEffects.rainbow || 0,
+                  particles: Boolean(state.frontEffects.particles)
+                },
+                lighting: state.frontLighting
+              }}
+              initialBackSide={{
+                frameId: state.selectedFrame,
+                material: state.backMaterial,
+                effects: {
+                  metallic: state.backEffects.metallic || 0,
+                  holographic: state.backEffects.holographic || 0,
+                  chrome: state.backEffects.chrome || 0,
+                  crystal: state.backEffects.crystal || 0,
+                  vintage: state.backEffects.vintage || 0,
+                  prismatic: state.backEffects.prismatic || 0,
+                  interference: state.backEffects.interference || 0,
+                  rainbow: state.backEffects.rainbow || 0,
+                  particles: Boolean(state.backEffects.particles)
+                },
+                lighting: state.backLighting
+              }}
+              key={`card-${state.currentSide}-${JSON.stringify(currentEffects)}-${state.uploadedImage || 'default'}`} // Force re-render when side, effects, or image changes
+            />
+            
+            {!state.uploadedImage && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm z-50 rounded-xl">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 bg-crd-orange/20 rounded-full flex items-center justify-center mx-auto">
+                    <Camera className="w-8 h-8 text-crd-orange" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Upload Your Image</h3>
+                    <p className="text-sm text-gray-300">Click to add an image to your card</p>
+                  </div>
+                  <Button
+                    onClick={handleImageUpload}
+                    className="bg-crd-orange hover:bg-crd-orange/90 text-white"
+                  >
+                    Choose Image
+                  </Button>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Upload Your Image</h3>
-                  <p className="text-sm text-gray-300">Click to add an image to your card</p>
-                </div>
-                <Button
-                  onClick={handleImageUpload}
-                  className="bg-crd-orange hover:bg-crd-orange/90 text-white"
-                >
-                  Choose Image
-                </Button>
               </div>
-            </div>
-          )}
-          
-          {/* Upload overlay for existing images */}
-          {crdCard.imageUrl && (
-            <button
-              onClick={handleImageUpload}
-              className="absolute top-4 right-4 z-50 bg-black/70 hover:bg-black/90 text-white p-2 rounded-full transition-colors"
-              title="Change image"
-            >
-              <Camera className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+            )}
+            
+            {/* Upload overlay for existing images */}
+            {state.uploadedImage && (
+              <button
+                onClick={handleImageUpload}
+                className="absolute top-4 right-4 z-50 bg-black/70 hover:bg-black/90 text-white p-2 rounded-full transition-colors"
+                title="Change image"
+              >
+                <Camera className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Visual Effects Layer */}
+            <CardEffectsLayer />
+            
+          </EffectInteractiveContainer>
+        </EffectProvider>
         
         {/* Side Indicator */}
         <div className="absolute top-4 left-4 z-10">

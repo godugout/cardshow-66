@@ -29,13 +29,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Use service role for rate limiting and audit logging
-    const supabaseService = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
@@ -47,27 +40,8 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Rate limiting check
-    const { data: rateLimitResult } = await supabaseService.rpc('check_rate_limit', {
-      user_identifier: user.id,
-      action_type: 'subscription_checkout',
-      max_attempts: 5,
-      time_window_minutes: 15
-    });
-
-    if (!rateLimitResult) {
-      throw new Error("Rate limit exceeded. Please wait before trying again.");
-    }
-
     const { tier } = await req.json();
     if (!tier) throw new Error("Subscription tier is required");
-    
-    // Input validation
-    const validTiers = ['collector', 'crafter', 'pro'];
-    if (!validTiers.includes(tier)) {
-      throw new Error("Invalid subscription tier provided");
-    }
-    
     logStep("Request data parsed", { tier });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });

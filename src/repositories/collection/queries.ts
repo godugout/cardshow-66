@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import { calculateOffset } from './core';
 import type { Collection, CollectionListOptions, PaginatedCollections } from './types';
 
@@ -13,17 +13,17 @@ export const getCollectionById = async (id: string): Promise<Collection | null> 
   if (error) throw new Error(`Failed to fetch collection: ${error.message}`);
   if (!data) return null;
 
-  return data as unknown as Collection;
+  return data as Collection;
 };
 
 export const getUserCollections = async (userId: string, options: CollectionListOptions = {}): Promise<PaginatedCollections> => {
   const { page = 1, pageSize = 10, search } = options;
   const offset = calculateOffset(page, pageSize);
 
-  let query = (supabase as any)
+  let query = supabase
     .from('collections')
     .select('*', { count: 'exact' })
-    .eq('user_id', userId)
+    .eq('owner_id', userId)
     .order('created_at', { ascending: false });
 
   if (search) {
@@ -36,7 +36,7 @@ export const getUserCollections = async (userId: string, options: CollectionList
 
   if (error) throw new Error(`Failed to fetch user collections: ${error.message}`);
 
-  const collections: Collection[] = (data as unknown as Collection[]) || [];
+  const collections: Collection[] = (data || []) as Collection[];
 
   return {
     collections,
@@ -48,10 +48,10 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
   const { page = 1, pageSize = 10, search } = options;
   const offset = calculateOffset(page, pageSize);
 
-  let query = (supabase as any)
+  let query = supabase
     .from('collections')
     .select('*', { count: 'exact' })
-    .eq('is_public', true)
+    .eq('visibility', 'public')
     .order('created_at', { ascending: false });
 
   if (search) {
@@ -64,7 +64,7 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 
   if (error) throw new Error(`Failed to fetch collections: ${error.message}`);
 
-  const collections: Collection[] = (data as unknown as Collection[]) || [];
+  const collections: Collection[] = (data || []) as Collection[];
 
   return {
     collections,
@@ -73,14 +73,14 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 };
 
 export const getHotCollections = async (limit = 10): Promise<Collection[]> => {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('collections')
     .select('*')
-    .eq('is_public', true)
+    .eq('visibility', 'public')
     .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) throw new Error(`Failed to fetch hot collections: ${error.message}`);
 
-  return (data as unknown as Collection[]) || [];
+  return (data || []) as Collection[];
 };

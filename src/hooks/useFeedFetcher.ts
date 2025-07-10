@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+
+import { supabase } from '@/lib/supabase-client';
 import type { Memory } from '@/types/memory';
 import type { FeedType } from './use-feed-types';
 
@@ -25,7 +26,7 @@ export const fetchMemoriesFromFeed = async (
   const offset = (currentPage - 1) * limit;
   
   try {
-    // Create mock memories for testing - Memory type features not implemented yet
+    // Create mock memories for testing
     const mockMemories: Memory[] = Array(5).fill(null).map((_, i) => ({
       id: `mock-${i}-${Date.now()}`,
       title: `Mock Memory ${i + 1}`,
@@ -52,15 +53,112 @@ export const fetchMemoriesFromFeed = async (
       commentCount: 0
     }));
 
-    // For now, just return mock data since Memory features aren't implemented
-    console.log('useFeed: Returning mock memories');
+    let query = supabase
+      .from('memories')
+      .select(`
+        *,
+        user:profiles(*),
+        media(*),
+        reactions(*),
+        comments(count)
+      `)
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false });
+
+    if (feedType === 'following' && userId) {
+      const { data: followingIds } = await supabase
+        .from('follows')
+        .select('followedId')
+        .eq('followerId', userId);
+        
+      const userIds = followingIds?.map(f => f.followedId) || [];
+      if (userIds.length === 0) {
+        console.log('useFeed: No following users found');
+        
+        setMemories(currentPage === 1 ? [] : existingMemories);
+        setHasMore(false);
+        setLoading(false);
+        return;
+      }
+      query = query.in('user_id', userIds);
+    }
+    
+    if (feedType === 'trending') {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data: trendingIds } = await supabase
+        .from('reactions')
+        .select('memoryId, count')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('count', { ascending: false })
+        .limit(50);
+        
+      const memoryIds = trendingIds?.map(t => t.memoryId) || [];
+      if (memoryIds.length === 0) {
+        console.log('useFeed: No trending memories found');
+        
+        setMemories(currentPage === 1 ? [] : existingMemories);
+        setHasMore(false);
+        setLoading(false);
+        return;
+      }
+      query = query.in('id', memoryIds);
+    }
+
+    if (feedType === 'featured') {
+      query = query.eq('visibility', 'public')
+                  .order('created_at', { ascending: false });
+    }
+
+    query = query.range(offset, offset + limit - 1);
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Error in useFeed:', error);
+      setError(new Error(error.message));
+      throw error;
+    }
+
+    let newMemories: Memory[] = [];
+    
+    if (data && data.length > 0) {
+      // Convert Supabase response to our Memory type
+      newMemories = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        userId: item.user_id, 
+        teamId: item.team_id,
+        gameId: item.game_id,
+        location: item.location,
+        visibility: item.visibility,
+        createdAt: item.created_at,
+        tags: item.tags || [],
+        metadata: item.metadata,
+        user: item.user ? {
+          id: item.user.id,
+          username: item.user.username || 'anonymous',
+          email: item.user.email || 'unknown@example.com',
+          profileImage: item.user.avatar_url,
+          bio: item.user.bio || null,
+          createdAt: item.user.created_at || new Date().toISOString(),
+          preferences: item.user.preferences || null
+        } : undefined,
+        media: item.media || [],
+        reactions: item.reactions || [],
+        commentCount: item.comments?.[0]?.count || 0
+      })) as Memory[];
+    } else {
+      newMemories = mockMemories;
+    }
     
     if (currentPage === 1) {
-      setMemories(mockMemories);
+      setMemories(newMemories);
     } else {
-      setMemories(prev => [...prev, ...mockMemories]);
+      setMemories(prev => [...prev, ...newMemories]);
     }
-    setHasMore(currentPage < 3); // Allow a few pages of mock data
+    setHasMore(!!count && count > currentPage * limit);
   } catch (error) {
     console.error('Error fetching memories:', error);
     setError(error instanceof Error ? error : new Error('Unknown error fetching memories'));

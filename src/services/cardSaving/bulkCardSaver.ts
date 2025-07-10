@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import type { FramedImage } from '@/components/cards/types/bulkUploadTypes';
 import { toast } from 'sonner';
 
@@ -41,11 +41,11 @@ export const bulkCardSaver = {
       }
 
       // Verify collection exists and user owns it
-      const { data: collection, error: collectionError } = await (supabase as any)
+      const { data: collection, error: collectionError } = await supabase
         .from('collections')
-        .select('id, user_id')
+        .select('id, owner_id')
         .eq('id', collectionId)
-        .eq('user_id', userId)
+        .eq('owner_id', userId)
         .single();
 
       if (collectionError || !collection) {
@@ -108,9 +108,9 @@ export const bulkCardSaver = {
             continue;
           }
 
-          // Add card to collection using collection_items table
-          const { error: collectionCardError } = await (supabase as any)
-            .from('collection_items')
+          // Add card to collection
+          const { error: collectionCardError } = await supabase
+            .from('collection_cards')
             .insert({
               collection_id: collectionId,
               card_id: cardRecord.id

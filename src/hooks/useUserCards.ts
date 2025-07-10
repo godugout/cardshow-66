@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 
 export interface UserCard {
   id: string;
@@ -60,10 +60,11 @@ export const useUserCards = (userId?: string, options: UseUserCardsOptions = {})
             price,
             tags,
             created_at,
-            user_id,
+            creator_id,
+            design_metadata,
             is_public
           `, { count: 'exact' })
-          .eq('user_id', userId)
+          .eq('creator_id', userId)
           .order('created_at', { ascending: false })
           .range(offset, offset + pageSize - 1);
         
@@ -81,11 +82,11 @@ export const useUserCards = (userId?: string, options: UseUserCardsOptions = {})
             let creator_name = 'Unknown Creator';
             let creator_verified = false;
             
-            if (card.user_id) {
+            if (card.creator_id) {
               const { data: profileData } = await supabase
-                .from('profiles')
+                .from('crd_profiles')
                 .select('display_name, creator_verified')
-                .eq('user_id', card.user_id)
+                .eq('id', card.creator_id)
                 .single();
               
               if (profileData) {
@@ -96,11 +97,11 @@ export const useUserCards = (userId?: string, options: UseUserCardsOptions = {})
             
             return {
               ...card,
-              creator_id: card.user_id || '',
+              creator_id: card.creator_id || '',
               creator_name,
               creator_verified,
               tags: card.tags || [],
-              design_metadata: {} // Default empty object since field doesn't exist in schema
+              design_metadata: card.design_metadata || {}
             };
           })
         );

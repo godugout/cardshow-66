@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import type { ExtractedCard } from './types';
 
 interface Collection {
@@ -33,9 +33,10 @@ export const useCollectionOperations = () => {
           id,
           title,
           description,
-          created_at
+          created_at,
+          collection_cards(count)
         `)
-        .eq('user_id', user.id)
+        .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -45,9 +46,9 @@ export const useCollectionOperations = () => {
 
       const formattedCollections: Collection[] = (data || []).map(collection => ({
         id: collection.id,
-        title: collection.title,
+        title: collection.title, // Fixed: using title consistently
         description: collection.description,
-        cardCount: 0, // Will be calculated separately if needed
+        cardCount: collection.collection_cards?.[0]?.count || 0,
         createdAt: new Date(collection.created_at)
       }));
 
@@ -71,10 +72,10 @@ export const useCollectionOperations = () => {
       const { data, error } = await supabase
         .from('collections')
         .insert({
-          title: newCollectionName.trim(),
+          title: newCollectionName.trim(), // Fixed: using title instead of name
           description: newCollectionDescription.trim() || null,
-          user_id: user.id,
-          is_public: false
+          owner_id: user.id,
+          visibility: 'private'
         })
         .select()
         .single();

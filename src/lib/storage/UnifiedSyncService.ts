@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import { localStorageManager, StorageDataType } from './LocalStorageManager';
 import { LocalCard } from './types';
 import { toast } from 'sonner';
@@ -253,9 +253,16 @@ export class UnifiedSyncService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      // Table app_settings doesn't exist in current schema
-      // Skip sync for now and just use local storage
-      console.log('Settings sync skipped - table not available');
+      // Sync to app_settings table
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert({
+          app_id: user.id, // Using user_id as app_id for user settings
+          settings: settingsData,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
       return true;
     } catch (error) {
       console.error('Settings sync failed:', error);

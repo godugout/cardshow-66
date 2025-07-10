@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 // Removed getAppId import - not available
 import type { MemoryListOptions, PaginatedMemories } from '../types';
 import { calculateOffset } from '../core';
@@ -16,10 +16,10 @@ export const getPublicMemories = async (
       search
     } = options;
 
-    let query = (supabase as any)
-      .from('cards')
-      .select('*', { count: 'exact' })
-      .eq('is_public', true)
+    let query = supabase
+      .from('memories')
+      .select('*, media(*)', { count: 'exact' })
+      .eq('visibility', 'public')
       .order('created_at', { ascending: false });
       
     // Skip app_id filter for now

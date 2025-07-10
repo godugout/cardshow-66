@@ -1,10 +1,10 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../supabase-client';
 
 export const deleteMedia = async (mediaId: string, userId: string): Promise<void> => {
   try {
     const { data: mediaItem, error: fetchError } = await supabase
-      .from('media_assets')
+      .from('media')
       .select('*')
       .eq('id', mediaId)
       .single();
@@ -17,8 +17,13 @@ export const deleteMedia = async (mediaId: string, userId: string): Promise<void
       throw new Error('Media item not found');
     }
     
-    const bucket = mediaItem.bucket_id;
-    const filePath = mediaItem.file_path;
+    const url = new URL(mediaItem.url);
+    const pathParts = url.pathname.split('/');
+    const filename = pathParts[pathParts.length - 1];
+    const memoryId = mediaItem.memoryId;
+    
+    const bucket = url.pathname.includes('/private/') ? 'private' : 'public';
+    const filePath = `${userId}/${memoryId}/${filename}`;
     
     const { error: deleteFileError } = await supabase.storage
       .from(bucket)
@@ -28,10 +33,15 @@ export const deleteMedia = async (mediaId: string, userId: string): Promise<void
       console.error(`Warning: Failed to delete main file: ${deleteFileError.message}`);
     }
     
-    if (mediaItem.thumbnail_path) {
+    if (mediaItem.thumbnailUrl) {
+      const thumbUrl = new URL(mediaItem.thumbnailUrl);
+      const thumbPathParts = thumbUrl.pathname.split('/');
+      const thumbFilename = thumbPathParts[thumbPathParts.length - 1];
+      const thumbPath = `${userId}/${memoryId}/${thumbFilename}`;
+      
       const { error: deleteThumbError } = await supabase.storage
         .from(bucket)
-        .remove([mediaItem.thumbnail_path]);
+        .remove([thumbPath]);
         
       if (deleteThumbError) {
         console.error(`Warning: Failed to delete thumbnail: ${deleteThumbError.message}`);
@@ -39,7 +49,7 @@ export const deleteMedia = async (mediaId: string, userId: string): Promise<void
     }
     
     const { error: deleteRecordError } = await supabase
-      .from('media_assets')
+      .from('media')
       .delete()
       .eq('id', mediaId);
       

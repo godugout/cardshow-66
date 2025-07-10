@@ -1,13 +1,13 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import { toast } from 'sonner';
 
 export const makeUserCardsPublic = async (userId: string): Promise<boolean> => {
   try {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('cards')
       .update({ is_public: true })
-      .eq('user_id', userId)
+      .eq('creator_id', userId)
       .eq('is_public', false);
 
     if (error) {

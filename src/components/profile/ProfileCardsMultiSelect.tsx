@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Globe, Trash2, Edit, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import { makeUserCardsPublic } from '@/utils/cardUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import type { UserCard } from '@/hooks/useUserCards';
@@ -62,7 +62,8 @@ export const ProfileCardsMultiSelect: React.FC<ProfileCardsMultiSelectProps> = (
       const { error } = await supabase
         .from('cards')
         .update({ is_public: true })
-        .in('id', selectedCards);
+        .in('id', selectedCards)
+        .eq('creator_id', user?.id);
 
       if (error) throw error;
 
@@ -88,7 +89,8 @@ export const ProfileCardsMultiSelect: React.FC<ProfileCardsMultiSelectProps> = (
       const { error } = await supabase
         .from('cards')
         .update({ is_public: false })
-        .in('id', selectedCards);
+        .in('id', selectedCards)
+        .eq('creator_id', user?.id);
 
       if (error) throw error;
 
@@ -119,7 +121,7 @@ export const ProfileCardsMultiSelect: React.FC<ProfileCardsMultiSelectProps> = (
         .from('cards')
         .delete()
         .in('id', selectedCards)
-        .eq('user_id', user?.id);
+        .eq('creator_id', user?.id);
 
       if (error) throw error;
 

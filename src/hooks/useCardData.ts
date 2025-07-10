@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 import type { CardRarity } from '@/components/cards/UniversalCardDisplay';
 
 export interface CardData {
@@ -49,9 +49,7 @@ export const useCardData = (cardId?: string) => {
             tags,
             created_at,
             updated_at,
-            user_id,
-            creator_name,
-            creator_verified
+            creator_id
           `)
           .eq('id', cardId)
           .single();
@@ -64,13 +62,27 @@ export const useCardData = (cardId?: string) => {
           throw new Error('Card not found');
         }
         
-        // Process card data with available information
+        // Get creator information if creator_id exists
+        let creator_name = 'Unknown Creator';
+        let creator_verified = false;
+        
+        if (data.creator_id) {
+          const { data: profileData } = await supabase
+            .from('crd_profiles')
+            .select('display_name, creator_verified')
+            .eq('id', data.creator_id)
+            .single();
+          
+          if (profileData) {
+            creator_name = profileData.display_name || 'Unknown Creator';
+            creator_verified = profileData.creator_verified || false;
+          }
+        }
+        
         const cardData: CardData = {
           ...data,
-          rarity: data.rarity as CardRarity,
-          creator_id: data.user_id,
-          creator_name: data.creator_name || 'Unknown Creator',
-          creator_verified: data.creator_verified || false
+          creator_name,
+          creator_verified
         };
         
         setCard(cardData);
@@ -118,9 +130,7 @@ export const useMultipleCards = (cardIds?: string[]) => {
             tags,
             created_at,
             updated_at,
-            user_id,
-            creator_name,
-            creator_verified
+            creator_id
           `)
           .in('id', cardIds);
         
@@ -128,15 +138,31 @@ export const useMultipleCards = (cardIds?: string[]) => {
           throw error;
         }
         
-        const cardsWithCreators = (data || []).map((card) => {
-          return {
-            ...card,
-            rarity: card.rarity as CardRarity,
-            creator_id: card.user_id,
-            creator_name: card.creator_name || 'Unknown Creator',
-            creator_verified: card.creator_verified || false
-          };
-        });
+        const cardsWithCreators = await Promise.all(
+          (data || []).map(async (card) => {
+            let creator_name = 'Unknown Creator';
+            let creator_verified = false;
+            
+            if (card.creator_id) {
+              const { data: profileData } = await supabase
+                .from('crd_profiles')
+                .select('display_name, creator_verified')
+                .eq('id', card.creator_id)
+                .single();
+              
+              if (profileData) {
+                creator_name = profileData.display_name || 'Unknown Creator';
+                creator_verified = profileData.creator_verified || false;
+              }
+            }
+            
+            return {
+              ...card,
+              creator_name,
+              creator_verified
+            };
+          })
+        );
         
         setCards(cardsWithCreators);
       } catch (err) {

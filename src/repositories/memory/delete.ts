@@ -1,7 +1,7 @@
 
 import { deleteMedia } from '@/lib/mediaManager';
 import { getMemoryById } from './queries';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-client';
 
 export const deleteMemory = async (id: string): Promise<void> => {
   const memory = await getMemoryById(id);
@@ -13,8 +13,8 @@ export const deleteMemory = async (id: string): Promise<void> => {
 
   await Promise.all(deleteMediaPromises);
 
-  const { error } = await (supabase as any)
-    .from('cards')
+  const { error } = await supabase
+    .from('memories')
     .delete()
     .eq('id', id);
 

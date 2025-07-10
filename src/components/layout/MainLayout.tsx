@@ -12,9 +12,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   showNavbar = true 
 }) => {
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-[#0a0a0b]">
       {showNavbar && <UniversalNavbar />}
-      <main className="flex-1 relative z-0">
+      <main className="flex-1">
         {children}
       </main>
     </div>
