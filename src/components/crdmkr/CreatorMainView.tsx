@@ -35,7 +35,7 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${user.id}/card-images/${fileName}`;
+    const filePath = `${user.id}/${fileName}`;
 
     const { data, error } = await supabase.storage
       .from('card-images')
