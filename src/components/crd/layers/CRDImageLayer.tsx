@@ -75,8 +75,8 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
   if (!card.imageUrl) {
     return (
       <div style={imageStyle} className="crd-image-placeholder">
-        <div className="w-full h-full bg-gradient-to-br from-cs-neutral-3 to-cs-neutral-4 flex items-center justify-center">
-          <div className="text-cs-neutral-8 text-center">
+        <div className="w-full h-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center">
+          <div className="text-white/80 text-center">
             <div className="text-4xl mb-2 opacity-50">🖼️</div>
             <div className="text-sm opacity-70">No Image</div>
           </div>
@@ -89,7 +89,7 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
     <div style={imageStyle} className="crd-image-container">
       {/* Loading state */}
       {!loaded && !error && (
-        <div className="absolute inset-0 bg-gradient-to-br from-cs-accent-2 to-cs-accent-3 flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center z-10">
           <div className="text-white text-center">
             <div className="animate-spin text-2xl mb-2">⏳</div>
             <div className="text-sm">Loading image...</div>
@@ -99,10 +99,11 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
       
       {/* Error state */}
       {error && (
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-red-500/30 to-orange-500/30 flex items-center justify-center z-10">
           <div className="text-white text-center">
             <div className="text-2xl mb-2">❌</div>
             <div className="text-sm">Failed to load</div>
+            <div className="text-xs mt-1 opacity-60">Check image URL</div>
           </div>
         </div>
       )}
@@ -117,8 +118,18 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
           transition: 'filter 0.3s ease',
           opacity: error ? 0 : 1
         }}
-        onLoad={onLoad}
-        onError={onError}
+        onLoad={() => {
+          console.log('CRDImageLayer: Image loaded successfully:', card.imageUrl);
+          onLoad();
+        }}
+        onError={(e) => {
+          console.error('CRDImageLayer: Image failed to load:', card.imageUrl, e);
+          // Try to access the URL directly to check if it exists
+          fetch(card.imageUrl, { mode: 'no-cors' }).catch(() => {
+            console.error('CRDImageLayer: Image URL is not accessible via fetch');
+          });
+          onError();
+        }}
         draggable={false}
       />
     </div>
