@@ -6,12 +6,9 @@ import { cn } from '@/lib/utils';
 import type { CardData } from '@/types/card';
 import { CRDFrameRenderer } from '@/components/frames/crd/CRDFrameRenderer';
 import { EnhancedCardBack } from './components/EnhancedCardBack';
-import { CardEdgeEffects } from './components/CardEdgeEffects';
-import { AdvancedMaterialSystem } from './components/AdvancedMaterialSystem';
-import { InteractiveLightingEngine } from './components/InteractiveLightingEngine';
+import { UnifiedMaterialEffects } from './components/UnifiedMaterialEffects';
 import { EnhancedDesignControls } from './components/EnhancedDesignControls';
 import { EnhancedMaterialControls } from './components/EnhancedMaterialControls';
-import { EnhancedLightingControls } from './components/EnhancedLightingControls';
 import { getCRDFrameById } from '@/data/crdFrames';
 
 export interface CardSide {
@@ -270,17 +267,11 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
               }}
             >
               <Card className="relative w-full h-full overflow-hidden shadow-2xl bg-transparent">
-                {/* Advanced Material System */}
-                <AdvancedMaterialSystem 
+                {/* Unified Material Effects System */}
+                <UnifiedMaterialEffects 
                   material={frontSide.material}
                   effects={frontSide.effects}
-                  mousePosition={mousePos}
-                  isHovering={isHovering}
-                />
-                
-                {/* Interactive Lighting */}
-                <InteractiveLightingEngine
-                  settings={frontSide.lighting}
+                  lighting={frontSide.lighting}
                   mousePosition={mousePos}
                   isHovering={isHovering}
                 />
@@ -306,15 +297,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                     </div>
                   </div>
                 )}
-                
-                {/* Card Edge Effects */}
-                <CardEdgeEffects
-                  effects={frontSide.effects}
-                  material={frontSide.material}
-                  lighting={frontSide.lighting}
-                  mousePosition={mousePos}
-                  isHovering={isHovering}
-                />
               </Card>
             </div>
 
@@ -396,11 +378,9 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             )}
             
             {viewMode === 'lighting' && (
-              <EnhancedLightingControls
-                currentSide={currentSide}
-                isFlipped={isFlipped}
-                onUpdateSide={updateSide}
-              />
+              <div className="text-center p-8 text-muted-foreground">
+                <p>Lighting controls integrated into unified material system</p>
+              </div>
             )}
           </div>
         </div>

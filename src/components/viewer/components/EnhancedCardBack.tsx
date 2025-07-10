@@ -2,9 +2,7 @@ import React from 'react';
 import type { CardData } from '@/types/card';
 import { CRDFrameRenderer } from '@/components/frames/crd/CRDFrameRenderer';
 import { getCRDFrameById } from '@/data/crdFrames';
-import { CardEdgeEffects } from './CardEdgeEffects';
-import { AdvancedMaterialSystem } from './AdvancedMaterialSystem';
-import { InteractiveLightingEngine } from './InteractiveLightingEngine';
+import { UnifiedMaterialEffects } from './UnifiedMaterialEffects';
 
 interface EnhancedCardBackProps {
   card: CardData;
@@ -48,17 +46,11 @@ export const EnhancedCardBack: React.FC<EnhancedCardBackProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      {/* Advanced Material System */}
-      <AdvancedMaterialSystem 
+      {/* Unified Material Effects System */}
+      <UnifiedMaterialEffects 
         material={material}
         effects={effects}
-        mousePosition={mousePosition}
-        isHovering={isHovering}
-      />
-      
-      {/* Interactive Lighting */}
-      <InteractiveLightingEngine
-        settings={lighting}
+        lighting={lighting}
         mousePosition={mousePosition}
         isHovering={isHovering}
       />
@@ -108,16 +100,6 @@ export const EnhancedCardBack: React.FC<EnhancedCardBackProps> = ({
           />
         </div>
       )}
-      
-      {/* Card Edge Effects */}
-      <CardEdgeEffects
-        effects={effects}
-        material={material}
-        lighting={lighting}
-        mousePosition={mousePosition}
-        isHovering={isHovering}
-      />
-      
     </div>
   );
 };
