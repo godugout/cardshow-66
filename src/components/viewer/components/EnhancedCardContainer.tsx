@@ -54,6 +54,18 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   onMouseLeave,
   onClick
 }) => {
+  // Debug: Check what image property exists
+  console.log('EnhancedCardContainer - Card data check:', {
+    image_url: card.image_url,
+    imageUrl: (card as any).imageUrl,
+    cardImageUrl: (card as any).cardImageUrl,
+    hasImage: !!(card.image_url || (card as any).imageUrl || (card as any).cardImageUrl),
+    fullCard: card
+  });
+  
+  // Try to get the image URL from any possible property
+  const imageUrl = card.image_url || (card as any).imageUrl || (card as any).cardImageUrl;
+  const hasImage = !!imageUrl;
   return (
     <>
       {/* Material Wallpaper - Behind everything */}
@@ -81,8 +93,8 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         
         {/* Card Content - Show image if available, otherwise show material blank card */}
         <div className="relative w-full h-full z-20">
-          {card.image_url ? (
-            <CardImageRenderer card={card} />
+          {hasImage ? (
+            <CardImageRenderer card={{...card, image_url: imageUrl}} />
           ) : (
             <MaterialBlankCard
               card={card}
