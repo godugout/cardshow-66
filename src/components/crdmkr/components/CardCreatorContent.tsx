@@ -84,7 +84,7 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
     };
   }, [cardEditor.saveCard]);
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex overflow-hidden bg-background relative z-10">
       {/* Mobile Layout: Stack vertically on small screens */}
       <div className="flex flex-col lg:flex-row w-full h-full">
         {/* Main Card View - Full width on mobile, flex-1 on desktop */}

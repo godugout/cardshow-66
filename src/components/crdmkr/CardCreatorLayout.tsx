@@ -62,7 +62,7 @@ export const CardCreatorLayout: React.FC<CardCreatorLayoutProps> = ({ card }) =>
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative z-10 overflow-hidden">
       {/* Header */}
       <CreatorHeader 
         layoutMode={layoutMode}
