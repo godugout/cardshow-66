@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CRDElement } from './CRDElement';
 import { CRDFrameProps } from '@/types/crdFrames';
 
@@ -11,6 +11,11 @@ export const CRDFrameRenderer: React.FC<CRDFrameProps> = ({
   className = '',
   interactive = false
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
+  // Debug log
+  console.log('CRDFrameRenderer - Image URL:', userImage);
   const { elements, placeholderDimensions, totalDimensions } = frame;
 
   // Calculate scaling factor
@@ -47,12 +52,40 @@ export const CRDFrameRenderer: React.FC<CRDFrameProps> = ({
         }}
       >
         {userImage ? (
-          <img
-            src={userImage}
-            alt="User uploaded content"
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
+          <>
+            {!imageLoaded && !imageError && (
+              <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                <div className="text-white/80 text-xs text-center">
+                  <div className="animate-spin text-2xl mb-2">⏳</div>
+                  <div>Loading...</div>
+                </div>
+              </div>
+            )}
+            {imageError && (
+              <div className="w-full h-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+                <div className="text-white/80 text-xs text-center">
+                  <div className="text-2xl mb-2">❌</div>
+                  <div>Image failed to load</div>
+                </div>
+              </div>
+            )}
+            <img
+              src={userImage}
+              alt="User uploaded content"
+              className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              draggable={false}
+              onLoad={() => {
+                console.log('CRDFrameRenderer - Image loaded successfully:', userImage);
+                setImageLoaded(true);
+                setImageError(false);
+              }}
+              onError={(e) => {
+                console.error('CRDFrameRenderer - Image failed to load:', userImage, e);
+                setImageError(true);
+                setImageLoaded(false);
+              }}
+            />
+          </>
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
             <div className="text-white/60 text-xs text-center">
