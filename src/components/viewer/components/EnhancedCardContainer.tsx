@@ -1,6 +1,8 @@
 
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
+import { CardImageRenderer } from './CardImageRenderer';
+import { CardContentDisplay } from './CardContentDisplay';
 
 interface EnhancedCardContainerProps {
   card: CardData;
@@ -49,13 +51,14 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       onClick={onClick}
     >
       <SurfaceTexture />
-      <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-        <div className="text-center p-4">
-          <h3 className="text-xl font-bold text-gray-800 mb-2">{card.title}</h3>
-          {card.description && (
-            <p className="text-gray-600 text-sm">{card.description}</p>
-          )}
-        </div>
+      
+      {/* Card Content - Show image if available, otherwise show content display */}
+      <div className="relative w-full h-full z-30">
+        {card.image_url ? (
+          <CardImageRenderer card={card} />
+        ) : (
+          <CardContentDisplay card={card} />
+        )}
       </div>
     </div>
   );
