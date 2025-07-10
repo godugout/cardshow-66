@@ -112,19 +112,21 @@ export const uploadMedia = async ({
     const fileUrl = urlData.publicUrl;
     
     const { data: mediaData, error: dbError } = await supabase
-      .from('media')
+      .from('media_assets')
       .insert({
-        memoryId,
-        type: mediaType,
-        url: fileUrl,
-        thumbnailUrl,
-        originalFilename: file.name,
-        size: file.size,
-        mimeType,
+        asset_reference_id: memoryId,
+        asset_type: mediaType,
+        bucket_id: bucket,
+        file_path: storagePath,
+        file_name: uniqueFilename,
+        file_size: file.size,
+        mime_type: mimeType,
         width,
         height,
         duration,
-        metadata
+        metadata,
+        user_id: userId,
+        thumbnail_path: thumbnailUrl ? `${userId}/${memoryId}/${uniqueId}_thumb.jpg` : undefined
       })
       .select()
       .single();
@@ -137,7 +139,25 @@ export const uploadMedia = async ({
       throw new Error(`Error creating media record: ${dbError.message}`);
     }
     
-    return mediaData as MediaItem;
+    // Transform database record to MediaItem interface
+    const mediaItem: MediaItem = {
+      id: mediaData.id,
+      memoryId: mediaData.asset_reference_id,
+      type: mediaData.asset_type as 'image' | 'video' | 'audio',
+      url: fileUrl,
+      thumbnailUrl,
+      name: file.name,
+      originalFilename: file.name,
+      size: file.size,
+      createdAt: mediaData.created_at || new Date().toISOString(),
+      width: width || 0,
+      height: height || 0,
+      mimeType,
+      duration: duration || 0,
+      metadata: metadata as any
+    };
+    
+    return mediaItem;
     
   } catch (error) {
     console.error('Error in uploadMedia:', error);
