@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { v4 as uuidv4 } from 'uuid';
 import type { CardData } from './types';

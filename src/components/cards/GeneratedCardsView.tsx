@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { LoadingState } from '@/components/common/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';

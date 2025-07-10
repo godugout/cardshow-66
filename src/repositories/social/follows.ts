@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@/types/user';
 
 export const followUser = async (followerId: string, followedId: string): Promise<void> => {

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { CardRarity } from '@/components/cards/UniversalCardDisplay';
 
 export interface CardData {

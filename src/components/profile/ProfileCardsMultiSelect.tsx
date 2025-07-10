@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Globe, Trash2, Edit, CheckSquare, Square } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { makeUserCardsPublic } from '@/utils/cardUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import type { UserCard } from '@/hooks/useUserCards';

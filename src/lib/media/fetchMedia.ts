@@ -1,5 +1,5 @@
 
-import { supabase } from '../supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { MediaItem } from '@/types/media';
 
 export const getMediaByMemoryId = async (memoryId: string): Promise<MediaItem[]> => {

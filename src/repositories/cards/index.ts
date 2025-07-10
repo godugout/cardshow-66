@@ -1,5 +1,5 @@
 
-import { supabase } from "@/lib/supabase-client";
+import { supabase } from "@/integrations/supabase/client";
 
 export const CardRepository = {
   getFeaturedCards: async (limit = 4) => {

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { localStorageManager, StorageDataType } from './LocalStorageManager';
 import { LocalCard } from './types';
 import { toast } from 'sonner';

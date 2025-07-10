@@ -1,5 +1,5 @@
 
-import { supabase } from "@/lib/supabase-client";
+import { supabase } from "@/integrations/supabase/client";
 
 export const CreatorRepository = {
   getPopularCreators: async (limit = 4) => {

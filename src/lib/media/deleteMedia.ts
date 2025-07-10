@@ -1,5 +1,5 @@
 
-import { supabase } from '../supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 
 export const deleteMedia = async (mediaId: string, userId: string): Promise<void> => {
   try {

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { localStorageManager } from './LocalStorageManager';
 
 export interface BaseEntity {
