@@ -22,7 +22,7 @@ export interface MediaFile {
 }
 
 export interface UploadOptions {
-  bucket: 'static-assets' | 'user-content' | 'card-assets';
+  bucket: 'static-assets' | 'user-content' | 'card-assets' | 'card-images';
   folder?: string;
   generateThumbnail?: boolean;
   optimize?: boolean;
@@ -47,6 +47,7 @@ class MediaManagerClass {
     'static-assets': 50 * 1024 * 1024, // 50MB
     'user-content': 100 * 1024 * 1024, // 100MB
     'card-assets': 50 * 1024 * 1024, // 50MB
+    'card-images': 50 * 1024 * 1024, // 50MB
   };
 
   async uploadFile(file: File, options: UploadOptions): Promise<MediaFile | null> {
@@ -201,7 +202,8 @@ class MediaManagerClass {
     const allowedTypes = {
       'static-assets': ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
       'user-content': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4', 'video/webm'],
-      'card-assets': ['image/png', 'image/jpeg', 'image/webp']
+      'card-assets': ['image/png', 'image/jpeg', 'image/webp'],
+      'card-images': ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
     };
 
     if (!allowedTypes[bucket].includes(file.type)) {
@@ -222,7 +224,7 @@ class MediaManagerClass {
   private generateFilePath(bucket: string, fileName: string, folder?: string, userId?: string): string {
     const parts = [];
     
-    if (bucket === 'user-content' && userId) {
+    if ((bucket === 'user-content' || bucket === 'card-images') && userId) {
       parts.push(userId);
     }
     
