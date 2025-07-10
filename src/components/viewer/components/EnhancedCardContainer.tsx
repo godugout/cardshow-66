@@ -80,7 +80,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         {/* Hide surface texture since we have material wallpaper */}
         
         {/* Card Content - Show image if available, otherwise show material blank card */}
-        <div className="relative w-full h-full z-30">
+        <div className="relative w-full h-full z-20">
           {card.image_url ? (
             <CardImageRenderer card={card} />
           ) : (

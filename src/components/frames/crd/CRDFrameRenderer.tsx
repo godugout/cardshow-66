@@ -48,7 +48,7 @@ export const CRDFrameRenderer: React.FC<CRDFrameProps> = ({
         className="absolute overflow-hidden"
         style={{
           ...placeholderStyle,
-          zIndex: 1
+          zIndex: 20
         }}
       >
         {userImage ? (
@@ -72,7 +72,11 @@ export const CRDFrameRenderer: React.FC<CRDFrameProps> = ({
             <img
               src={userImage}
               alt="User uploaded content"
-              className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              className="w-full h-full object-cover transition-opacity duration-300"
+              style={{ 
+                opacity: imageError ? 0 : 1,
+                zIndex: 25 
+              }}
               draggable={false}
               onLoad={() => {
                 console.log('CRDFrameRenderer - Image loaded successfully:', userImage);
