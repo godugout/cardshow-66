@@ -74,15 +74,21 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
     cardEditor.updateDesignMetadata('lighting', currentLighting);
   }, [JSON.stringify(getCurrentLighting())]);
 
-  // Expose cardEditor save function for the layout to use
+  // Expose cardEditor functions for the layout to use
   useEffect(() => {
     // Store cardEditor save function in window for access from layout
     (window as any).cardEditorSave = cardEditor.saveCard;
     
+    // Store function to update image URL
+    (window as any).cardEditorUpdateImage = (imageUrl: string) => {
+      cardEditor.updateCardField('image_url', imageUrl);
+    };
+    
     return () => {
       delete (window as any).cardEditorSave;
+      delete (window as any).cardEditorUpdateImage;
     };
-  }, [cardEditor.saveCard]);
+  }, [cardEditor.saveCard, cardEditor.updateCardField]);
   return (
     <div className="flex-1 flex overflow-hidden bg-background relative z-10">
       {/* Mobile Layout: Stack vertically on small screens */}
