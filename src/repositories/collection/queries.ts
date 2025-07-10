@@ -13,7 +13,7 @@ export const getCollectionById = async (id: string): Promise<Collection | null> 
   if (error) throw new Error(`Failed to fetch collection: ${error.message}`);
   if (!data) return null;
 
-  return data as Collection;
+  return data as unknown as Collection;
 };
 
 export const getUserCollections = async (userId: string, options: CollectionListOptions = {}): Promise<PaginatedCollections> => {
@@ -36,7 +36,7 @@ export const getUserCollections = async (userId: string, options: CollectionList
 
   if (error) throw new Error(`Failed to fetch user collections: ${error.message}`);
 
-  const collections: Collection[] = (data || []) as Collection[];
+  const collections: Collection[] = (data as unknown as Collection[]) || [];
 
   return {
     collections,
@@ -64,7 +64,7 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 
   if (error) throw new Error(`Failed to fetch collections: ${error.message}`);
 
-  const collections: Collection[] = (data || []) as Collection[];
+  const collections: Collection[] = (data as unknown as Collection[]) || [];
 
   return {
     collections,
@@ -82,5 +82,5 @@ export const getHotCollections = async (limit = 10): Promise<Collection[]> => {
 
   if (error) throw new Error(`Failed to fetch hot collections: ${error.message}`);
 
-  return (data || []) as Collection[];
+  return (data as unknown as Collection[]) || [];
 };

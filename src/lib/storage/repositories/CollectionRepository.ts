@@ -33,10 +33,8 @@ export class CollectionRepository extends UnifiedRepository<Collection> {
 
   async updateCardCount(collectionId: string): Promise<void> {
     try {
-      const { data, error } = await supabase
-        .rpc('update_collection_card_count', { collection_id: collectionId });
-      
-      if (error) throw error;
+      // Function doesn't exist in current schema - skip for now
+      console.log('Collection card count update skipped - function not available');
     } catch (error) {
       console.error('Error updating card count:', error);
     }

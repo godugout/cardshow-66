@@ -24,7 +24,7 @@ export const createCollection = async (params: CreateCollectionParams): Promise<
   if (error) throw new Error(`Failed to create collection: ${error.message}`);
   if (!data) throw new Error('No data returned after creating collection');
 
-  return data as Collection;
+  return data as unknown as Collection;
 };
 
 export const updateCollection = async (params: UpdateCollectionParams): Promise<Collection> => {
@@ -44,13 +44,13 @@ export const updateCollection = async (params: UpdateCollectionParams): Promise<
   if (error) throw new Error(`Failed to update collection: ${error.message}`);
   if (!data) throw new Error(`Collection not found: ${params.id}`);
 
-  return data as Collection;
+  return data as unknown as Collection;
 };
 
 export const updateCollectionCards = async (collectionId: string, cardIds: string[]): Promise<void> => {
-  // First, remove all existing items
+  // First, remove all existing items using correct table name
   const { error: deleteError } = await supabase
-    .from('collection_cards')
+    .from('collection_items')
     .delete()
     .eq('collection_id', collectionId);
     
@@ -65,7 +65,7 @@ export const updateCollectionCards = async (collectionId: string, cardIds: strin
     }));
     
     const { error: insertError } = await supabase
-      .from('collection_cards')
+      .from('collection_items')
       .insert(collectionItems);
       
     if (insertError) throw new Error(`Failed to add cards to collection: ${insertError.message}`);
@@ -79,7 +79,7 @@ export const deleteCollection = async (id: string): Promise<void> => {
 
   // Delete all collection items first
   const { error: itemsError } = await supabase
-    .from('collection_cards')
+    .from('collection_items')
     .delete()
     .eq('collection_id', id);
     

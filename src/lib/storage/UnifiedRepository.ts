@@ -107,6 +107,7 @@ export class UnifiedRepository<T extends BaseEntity> {
         return (data as unknown as T[]) || [];
       }
 
+      // For other tables, return empty array for now
       return [];
     } catch (error) {
       console.error(`Error finding all ${this.tableName}:`, error);

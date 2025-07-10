@@ -69,23 +69,16 @@ const Settings = () => {
           setBio(data.bio || '');
           setAvatarUrl(data.avatar_url);
           
-          // Try to get user preferences
-          const { data: prefsData, error: prefsError } = await supabase
-            .from('ui_preferences')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
-            
-          if (!prefsError && prefsData) {
-            setPreferences({
-              darkMode: prefsData.theme_variant === 'dark',
-              emailNotifications: true,
-              pushNotifications: true,
-              profileVisibility: true,
-              showCardValue: true,
-              compactView: prefsData.reduced_motion || false
-            });
-          }
+          // Table ui_preferences doesn't exist in current schema
+          // Use default preferences for now
+          setPreferences({
+            darkMode: false,
+            emailNotifications: true,
+            pushNotifications: true,
+            profileVisibility: true,
+            showCardValue: true,
+            compactView: false
+          });
         }
       } catch (e) {
         console.error('Supabase error, falling back to mock:', e);
@@ -156,25 +149,9 @@ const Settings = () => {
           reduced_motion: preferences.compactView
         };
         
-        const { data: existingPrefs } = await supabase
-          .from('ui_preferences')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (existingPrefs) {
-          await supabase
-            .from('ui_preferences')
-            .update(preferencesData)
-            .eq('id', existingPrefs.id);
-        } else {
-          await supabase
-            .from('ui_preferences')
-            .insert({
-              user_id: user.id,
-              ...preferencesData
-            });
-        }
+        // Table ui_preferences doesn't exist in current schema
+        // Skip database storage for now
+        console.log('Preferences update skipped - table not available');
       } catch (e) {
         console.error('Supabase error, falling back to mock:', e);
         
