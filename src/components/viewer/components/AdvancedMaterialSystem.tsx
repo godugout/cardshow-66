@@ -26,84 +26,90 @@ export const AdvancedMaterialSystem: React.FC<AdvancedMaterialSystemProps> = ({
   // Enhanced material configurations with dramatic real-world effects
   const materialConfigs = {
     standard: {
-      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-      opacity: 1,
+      background: 'linear-gradient(135deg, rgba(248, 249, 250, 0.1) 0%, rgba(233, 236, 239, 0.1) 100%)',
+      opacity: 0.3,
       blend: 'normal'
     },
     holographic: {
       background: `
         conic-gradient(
-          from ${mousePosition.x * 720}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-          rgba(255, 0, 128, ${0.3 + effects.holographic * 0.4}) 0deg,
-          rgba(0, 255, 255, ${0.4 + effects.holographic * 0.5}) 60deg,
-          rgba(255, 255, 0, ${0.3 + effects.holographic * 0.4}) 120deg,
-          rgba(255, 0, 255, ${0.35 + effects.holographic * 0.45}) 180deg,
-          rgba(0, 255, 128, ${0.3 + effects.holographic * 0.4}) 240deg,
-          rgba(128, 0, 255, ${0.4 + effects.holographic * 0.5}) 300deg,
-          rgba(255, 0, 128, ${0.3 + effects.holographic * 0.4}) 360deg
+          from ${mousePosition.x * 720 + Date.now() * 0.05}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+          rgba(79, 255, 176, ${0.4 + effects.holographic * 0.6}) 0deg,
+          rgba(255, 107, 74, ${0.5 + effects.holographic * 0.5}) 60deg,
+          rgba(74, 144, 255, ${0.4 + effects.holographic * 0.6}) 120deg,
+          rgba(255, 0, 255, ${0.45 + effects.holographic * 0.55}) 180deg,
+          rgba(0, 255, 128, ${0.4 + effects.holographic * 0.6}) 240deg,
+          rgba(128, 0, 255, ${0.5 + effects.holographic * 0.5}) 300deg,
+          rgba(79, 255, 176, ${0.4 + effects.holographic * 0.6}) 360deg
         )
       `,
-      opacity: 0.8 + (effects.holographic * 0.2),
-      blend: 'screen',
-      animation: 'shimmer 2s ease-in-out infinite alternate'
+      opacity: 0.7 + (effects.holographic * 0.3),
+      blend: 'color-dodge',
+      animation: 'shimmer 1.5s ease-in-out infinite alternate'
     },
     metallic: {
       background: `
         linear-gradient(
-          ${mousePosition.x * 120 + 45}deg,
-          rgba(255, 215, 0, ${0.2 + effects.metallic * 0.6}) 0%,
-          rgba(255, 255, 255, ${0.8 + effects.metallic * 0.2}) 15%,
-          rgba(255, 223, 0, ${0.4 + effects.metallic * 0.6}) 30%,
-          rgba(255, 245, 157, ${0.3 + effects.metallic * 0.5}) 50%,
-          rgba(255, 223, 0, ${0.4 + effects.metallic * 0.6}) 70%,
-          rgba(255, 255, 255, ${0.8 + effects.metallic * 0.2}) 85%,
-          rgba(255, 215, 0, ${0.2 + effects.metallic * 0.6}) 100%
+          ${mousePosition.x * 180 + 45}deg,
+          rgba(255, 215, 0, ${0.3 + effects.metallic * 0.7}) 0%,
+          rgba(255, 255, 255, ${0.9 + effects.metallic * 0.1}) 10%,
+          rgba(255, 223, 0, ${0.5 + effects.metallic * 0.5}) 20%,
+          rgba(255, 245, 157, ${0.4 + effects.metallic * 0.6}) 35%,
+          rgba(255, 255, 255, ${0.95}) 50%,
+          rgba(255, 245, 157, ${0.4 + effects.metallic * 0.6}) 65%,
+          rgba(255, 223, 0, ${0.5 + effects.metallic * 0.5}) 80%,
+          rgba(255, 255, 255, ${0.9 + effects.metallic * 0.1}) 90%,
+          rgba(255, 215, 0, ${0.3 + effects.metallic * 0.7}) 100%
         )
       `,
-      opacity: 0.7 + (effects.metallic * 0.3),
-      blend: 'overlay',
+      opacity: 0.8 + (effects.metallic * 0.2),
+      blend: 'hard-light',
       reflection: true
     },
     chrome: {
       background: `
         linear-gradient(
-          ${mousePosition.x * 180}deg,
-          rgba(220, 220, 255, ${0.2 + effects.chrome * 0.8}) 0%,
-          rgba(255, 255, 255, ${0.9 + effects.chrome * 0.1}) 20%,
-          rgba(180, 180, 220, ${0.3 + effects.chrome * 0.7}) 40%,
-          rgba(255, 255, 255, ${0.95}) 50%,
-          rgba(180, 180, 220, ${0.3 + effects.chrome * 0.7}) 60%,
-          rgba(255, 255, 255, ${0.9 + effects.chrome * 0.1}) 80%,
-          rgba(220, 220, 255, ${0.2 + effects.chrome * 0.8}) 100%
+          ${mousePosition.x * 200}deg,
+          rgba(200, 200, 255, ${0.3 + effects.chrome * 0.7}) 0%,
+          rgba(255, 255, 255, ${0.95 + effects.chrome * 0.05}) 10%,
+          rgba(180, 180, 220, ${0.4 + effects.chrome * 0.6}) 25%,
+          rgba(255, 255, 255, ${0.98}) 40%,
+          rgba(255, 255, 255, ${1.0}) 50%,
+          rgba(255, 255, 255, ${0.98}) 60%,
+          rgba(180, 180, 220, ${0.4 + effects.chrome * 0.6}) 75%,
+          rgba(255, 255, 255, ${0.95 + effects.chrome * 0.05}) 90%,
+          rgba(200, 200, 255, ${0.3 + effects.chrome * 0.7}) 100%
         )
       `,
-      opacity: 0.8 + (effects.chrome * 0.2),
-      blend: 'hard-light',
+      opacity: 0.9 + (effects.chrome * 0.1),
+      blend: 'screen',
       mirror: true
     },
     crystal: {
       background: `
         radial-gradient(
           ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-          rgba(173, 216, 230, ${0.4 + effects.crystal * 0.6}) 0%,
-          rgba(135, 206, 250, ${0.3 + effects.crystal * 0.5}) 30%,
-          rgba(176, 224, 230, ${0.2 + effects.crystal * 0.4}) 60%,
-          transparent 80%
+          rgba(173, 216, 230, ${0.5 + effects.crystal * 0.5}) 0%,
+          rgba(135, 206, 250, ${0.4 + effects.crystal * 0.6}) 20%,
+          rgba(176, 224, 230, ${0.3 + effects.crystal * 0.5}) 40%,
+          rgba(255, 255, 255, ${0.2 + effects.crystal * 0.3}) 60%,
+          transparent 90%
         )
       `,
-      opacity: 0.6 + (effects.crystal * 0.4),
-      blend: 'overlay',
+      opacity: 0.7 + (effects.crystal * 0.3),
+      blend: 'soft-light',
       refraction: true
     },
     matte: {
       background: `
         linear-gradient(
           135deg,
-          rgba(64, 64, 64, 0.2) 0%,
-          rgba(48, 48, 48, 0.3) 100%
+          rgba(64, 64, 64, 0.3) 0%,
+          rgba(48, 48, 48, 0.4) 50%,
+          rgba(32, 32, 32, 0.5) 100%
         )
       `,
-      opacity: 0.8,
+      opacity: 0.6,
       blend: 'multiply',
       absorption: true
     }

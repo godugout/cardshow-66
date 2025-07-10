@@ -202,74 +202,72 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
             className="relative overflow-hidden rounded-xl w-full h-full flex items-center justify-center"
             currentEffects={currentEffects}
           >
-            {state.uploadedImage ? (
-              <EnhancedCardContainer
-                card={{
-                  ...card,
-                  image_url: state.uploadedImage // Pass uploaded image to card
-                }}
-                width={cardSize.width}
-                height={cardSize.height}
-                allowFlip={true}
-                showControls={false}
-                forceSide={state.currentSide} // Force showing the current side
-                initialFrontSide={{
-                  frameId: state.selectedFrame,
-                  material: state.frontMaterial,
-                  effects: {
-                    metallic: state.frontEffects.metallic || 0,
-                    holographic: state.frontEffects.holographic || 0,
-                    chrome: state.frontEffects.chrome || 0,
-                    crystal: state.frontEffects.crystal || 0,
-                    vintage: state.frontEffects.vintage || 0,
-                    prismatic: state.frontEffects.prismatic || 0,
-                    interference: state.frontEffects.interference || 0,
-                    rainbow: state.frontEffects.rainbow || 0,
-                    particles: Boolean(state.frontEffects.particles)
-                  },
-                  lighting: state.frontLighting
-                }}
-                initialBackSide={{
-                  frameId: state.selectedFrame,
-                  material: state.backMaterial,
-                  effects: {
-                    metallic: state.backEffects.metallic || 0,
-                    holographic: state.backEffects.holographic || 0,
-                    chrome: state.backEffects.chrome || 0,
-                    crystal: state.backEffects.crystal || 0,
-                    vintage: state.backEffects.vintage || 0,
-                    prismatic: state.backEffects.prismatic || 0,
-                    interference: state.backEffects.interference || 0,
-                    rainbow: state.backEffects.rainbow || 0,
-                    particles: Boolean(state.backEffects.particles)
-                  },
-                  lighting: state.backLighting
-                }}
-                key={`card-${state.currentSide}-${JSON.stringify(currentEffects)}`} // Force re-render when side or effects change
-              />
-            ) : (
-              <div>
-                <StudioCardPreview
-                  uploadedImage={state.uploadedImage}
-                  selectedFrame={state.selectedFrame}
-                  orientation="portrait"
-                  show3DPreview={false}
-                  cardName={card.title || "New Card"}
-                  onImageUpload={handleImageUpload}
-                />
-                {/* Debug info when no image */}
-                {!state.uploadedImage && (
-                  <div className="absolute bottom-4 left-4 bg-black/70 text-white p-2 rounded text-xs">
-                    No uploaded image. Click to upload.
+            <EnhancedCardContainer
+              card={{
+                ...card,
+                image_url: state.uploadedImage || card.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png' // Fallback image
+              }}
+              width={cardSize.width}
+              height={cardSize.height}
+              allowFlip={true}
+              showControls={false}
+              forceSide={state.currentSide} // Force showing the current side
+              initialFrontSide={{
+                frameId: state.selectedFrame,
+                material: state.frontMaterial,
+                effects: {
+                  metallic: state.frontEffects.metallic || 0,
+                  holographic: state.frontEffects.holographic || 0,
+                  chrome: state.frontEffects.chrome || 0,
+                  crystal: state.frontEffects.crystal || 0,
+                  vintage: state.frontEffects.vintage || 0,
+                  prismatic: state.frontEffects.prismatic || 0,
+                  interference: state.frontEffects.interference || 0,
+                  rainbow: state.frontEffects.rainbow || 0,
+                  particles: Boolean(state.frontEffects.particles)
+                },
+                lighting: state.frontLighting
+              }}
+              initialBackSide={{
+                frameId: state.selectedFrame,
+                material: state.backMaterial,
+                effects: {
+                  metallic: state.backEffects.metallic || 0,
+                  holographic: state.backEffects.holographic || 0,
+                  chrome: state.backEffects.chrome || 0,
+                  crystal: state.backEffects.crystal || 0,
+                  vintage: state.backEffects.vintage || 0,
+                  prismatic: state.backEffects.prismatic || 0,
+                  interference: state.backEffects.interference || 0,
+                  rainbow: state.backEffects.rainbow || 0,
+                  particles: Boolean(state.backEffects.particles)
+                },
+                lighting: state.backLighting
+              }}
+              key={`card-${state.currentSide}-${JSON.stringify(currentEffects)}-${state.uploadedImage || 'default'}`} // Force re-render when side, effects, or image changes
+            />
+            
+            {!state.uploadedImage && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm z-50 rounded-xl">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 bg-crd-orange/20 rounded-full flex items-center justify-center mx-auto">
+                    <Camera className="w-8 h-8 text-crd-orange" />
                   </div>
-                )}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Upload Your Image</h3>
+                    <p className="text-sm text-gray-300">Click to add an image to your card</p>
+                  </div>
+                  <Button
+                    onClick={handleImageUpload}
+                    className="bg-crd-orange hover:bg-crd-orange/90 text-white"
+                  >
+                    Choose Image
+                  </Button>
+                </div>
               </div>
             )}
-
-            {/* Visual Effects Layer */}
-            <CardEffectsLayer />
             
-            {/* Upload overlay for uploaded images */}
+            {/* Upload overlay for existing images */}
             {state.uploadedImage && (
               <button
                 onClick={handleImageUpload}
@@ -279,6 +277,10 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
                 <Camera className="w-4 h-4" />
               </button>
             )}
+
+            {/* Visual Effects Layer */}
+            <CardEffectsLayer />
+            
           </EffectInteractiveContainer>
         </EffectProvider>
         

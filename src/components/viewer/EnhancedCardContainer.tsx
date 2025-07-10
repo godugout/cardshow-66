@@ -119,12 +119,45 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   const currentSide = isFlipped ? backSide : frontSide;
   const currentFrame = getCRDFrameById(currentSide.frameId);
 
+  // Sync effects from props - force updates when props change
+  useEffect(() => {
+    if (initialFrontSide?.effects) {
+      setFrontSide(prev => ({ ...prev, effects: { ...prev.effects, ...initialFrontSide.effects } }));
+    }
+    if (initialFrontSide?.material) {
+      setFrontSide(prev => ({ ...prev, material: initialFrontSide.material }));
+    }
+    if (initialFrontSide?.lighting) {
+      setFrontSide(prev => ({ ...prev, lighting: { ...prev.lighting, ...initialFrontSide.lighting } }));
+    }
+    if (initialFrontSide?.frameId) {
+      setFrontSide(prev => ({ ...prev, frameId: initialFrontSide.frameId }));
+    }
+  }, [JSON.stringify(initialFrontSide)]);
+
+  useEffect(() => {
+    if (initialBackSide?.effects) {
+      setBackSide(prev => ({ ...prev, effects: { ...prev.effects, ...initialBackSide.effects } }));
+    }
+    if (initialBackSide?.material) {
+      setBackSide(prev => ({ ...prev, material: initialBackSide.material }));
+    }
+    if (initialBackSide?.lighting) {
+      setBackSide(prev => ({ ...prev, lighting: { ...prev.lighting, ...initialBackSide.lighting } }));
+    }
+    if (initialBackSide?.frameId) {
+      setBackSide(prev => ({ ...prev, frameId: initialBackSide.frameId }));
+    }
+  }, [JSON.stringify(initialBackSide)]);
+
   // Debug logs
   console.log('EnhancedCardContainer - Debug:', {
     cardImageUrl: card.image_url,
     frameId: currentSide.frameId,
     hasFrame: !!currentFrame,
     frontSideEffects: frontSide.effects,
+    backSideEffects: backSide.effects,
+    currentMaterial: currentSide.material,
     isFlipped,
     forceSide
   });
@@ -254,16 +287,23 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                 
                 {/* Frame with Image */}
                 {currentFrame ? (
-                  <CRDFrameRenderer
-                    frame={currentFrame}
-                    userImage={card.image_url}
-                    width={width}
-                    height={height}
-                    className="relative z-10"
-                  />
+                  <div className="relative z-10">
+                    <CRDFrameRenderer
+                      frame={currentFrame}
+                      userImage={card.image_url}
+                      width={width}
+                      height={height}
+                      className=""
+                    />
+                  </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white">
-                    <p>No frame selected</p>
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white">
+                    <div className="text-center p-4">
+                      <p className="text-lg font-medium">Card Preview</p>
+                      <p className="text-sm text-gray-300 mt-2">
+                        {card.image_url ? 'Image loaded' : 'Upload an image to see your card'}
+                      </p>
+                    </div>
                   </div>
                 )}
                 
