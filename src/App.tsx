@@ -36,7 +36,7 @@ import Debug from "./pages/Debug";
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import { CardsPage } from './components/cards/CardsPage';
-import EnhancedCardDemo from './pages/EnhancedCardDemo';
+import CrdMkr from './pages/CrdMkr';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -261,7 +261,7 @@ function App() {
                   path="/crdmkr" 
                   element={
                     <MainLayout>
-                      <EnhancedCardDemo />
+                      <CrdMkr />
                     </MainLayout>
                   } 
                 />
