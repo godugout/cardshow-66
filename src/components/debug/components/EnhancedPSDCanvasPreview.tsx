@@ -187,8 +187,14 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
                     <img
                       src={enhancedLayer.imageUrl}
                       alt={layer.name}
-                      className="w-full h-full object-contain rounded"
+                      className="w-full h-full object-cover rounded"
                       draggable={false}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center'
+                      }}
                     />
                   )}
                   

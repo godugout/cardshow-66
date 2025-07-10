@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
+import { FrameModeView } from './FrameModeView';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -17,7 +18,8 @@ import {
   Layers,
   Focus,
   Palette,
-  Zap
+  Zap,
+  User
 } from 'lucide-react';
 
 interface SimplifiedLayerInspectorProps {
@@ -152,7 +154,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
           </span>
         </div>
         <p className="text-xs text-slate-400">
-          {viewMode === 'inspect' && 'Explore and analyze individual layers'}
+          {viewMode === 'inspect' && 'Explore layers categorized by Content and Design elements'}
           {viewMode === 'frame' && 'Optimize content for frame templates'}
           {viewMode === 'build' && 'Generate custom CRD frame elements'}
         </p>
@@ -175,98 +177,108 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
 
       {/* Layers list */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {filteredLayers.map((layer) => {
-            const isSelected = layer.id === selectedLayerId;
-            const isVisible = !hiddenLayers.has(layer.id);
-            const isFlipped = flippedLayers.has(layer.id);
-            const { width, height } = getLayerDimensions(layer);
+        {viewMode === 'inspect' ? (
+          <FrameModeView
+            layers={filteredLayers}
+            selectedLayerId={selectedLayerId}
+            hiddenLayers={hiddenLayers}
+            onLayerSelect={onLayerSelect}
+            onLayerToggle={onLayerToggle}
+          />
+        ) : (
+          <div className="p-2 space-y-1">
+            {filteredLayers.map((layer) => {
+              const isSelected = layer.id === selectedLayerId;
+              const isVisible = !hiddenLayers.has(layer.id);
+              const isFlipped = flippedLayers.has(layer.id);
+              const { width, height } = getLayerDimensions(layer);
 
-            return (
-              <div key={layer.id} className="group">
-                <div
-                  className={`
-                    flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all
-                    ${isSelected 
-                      ? 'bg-crd-blue/20 border border-crd-blue/40' 
-                      : 'hover:bg-slate-700/50'
-                    }
-                    ${!isVisible ? 'opacity-50' : ''}
-                  `}
-                  onClick={() => onLayerSelect(layer.id)}
-                >
-                  {/* Layer type icon */}
-                  <div className="flex-shrink-0">
-                    {getLayerIcon(layer)}
-                  </div>
-
-                  {/* Layer info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white truncate">
-                        {layer.name}
-                      </span>
-                      
-                      {/* Layer type badge */}
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs border-slate-600 text-slate-400"
-                      >
-                        {layer.type}
-                      </Badge>
+              return (
+                <div key={layer.id} className="group">
+                  <div
+                    className={`
+                      flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all
+                      ${isSelected 
+                        ? 'bg-crd-blue/20 border border-crd-blue/40' 
+                        : 'hover:bg-slate-700/50'
+                      }
+                      ${!isVisible ? 'opacity-50' : ''}
+                    `}
+                    onClick={() => onLayerSelect(layer.id)}
+                  >
+                    {/* Layer type icon */}
+                    <div className="flex-shrink-0">
+                      {getLayerIcon(layer)}
                     </div>
-                    
-                    {/* Layer dimensions */}
-                    <div className="text-xs text-slate-400 mt-1">
-                      {width}×{height}px
-                      {layer.opacity && layer.opacity < 1 && (
-                        <span className="ml-2">
-                          {Math.round(layer.opacity * 100)}% opacity
+
+                    {/* Layer info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white truncate">
+                          {layer.name}
                         </span>
-                      )}
+                        
+                        {/* Layer type badge */}
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs border-slate-600 text-slate-400"
+                        >
+                          {layer.type}
+                        </Badge>
+                      </div>
+                      
+                      {/* Layer dimensions */}
+                      <div className="text-xs text-slate-400 mt-1">
+                        {width}×{height}px
+                        {layer.opacity && layer.opacity < 1 && (
+                          <span className="ml-2">
+                            {Math.round(layer.opacity * 100)}% opacity
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Layer controls */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {/* Visibility toggle */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="w-6 h-6 p-0 text-slate-400 hover:text-white"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onLayerToggle(layer.id);
-                      }}
-                    >
-                      {isVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    </Button>
-
-                    {/* CRD flip button (for frame and build modes) */}
-                    {(viewMode === 'frame' || viewMode === 'build') && layer.type === 'image' && (
+                    {/* Layer controls */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Visibility toggle */}
                       <Button
                         size="sm"
                         variant="ghost"
-                        className={`w-6 h-6 p-0 transition-colors ${
-                          isFlipped 
-                            ? 'text-crd-green bg-crd-green/20' 
-                            : 'text-slate-400 hover:text-crd-green'
-                        }`}
+                        className="w-6 h-6 p-0 text-slate-400 hover:text-white"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFlipLayer(layer.id);
+                          onLayerToggle(layer.id);
                         }}
-                        title="Convert to CRD branding"
                       >
-                        <Palette className="w-3 h-3" />
+                        {isVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                       </Button>
-                    )}
+
+                      {/* CRD flip button (for frame and build modes) */}
+                      {(viewMode === 'frame' || viewMode === 'build') && layer.type === 'image' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className={`w-6 h-6 p-0 transition-colors ${
+                            isFlipped 
+                              ? 'text-crd-green bg-crd-green/20' 
+                              : 'text-slate-400 hover:text-crd-green'
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFlipLayer(layer.id);
+                          }}
+                          title="Convert to CRD branding"
+                        >
+                          <Palette className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </ScrollArea>
 
       {/* Selected layer details */}

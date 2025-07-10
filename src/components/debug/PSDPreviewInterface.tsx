@@ -76,9 +76,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const tabConfig = [
     {
       id: 'inspect' as const,
-      label: 'Inspect Layers',
+      label: 'Layer Analysis',
       icon: Search,
-      description: 'Analyze and explore PSD layers'
+      description: 'Analyze and explore PSD layers with frame categorization'
     },
     {
       id: 'frame' as const,
