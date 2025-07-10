@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Palette, Sparkles, Sun, Share2, Layers, Zap, Chrome, Gem, Rainbow, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { UploadSection } from '@/components/editor/sidebar/UploadSection';
 interface CreatorRightSidebarProps {
   isOpen: boolean;
   currentSide: 'front' | 'back';
@@ -26,6 +27,7 @@ interface CreatorRightSidebarProps {
   onEffectsChange: (effects: Record<string, number>) => void;
   onMaterialChange: (material: string) => void;
   onLightingChange: (lighting: any) => void;
+  onImageUpload?: (imageUrl: string) => void;
 }
 const materials = [{
   id: 'standard',
@@ -128,7 +130,8 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
   onSideChange,
   onEffectsChange,
   onMaterialChange,
-  onLightingChange
+  onLightingChange,
+  onImageUpload
 }) => {
   const [materialsOpen, setMaterialsOpen] = useState(true);
   const [effectsOpen, setEffectsOpen] = useState(true);
@@ -198,6 +201,13 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
 
       <ScrollArea className="flex-1 px-3 sm:px-4">
         <div className="space-y-4 sm:space-y-6 pb-4">
+          {/* Upload Section */}
+          {onImageUpload && (
+            <>
+              <UploadSection onImageUploaded={onImageUpload} />
+              <Separator />
+            </>
+          )}
           {/* Materials Section */}
           <Collapsible open={materialsOpen} onOpenChange={setMaterialsOpen}>
             <CollapsibleTrigger asChild>

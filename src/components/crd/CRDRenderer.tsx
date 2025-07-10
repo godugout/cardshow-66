@@ -110,11 +110,12 @@ export const CRDRenderer: React.FC<CRDRendererProps> = ({
       
       {/* Image Layer - User uploaded image */}
       <CRDImageLayer
-        context={renderContext}
-        onLoad={handleImageLoad}
+        card={{
+          id: parseInt(card.id) || 1,
+          title: card.title,
+          imageUrl: card.imageUrl
+        }}
         onError={handleImageError}
-        loaded={imageLoaded}
-        error={imageError}
       />
       
       {/* Effects Layer - Material effects and animations */}

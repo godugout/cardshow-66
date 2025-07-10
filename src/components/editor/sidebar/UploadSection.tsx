@@ -1,48 +1,65 @@
-
-import React from 'react';
-import { MediaUploadZone } from '@/components/media/MediaUploadZone';
-import { useCardEditor } from '@/hooks/useCardEditor';
+import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
-import { CRDMediaManager } from '@/lib/storage/CRDMediaManager';
+import { UploadSection as UploadSectionComponent } from './elements/UploadSection';
 import { toast } from 'sonner';
 
 interface UploadSectionProps {
-  cardEditor?: ReturnType<typeof useCardEditor>;
+  onImageUploaded?: (imageUrl: string) => void;
 }
 
-export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
+export const UploadSection: React.FC<UploadSectionProps> = ({ onImageUploaded }) => {
   const { user } = useCustomAuth();
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleUploadComplete = async (files: File[]) => {
-    if (files.length > 0 && cardEditor && user) {
-      const file = files[0];
+  const handleFileUpload = async (file: File) => {
+    if (!user) {
+      toast.error('Please sign in to upload images');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      console.log('UploadSection: Starting upload...', file.name);
       
-      // Upload using CRDMediaManager
-      const result = await CRDMediaManager.uploadCRDAsset(file, {
-        bucket: 'card-images',
-        asset_type: 'user_content',
-        folder: `cards`,
-        category: 'card-image',
-        tags: ['card-image'],
-        is_public: false,
-        generateThumbnail: true,
-        optimize: true
-      });
+      // Create unique filename
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${timestamp}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
       
-      if (result) {
-        const publicUrl = CRDMediaManager.getPublicUrl(result.bucket_id, result.file_path);
-        
-        // Update card with the uploaded image
-        cardEditor.updateCardField('image_url', publicUrl);
-        
-        if (result.thumbnail_path) {
-          const thumbnailUrl = CRDMediaManager.getPublicUrl(result.bucket_id, result.thumbnail_path);
-          cardEditor.updateCardField('thumbnail_url', thumbnailUrl);
-          cardEditor.updateDesignMetadata('thumbnailUrl', thumbnailUrl);
-        }
-        
-        toast.success('Card image updated successfully!');
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('card-images')
+        .upload(filePath, file);
+
+      if (error) {
+        console.error('UploadSection: Upload error:', error);
+        toast.error('Upload failed: ' + error.message);
+        return;
       }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('card-images')
+        .getPublicUrl(filePath);
+
+      console.log('UploadSection: Upload successful');
+      console.log('  - File path:', filePath);
+      console.log('  - Public URL:', publicUrl);
+      
+      toast.success('Image uploaded successfully!');
+      
+      if (onImageUploaded) {
+        onImageUploaded(publicUrl);
+      }
+      
+    } catch (error) {
+      console.error('UploadSection: Unexpected error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -55,38 +72,9 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   }
 
   return (
-    <div className="space-y-4" role="section" aria-label="File upload section">
-      <h3 className="text-white font-medium">Upload Image</h3>
-      
-      <MediaUploadZone
-        bucket="card-images"
-        folder={`${user.id}`}
-        maxFiles={1}
-        generateThumbnail={true}
-        optimize={true}
-        tags={['card-image']}
-        onUploadComplete={handleUploadComplete}
-        className="min-h-[200px]"
-      >
-        <div className="space-y-4">
-          <div className="w-16 h-16 mx-auto bg-crd-green/20 rounded-full flex items-center justify-center">
-            <span className="text-2xl">🖼️</span>
-          </div>
-          
-          <div>
-            <h3 className="text-white text-lg font-medium mb-2">
-              Upload Card Image
-            </h3>
-            <p className="text-crd-lightGray">
-              Drag & drop your image here or click to browse
-            </p>
-          </div>
-          
-          <div className="text-sm text-crd-lightGray">
-            PNG, JPG, WebP up to 50MB
-          </div>
-        </div>
-      </MediaUploadZone>
-    </div>
+    <UploadSectionComponent 
+      onFileSelect={handleFileUpload}
+      isUploading={isUploading}
+    />
   );
 };

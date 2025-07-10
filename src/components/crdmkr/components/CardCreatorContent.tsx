@@ -89,6 +89,18 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
       delete (window as any).cardEditorUpdateImage;
     };
   }, [cardEditor.saveCard, cardEditor.updateCardField]);
+
+  // Handle image upload from sidebar
+  const handleImageUpload = (imageUrl: string) => {
+    console.log('CardCreatorContent: Image uploaded:', imageUrl);
+    updateCreatorState({ uploadedImage: imageUrl });
+    
+    // Update card editor with the new image
+    if (cardEditor && cardEditor.updateCardField) {
+      cardEditor.updateCardField('image_url', imageUrl);
+    }
+  };
+
   return (
     <div className="flex-1 flex overflow-hidden bg-background relative z-10">
       {/* Mobile Layout: Stack vertically on small screens */}
@@ -127,6 +139,7 @@ export const CardCreatorContent: React.FC<CardCreatorContentProps> = ({
             onEffectsChange={updateCurrentEffects}
             onMaterialChange={updateCurrentMaterial}
             onLightingChange={updateCurrentLighting}
+            onImageUpload={handleImageUpload}
           />
           
           {/* Responsive Sidebar Toggle */}
