@@ -1,70 +1,166 @@
 
 @tailwind components;
 
-/* CRD Design System Components */
+/* === Cardshow v1.0 Design System Components === */
 @layer components {
-  /* Container & Layout */
+  /* === Layout Components === */
+  .cardshow-container {
+    @apply container mx-auto px-cs-8 max-w-6xl;
+  }
+  
+  .cardshow-section {
+    @apply mb-cs-24;
+  }
+  
+  .cardshow-header {
+    @apply font-heading text-cs-4xl font-bold text-cs-neutral-9 mb-cs-16;
+  }
+  
+  .cardshow-accent {
+    @apply text-cs-brand-orange;
+  }
+
+  /* === Button Components === */
+  .cardshow-btn-primary {
+    @apply cardshow-gradient-primary text-cs-neutral-9 font-medium px-cs-16 py-cs-8 rounded-cs-lg shadow-cs-md hover:shadow-cs-lg transition-all duration-200 focus-ring active:scale-95;
+  }
+
+  .cardshow-btn-secondary {
+    @apply bg-cs-neutral-4 text-cs-neutral-9 font-medium px-cs-16 py-cs-8 rounded-cs-lg border border-cs-neutral-5 hover:bg-cs-neutral-3 hover:border-cs-neutral-4 transition-all duration-200 focus-ring;
+  }
+
+  .cardshow-btn-ghost {
+    @apply text-cs-neutral-7 hover:text-cs-neutral-9 hover:bg-cs-neutral-4 font-medium px-cs-12 py-cs-6 rounded-cs-md transition-all duration-200 focus-ring;
+  }
+
+  .cardshow-btn-icon {
+    @apply bg-cs-neutral-4 text-cs-neutral-8 hover:text-cs-neutral-9 hover:bg-cs-neutral-3 p-cs-6 rounded-cs-md border border-cs-neutral-5 transition-all duration-200 focus-ring;
+  }
+
+  /* === Card Components === */
+  .cardshow-card {
+    @apply bg-cs-neutral-3 border border-cs-neutral-5 rounded-cs-lg shadow-cs-sm hover:shadow-cs-md transition-all duration-200;
+  }
+
+  .cardshow-card-elevated {
+    @apply cardshow-card shadow-cs-md hover:shadow-cs-lg hover:-translate-y-1;
+  }
+
+  .cardshow-card-premium {
+    @apply cardshow-card border-cs-brand-gold shadow-cs-glow;
+  }
+
+  /* === Input Components === */
+  .cardshow-input {
+    @apply bg-cs-neutral-4 border border-cs-neutral-5 text-cs-neutral-9 placeholder:text-cs-neutral-6 px-cs-12 py-cs-8 rounded-cs-md focus:border-cs-brand-orange focus:ring-1 focus:ring-cs-brand-orange transition-all;
+  }
+
+  .cardshow-input-error {
+    @apply cardshow-input border-cs-accent-red focus:border-cs-accent-red focus:ring-cs-accent-red;
+  }
+
+  .cardshow-search {
+    @apply cardshow-input pl-cs-32;
+  }
+
+  /* === Tag Components === */
+  .cardshow-tag {
+    @apply bg-cs-neutral-4 text-cs-neutral-7 text-cs-xs font-medium px-cs-8 py-cs-2 rounded-cs-sm border border-cs-neutral-5;
+  }
+  
+  .cardshow-tag-active {
+    @apply cardshow-tag bg-cs-brand-orange text-cs-neutral-9 border-cs-brand-orange;
+  }
+
+  .cardshow-tag-status {
+    @apply cardshow-tag bg-cs-brand-green text-cs-neutral-1 border-cs-brand-green;
+  }
+
+  .cardshow-price-tag {
+    @apply bg-cs-brand-green/10 text-cs-brand-green border border-cs-brand-green/20 text-cs-sm font-semibold px-cs-8 py-cs-2 rounded-cs-md;
+  }
+  
+  .cardshow-bid-tag {
+    @apply bg-cs-brand-orange/10 text-cs-brand-orange border border-cs-brand-orange/20 text-cs-sm font-medium px-cs-8 py-cs-2 rounded-cs-md;
+  }
+
+  /* === Avatar Components === */
+  .cardshow-avatar-sm {
+    @apply w-8 h-8 rounded-full border-2 border-cs-neutral-5;
+  }
+
+  .cardshow-avatar-md {
+    @apply w-12 h-12 rounded-full border-2 border-cs-neutral-5;
+  }
+
+  .cardshow-avatar-lg {
+    @apply w-16 h-16 rounded-full border-2 border-cs-neutral-5;
+  }
+
+  .cardshow-avatar-creator {
+    @apply border-cs-brand-gold shadow-cs-glow;
+  }
+
+  /* === Navigation Components === */
+  .cardshow-nav-item {
+    @apply text-cs-neutral-7 hover:text-cs-neutral-9 font-medium px-cs-12 py-cs-6 rounded-cs-md transition-all duration-200;
+  }
+
+  .cardshow-nav-item-active {
+    @apply cardshow-nav-item text-cs-neutral-9 bg-cs-neutral-4;
+  }
+
+  /* === Filter Components === */
+  .cardshow-filter-group {
+    @apply flex rounded-cs-lg overflow-hidden border border-cs-neutral-5 bg-cs-neutral-4;
+  }
+  
+  .cardshow-filter-button {
+    @apply bg-transparent text-cs-neutral-6 border-0 px-cs-12 py-cs-6 hover:text-cs-neutral-9 hover:bg-cs-neutral-3 transition-all font-medium;
+  }
+  
+  .cardshow-filter-button-active {
+    @apply cardshow-filter-button bg-cs-brand-orange text-cs-neutral-9;
+  }
+
+  /* === Legacy CRD Support === */
   .crd-container {
-    @apply container mx-auto p-6 max-w-7xl;
+    @apply cardshow-container;
   }
   
   .crd-section {
-    @apply mb-10;
+    @apply cardshow-section;
   }
   
   .crd-header {
-    @apply text-4xl font-bold text-crd-white mb-8;
+    @apply cardshow-header;
   }
   
   .crd-accent {
-    @apply text-crd-orange;
+    @apply cardshow-accent;
   }
 
-  /* Filter Controls */
   .crd-filter-group {
-    @apply flex rounded-md overflow-hidden;
+    @apply cardshow-filter-group;
   }
   
   .crd-filter-button {
-    @apply bg-transparent text-crd-lightGray border-crd-mediumGray px-3 py-2 hover:text-crd-white transition-all;
+    @apply cardshow-filter-button;
   }
   
   .crd-filter-button-active {
-    @apply bg-crd-blue text-crd-white;
+    @apply cardshow-filter-button-active;
   }
 
-  /* View Mode Toggles */
-  .crd-view-toggle {
-    @apply bg-crd-dark border-crd-mediumGray transition-all p-2 rounded;
-  }
-  
-  .crd-view-toggle-active {
-    @apply text-crd-blue;
-  }
-  
-  .crd-view-toggle-inactive {
-    @apply text-crd-lightGray;
-  }
-  
-  /* Tags and Badges */
   .crd-tag {
-    @apply bg-crd-mediumGray text-crd-lightGray text-xs py-1 px-3 rounded-full;
+    @apply cardshow-tag;
   }
   
   .crd-price-tag {
-    @apply bg-crd-darkGray/80 text-crd-green text-sm font-semibold py-1 px-3 rounded-full;
+    @apply cardshow-price-tag;
   }
   
   .crd-bid-tag {
-    @apply bg-crd-darkGray/80 text-crd-orange text-sm py-1 px-3 rounded-full;
-  }
-
-  /* Focus ring utilities for CRD design system */
-  .focus\:ring-crd-blue:focus {
-    @apply ring-1 ring-crd-blue;
-  }
-  
-  .focus\:border-crd-blue:focus {
-    @apply border-crd-blue;
+    @apply cardshow-bid-tag;
   }
 }

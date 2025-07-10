@@ -1,51 +1,100 @@
 
 @tailwind base;
 
-:root {
-  /* CRD Design System - HSL Colors */
-  --crd-orange: 12 100% 65%;  /* #FF6B4A converted to HSL */
-  --crd-green: 156 100% 65%;  /* #4FFFB0 converted to HSL */
-  --crd-blue: 220 100% 65%;   /* #4A90FF converted to HSL */
-  
-  /* Core Theme - Dark by Default */
-  --background: 220 5% 10%;    /* #1a1a1c converted to HSL */
-  --foreground: 0 0% 99%;      /* #fcfcfd converted to HSL */
-  --card: 220 6% 13%;          /* #1e1e23 converted to HSL */
-  --card-foreground: 0 0% 99%;
-  --border: 220 12% 16%;       /* #232934 converted to HSL */
-  
-  /* Shadcn UI Compatible Colors */
-  --popover: 220 6% 13%;
-  --popover-foreground: 0 0% 99%;
-  --primary: 12 100% 65%;      /* CRD Orange as primary */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 12% 16%;
-  --secondary-foreground: 0 0% 99%;
-  --muted: 220 8% 15%;
-  --muted-foreground: 220 5% 65%;
-  --accent: 156 100% 65%;      /* CRD Green as accent */
-  --accent-foreground: 0 0% 10%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --input: 220 12% 16%;
-  --ring: 12 100% 65%;         /* CRD Orange for focus rings */
-  --radius: 0.5rem;
+/* Cardshow v1.0 Professional Design System */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Raleway:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-  /* Legacy Cardshow colors (will be phased out) */
-  --cardshow-green: #45B26B;
-  --cardshow-orange: #EA6E48;
-  --cardshow-purple: #9757D7;
-  --cardshow-blue: #3772FF;
-  --cardshow-white: #FCFCFD;
-  --cardshow-lightGray: #777E90;
-  --cardshow-mediumGray: #353945;
-  --cardshow-darkGray: #23262F;
-  --cardshow-darkest: #121212;
-  --editor-dark: #1a1a1a;
-  --editor-darker: #121212;
-  --editor-tool: #2a2a2a;
-  --editor-border: #333333;
-  --editor-canvas: #2c2c2c;
+:root {
+  /* === Cardshow Brand Colors === */
+  --cs-brand-orange: 12 100% 65%;     /* #FF6B4A - Primary brand */
+  --cs-brand-green: 156 100% 65%;     /* #4FFFB0 - Success/growth */
+  --cs-brand-blue: 220 100% 65%;      /* #4A90FF - Trust/tech */
+  --cs-brand-purple: 259 54% 59%;     /* #9757D7 - Premium */
+  --cs-brand-gold: 45 100% 50%;       /* #FFD700 - Rewards */
+
+  /* === Cardshow Neutral Palette === */
+  --cs-neutral-1: 220 5% 8%;          /* #0F0F12 - App background */
+  --cs-neutral-2: 220 6% 11%;         /* #171619 - Surface background */
+  --cs-neutral-3: 220 7% 14%;         /* #1E1E23 - Card background */
+  --cs-neutral-4: 220 8% 18%;         /* #272A30 - Elevated surfaces */
+  --cs-neutral-5: 220 9% 23%;         /* #353945 - Borders */
+  --cs-neutral-6: 220 5% 46%;         /* #777E90 - Muted text */
+  --cs-neutral-7: 220 3% 68%;         /* #B1B5C3 - Secondary text */
+  --cs-neutral-8: 220 2% 86%;         /* #E6E8EC - Primary text */
+  --cs-neutral-9: 0 0% 98%;           /* #FCFCFD - Pure white text */
+
+  /* === Cardshow Accent Colors === */
+  --cs-accent-red: 0 84% 60%;         /* #EF4444 - Error/danger */
+  --cs-accent-yellow: 45 96% 64%;     /* #F59E0B - Warning */
+  --cs-accent-cyan: 187 85% 53%;      /* #22D3EE - Info */
+  --cs-accent-emerald: 160 84% 39%;   /* #10B981 - Success */
+
+  /* === Core Theme Variables === */
+  --background: var(--cs-neutral-1);
+  --foreground: var(--cs-neutral-9);
+  --card: var(--cs-neutral-3);
+  --card-foreground: var(--cs-neutral-9);
+  --border: var(--cs-neutral-5);
+  
+  /* === Shadcn UI Compatible === */
+  --popover: var(--cs-neutral-3);
+  --popover-foreground: var(--cs-neutral-9);
+  --primary: var(--cs-brand-orange);
+  --primary-foreground: var(--cs-neutral-9);
+  --secondary: var(--cs-neutral-4);
+  --secondary-foreground: var(--cs-neutral-9);
+  --muted: var(--cs-neutral-4);
+  --muted-foreground: var(--cs-neutral-6);
+  --accent: var(--cs-brand-green);
+  --accent-foreground: var(--cs-neutral-1);
+  --destructive: var(--cs-accent-red);
+  --destructive-foreground: var(--cs-neutral-9);
+  --input: var(--cs-neutral-4);
+  --ring: var(--cs-brand-orange);
+  --radius: 12px;
+
+  /* === Typography Scale === */
+  --cs-text-xs: 0.75rem;      /* 12px */
+  --cs-text-sm: 0.875rem;     /* 14px */
+  --cs-text-base: 1rem;       /* 16px */
+  --cs-text-lg: 1.125rem;     /* 18px */
+  --cs-text-xl: 1.25rem;      /* 20px */
+  --cs-text-2xl: 1.5rem;      /* 24px */
+  --cs-text-3xl: 2rem;        /* 32px */
+  --cs-text-4xl: 2.5rem;      /* 40px */
+  --cs-text-5xl: 3rem;        /* 48px */
+
+  /* === Spacing Scale (8px grid) === */
+  --cs-space-1: 0.125rem;     /* 2px */
+  --cs-space-2: 0.25rem;      /* 4px */
+  --cs-space-3: 0.375rem;     /* 6px */
+  --cs-space-4: 0.5rem;       /* 8px */
+  --cs-space-6: 0.75rem;      /* 12px */
+  --cs-space-8: 1rem;         /* 16px */
+  --cs-space-12: 1.5rem;      /* 24px */
+  --cs-space-16: 2rem;        /* 32px */
+  --cs-space-20: 2.5rem;      /* 40px */
+  --cs-space-24: 3rem;        /* 48px */
+  --cs-space-32: 4rem;        /* 64px */
+
+  /* === Border Radius === */
+  --cs-radius-sm: 6px;
+  --cs-radius-md: 8px;
+  --cs-radius-lg: 12px;
+  --cs-radius-xl: 16px;
+  --cs-radius-2xl: 24px;
+
+  /* === Shadows === */
+  --cs-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.15);
+  --cs-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.15);
+  --cs-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.15);
+  --cs-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.15);
+  --cs-shadow-glow: 0 0 40px rgb(var(--cs-brand-green) / 0.3);
+
+  /* === Legacy Support === */
+  --crd-orange: var(--cs-brand-orange);
+  --crd-green: var(--cs-brand-green);
+  --crd-blue: var(--cs-brand-blue);
 }
 
 .dark {
@@ -70,12 +119,36 @@
   --ring: 12 100% 65%;
 }
 
-/* CRD Gradient Utility */
+/* === Cardshow Gradients === */
+.cardshow-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--cs-brand-orange)) 0%, hsl(var(--cs-brand-green)) 100%);
+}
+
+.cardshow-gradient-secondary {
+  background: linear-gradient(135deg, hsl(var(--cs-brand-blue)) 0%, hsl(var(--cs-brand-purple)) 100%);
+}
+
+.cardshow-gradient-rainbow {
+  background: linear-gradient(135deg, 
+    hsl(var(--cs-brand-orange)) 0%, 
+    hsl(var(--cs-brand-green)) 33%, 
+    hsl(var(--cs-brand-blue)) 66%, 
+    hsl(var(--cs-brand-purple)) 100%
+  );
+}
+
+.cardshow-text-gradient {
+  background: linear-gradient(135deg, hsl(var(--cs-brand-orange)) 0%, hsl(var(--cs-brand-green)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === Legacy Gradient Support === */
 .crd-gradient {
   background: linear-gradient(135deg, hsl(var(--crd-orange)) 0%, hsl(var(--crd-green)) 50%, hsl(var(--crd-blue)) 100%);
 }
 
-/* CRD Gradient Text */
 .crd-gradient-text {
   background: linear-gradient(135deg, hsl(var(--crd-orange)) 0%, hsl(var(--crd-green)) 50%, hsl(var(--crd-blue)) 100%);
   -webkit-background-clip: text;
@@ -90,23 +163,55 @@
   
   body {
     @apply bg-background text-foreground;
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
   }
   
   html {
     /* Force dark theme by default */
     color-scheme: dark;
   }
-  
+
+  /* === Typography Hierarchy === */
   h1 {
-    @apply text-4xl font-bold mb-4;
+    font-family: 'Raleway', sans-serif;
+    @apply text-5xl font-bold leading-tight mb-6;
   }
   
   h2 {
-    @apply text-3xl font-bold mb-3;
+    font-family: 'Raleway', sans-serif;
+    @apply text-4xl font-semibold leading-tight mb-5;
   }
   
   h3 {
-    @apply text-2xl font-bold mb-2;
+    font-family: 'Poppins', sans-serif;
+    @apply text-2xl font-semibold leading-snug mb-4;
+  }
+
+  h4 {
+    font-family: 'Poppins', sans-serif;
+    @apply text-xl font-medium leading-snug mb-3;
+  }
+
+  p {
+    font-family: 'DM Sans', sans-serif;
+    @apply text-base leading-relaxed;
+  }
+
+  /* === Focus Ring Utilities === */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* === Reduced Motion Support === */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
