@@ -30,147 +30,133 @@ export const UnifiedMaterialEffects: React.FC<UnifiedMaterialEffectsProps> = ({
   mousePosition,
   isHovering
 }) => {
-  // Enhanced material configurations with unique visual characteristics
+  // Physically-based material system with natural surface characteristics
   const getMaterialBase = () => {
+    // Base reflectance values for realistic materials
+    const reflectanceAngle = Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * (180 / Math.PI);
+    const viewingAngle = Math.sqrt(Math.pow(mousePosition.x - 0.5, 2) + Math.pow(mousePosition.y - 0.5, 2));
+    const fresnel = Math.pow(1 - Math.max(0, Math.min(1, viewingAngle * 2)), 2);
+
     switch (material) {
       case 'holographic':
         return {
           basePattern: `
-            conic-gradient(
-              from ${mousePosition.x * 540 + Date.now() * 0.02}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 0, 150, 0.3) 0deg,
-              rgba(0, 255, 255, 0.4) 72deg,
-              rgba(255, 255, 0, 0.35) 144deg,
-              rgba(150, 0, 255, 0.3) 216deg,
-              rgba(0, 255, 150, 0.4) 288deg,
-              rgba(255, 0, 150, 0.3) 360deg
-            )
-          `,
-          refraction: `
-            linear-gradient(
-              ${mousePosition.x * 45 + 135}deg,
-              transparent 0%,
-              rgba(255, 255, 255, 0.15) 45%,
-              rgba(255, 255, 255, 0.25) 50%,
-              rgba(255, 255, 255, 0.15) 55%,
+            radial-gradient(
+              ellipse 200% 150% at ${50 + mousePosition.x * 30}% ${50 + mousePosition.y * 20}%,
+              hsla(${(mousePosition.x * 60 + 280) % 360}, 85%, 65%, ${0.15 + fresnel * 0.25}) 0%,
+              hsla(${(mousePosition.x * 60 + 320) % 360}, 90%, 70%, ${0.08 + fresnel * 0.15}) 40%,
+              hsla(${(mousePosition.x * 60 + 360) % 360}, 80%, 75%, ${0.05 + fresnel * 0.1}) 70%,
               transparent 100%
             )
           `,
-          blend: 'color-dodge',
-          opacity: 0.6 + (effects.holographic * 0.4)
+          refraction: `
+            radial-gradient(
+              ellipse 80% 60% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              rgba(255, 255, 255, ${fresnel * 0.3}) 0%,
+              rgba(255, 255, 255, ${fresnel * 0.15}) 50%,
+              transparent 80%
+            )
+          `,
+          blend: 'screen',
+          opacity: 0.4 + (effects.holographic * 0.3)
         };
 
       case 'chrome':
         return {
           basePattern: `
-            linear-gradient(
-              ${mousePosition.y * 180}deg,
-              rgba(180, 190, 220, 0.3) 0%,
-              rgba(255, 255, 255, 0.9) 8%,
-              rgba(200, 210, 240, 0.4) 16%,
-              rgba(255, 255, 255, 0.95) 25%,
-              rgba(240, 245, 255, 0.8) 50%,
-              rgba(255, 255, 255, 0.95) 75%,
-              rgba(200, 210, 240, 0.4) 84%,
-              rgba(255, 255, 255, 0.9) 92%,
-              rgba(180, 190, 220, 0.3) 100%
-            )
-          `,
-          refraction: `
-            linear-gradient(
-              ${mousePosition.x * 90 + 90}deg,
-              transparent 0%,
-              rgba(255, 255, 255, 0.3) 47%,
-              rgba(255, 255, 255, 0.7) 50%,
-              rgba(255, 255, 255, 0.3) 53%,
+            radial-gradient(
+              ellipse 300% 150% at ${mousePosition.x * 100}% 50%,
+              rgba(240, 245, 255, ${0.6 + fresnel * 0.3}) 0%,
+              rgba(220, 230, 245, ${0.4 + fresnel * 0.2}) 30%,
+              rgba(200, 215, 235, ${0.3 + fresnel * 0.15}) 60%,
+              rgba(180, 195, 220, ${0.2 + fresnel * 0.1}) 85%,
               transparent 100%
             )
           `,
+          refraction: `
+            ellipse 120% 80% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+            rgba(255, 255, 255, ${fresnel * 0.4}) 0%,
+            rgba(255, 255, 255, ${fresnel * 0.2}) 40%,
+            transparent 70%
+          `,
           blend: 'screen',
-          opacity: 0.75 + (effects.chrome * 0.25)
+          opacity: 0.5 + (effects.chrome * 0.3)
         };
 
       case 'metallic':
         return {
           basePattern: `
             radial-gradient(
-              ellipse ${isHovering ? '120%' : '80%'} ${isHovering ? '60%' : '40%'} at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 215, 0, 0.4) 0%,
-              rgba(255, 245, 157, 0.6) 20%,
-              rgba(255, 255, 255, 0.8) 40%,
-              rgba(255, 223, 0, 0.5) 60%,
-              rgba(255, 140, 0, 0.3) 80%,
-              rgba(255, 215, 0, 0.2) 100%
+              ellipse 250% 120% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              hsla(45, 100%, 80%, ${0.25 + fresnel * 0.2}) 0%,
+              hsla(40, 95%, 75%, ${0.2 + fresnel * 0.15}) 25%,
+              hsla(35, 90%, 65%, ${0.15 + fresnel * 0.1}) 50%,
+              hsla(30, 85%, 55%, ${0.1 + fresnel * 0.05}) 75%,
+              transparent 100%
             )
           `,
           refraction: `
-            conic-gradient(
-              from ${mousePosition.x * 180}deg at 50% 50%,
-              rgba(255, 215, 0, 0.2) 0deg,
-              rgba(255, 255, 255, 0.4) 60deg,
-              rgba(255, 223, 0, 0.3) 120deg,
-              rgba(255, 245, 157, 0.2) 180deg,
-              rgba(255, 215, 0, 0.2) 240deg,
-              rgba(255, 255, 255, 0.4) 300deg,
-              rgba(255, 215, 0, 0.2) 360deg
+            radial-gradient(
+              circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              rgba(255, 235, 180, ${fresnel * 0.25}) 0%,
+              rgba(255, 215, 120, ${fresnel * 0.15}) 40%,
+              transparent 70%
             )
           `,
-          blend: 'hard-light',
-          opacity: 0.7 + (effects.metallic * 0.3)
+          blend: 'multiply',
+          opacity: 0.6 + (effects.metallic * 0.25)
         };
 
       case 'crystal':
         return {
           basePattern: `
             radial-gradient(
-              circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(173, 216, 230, 0.4) 0%,
-              rgba(135, 206, 250, 0.3) 25%,
-              rgba(176, 224, 230, 0.25) 50%,
-              rgba(255, 255, 255, 0.15) 75%,
-              transparent 100%
+              ellipse 180% 120% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              rgba(220, 240, 255, ${0.2 + fresnel * 0.2}) 0%,
+              rgba(200, 230, 250, ${0.15 + fresnel * 0.15}) 30%,
+              rgba(180, 220, 245, ${0.1 + fresnel * 0.1}) 60%,
+              transparent 85%
             )
           `,
           refraction: `
-            conic-gradient(
-              from ${mousePosition.x * 120}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 255, 255, 0.1) 0deg,
-              rgba(173, 216, 230, 0.2) 120deg,
-              rgba(255, 255, 255, 0.15) 240deg,
-              rgba(173, 216, 230, 0.1) 360deg
+            radial-gradient(
+              circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              rgba(255, 255, 255, ${fresnel * 0.3}) 0%,
+              rgba(235, 245, 255, ${fresnel * 0.15}) 50%,
+              transparent 75%
             )
           `,
           blend: 'soft-light',
-          opacity: 0.6 + (effects.crystal * 0.4)
+          opacity: 0.4 + (effects.crystal * 0.3)
         };
 
       case 'matte':
         return {
           basePattern: `
-            linear-gradient(
-              135deg,
-              rgba(48, 48, 48, 0.15) 0%,
-              rgba(32, 32, 32, 0.25) 50%,
-              rgba(16, 16, 16, 0.3) 100%
+            radial-gradient(
+              ellipse 150% 100% at 50% 50%,
+              rgba(0, 0, 0, 0.08) 0%,
+              rgba(0, 0, 0, 0.12) 70%,
+              rgba(0, 0, 0, 0.15) 100%
             )
           `,
           refraction: 'none',
           blend: 'multiply',
-          opacity: 0.4
+          opacity: 0.3
         };
 
       default: // standard
         return {
           basePattern: `
-            linear-gradient(
-              135deg,
-              rgba(255, 255, 255, 0.05) 0%,
-              rgba(248, 249, 250, 0.1) 100%
+            radial-gradient(
+              ellipse 120% 80% at 50% 50%,
+              rgba(255, 255, 255, 0.03) 0%,
+              rgba(240, 245, 250, 0.05) 100%
             )
           `,
           refraction: 'none',
           blend: 'normal',
-          opacity: 0.2
+          opacity: 0.15
         };
     }
   };
@@ -204,145 +190,75 @@ export const UnifiedMaterialEffects: React.FC<UnifiedMaterialEffectsProps> = ({
         />
       )}
 
-      {/* Enhanced Prismatic Effect */}
-      {effects.prismatic > 0.1 && (
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `
-              conic-gradient(
-                from ${mousePosition.x * 360 + Date.now() * 0.01}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 0, 0, ${effects.prismatic * 0.15}) 0deg,
-                rgba(255, 127, 0, ${effects.prismatic * 0.18}) 51deg,
-                rgba(255, 255, 0, ${effects.prismatic * 0.15}) 102deg,
-                rgba(0, 255, 0, ${effects.prismatic * 0.2}) 153deg,
-                rgba(0, 255, 255, ${effects.prismatic * 0.18}) 204deg,
-                rgba(0, 0, 255, ${effects.prismatic * 0.15}) 255deg,
-                rgba(127, 0, 255, ${effects.prismatic * 0.2}) 306deg,
-                rgba(255, 0, 255, ${effects.prismatic * 0.18}) 357deg,
-                rgba(255, 0, 0, ${effects.prismatic * 0.15}) 360deg
-              )
-            `,
-            opacity: isHovering ? 0.9 : 0.6,
-            transition: 'opacity 0.3s ease',
-            mixBlendMode: 'screen',
-            filter: `blur(${effects.prismatic * 0.8}px)`,
-            transform: `scale(${1 + effects.prismatic * 0.02})`
-          }}
-        />
-      )}
-
-      {/* Interference Pattern */}
-      {effects.interference > 0.1 && (
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `
-              repeating-linear-gradient(
-                ${mousePosition.x * 90 + 45}deg,
-                transparent 0px,
-                rgba(255, 255, 255, ${effects.interference * 0.02}) 0.5px,
-                transparent 1px,
-                transparent 2px
-              )
-            `,
-            opacity: 0.7,
-            mixBlendMode: 'overlay'
-          }}
-        />
-      )}
-
-      {/* Rainbow Gradient Effect */}
-      {effects.rainbow > 0.1 && (
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `
-              linear-gradient(
-                ${mousePosition.x * 180 + 90}deg,
-                rgba(255, 0, 0, ${effects.rainbow * 0.08}) 0%,
-                rgba(255, 127, 0, ${effects.rainbow * 0.08}) 14%,
-                rgba(255, 255, 0, ${effects.rainbow * 0.08}) 28%,
-                rgba(0, 255, 0, ${effects.rainbow * 0.08}) 42%,
-                rgba(0, 255, 255, ${effects.rainbow * 0.08}) 57%,
-                rgba(0, 0, 255, ${effects.rainbow * 0.08}) 71%,
-                rgba(127, 0, 255, ${effects.rainbow * 0.08}) 85%,
-                rgba(255, 0, 0, ${effects.rainbow * 0.08}) 100%
-              )
-            `,
-            opacity: isHovering ? 0.8 : 0.5,
-            transition: 'opacity 0.3s ease',
-            mixBlendMode: 'screen'
-          }}
-        />
-      )}
-
-      {/* Vintage Aging Effect */}
-      {effects.vintage > 0.1 && (
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(
-                ellipse at center,
-                transparent 30%,
-                rgba(101, 67, 33, ${effects.vintage * 0.08}) 70%,
-                rgba(101, 67, 33, ${effects.vintage * 0.15}) 100%
-              )
-            `,
-            opacity: 0.8,
-            mixBlendMode: 'multiply'
-          }}
-        />
-      )}
-
-      {/* Particle System for Special Effects */}
-      {effects.particles && isHovering && (
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(
-                circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(79, 255, 176, 0.06) 0%,
-                rgba(255, 107, 74, 0.04) 30%,
-                rgba(74, 144, 255, 0.05) 60%,
-                transparent 80%
-              )
-            `,
-            animation: 'pulse 2s ease-in-out infinite',
-            opacity: 1
-          }}
-        />
-      )}
-
-      {/* Interactive Lighting Enhancement */}
+      {/* Natural Atmosphere & Depth */}
       <div 
         className="absolute inset-0"
         style={{
           background: `
             radial-gradient(
-              circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 255, 255, ${isHovering ? 0.08 : 0.03}) 0%,
-              rgba(255, 255, 255, ${isHovering ? 0.04 : 0.015}) 40%,
-              transparent 70%
+              ellipse 140% 120% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              rgba(255, 255, 255, ${isHovering ? 0.04 : 0.02}) 0%,
+              rgba(255, 255, 255, ${isHovering ? 0.02 : 0.01}) 60%,
+              transparent 85%
             )
           `,
-          opacity: lighting.intensity,
-          transition: 'opacity 0.3s ease',
-          mixBlendMode: 'screen'
+          opacity: lighting.intensity * 0.8,
+          transition: 'all 0.4s ease',
+          mixBlendMode: 'soft-light'
         }}
       />
 
-      {/* Surface Noise Texture */}
+      {/* Subtle Material Character */}
+      {(effects.prismatic > 0.1 || effects.rainbow > 0.1) && (
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(
+                ellipse 200% 100% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                hsla(${mousePosition.x * 20 + 200}, 40%, 70%, ${Math.max(effects.prismatic, effects.rainbow) * 0.08}) 0%,
+                hsla(${mousePosition.x * 25 + 240}, 35%, 65%, ${Math.max(effects.prismatic, effects.rainbow) * 0.05}) 50%,
+                transparent 80%
+              )
+            `,
+            opacity: isHovering ? 0.7 : 0.4,
+            transition: 'opacity 0.5s ease',
+            mixBlendMode: 'color',
+            filter: 'blur(2px)'
+          }}
+        />
+      )}
+
+      {/* Environmental Reflection */}
+      {lighting.environment !== 'studio' && (
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(
+                ellipse 180% 90% at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 15}%,
+                ${lighting.environment === 'sunset' ? 'rgba(255, 180, 120, 0.03)' : 
+                  lighting.environment === 'nature' ? 'rgba(120, 180, 120, 0.03)' : 
+                  'rgba(180, 200, 255, 0.03)'} 0%,
+                transparent 70%
+              )
+            `,
+            opacity: lighting.intensity * 0.6,
+            transition: 'opacity 0.4s ease',
+            mixBlendMode: 'multiply'
+          }}
+        />
+      )}
+
+      {/* Paper/Card Texture */}
       <div 
         className="absolute inset-0"
         style={{
-          background: `
-            url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")
-          `,
-          opacity: material === 'matte' ? 0.06 : 0.02,
-          mixBlendMode: 'overlay'
+          background: material === 'matte' ? 
+            `radial-gradient(ellipse 120% 80% at 50% 50%, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.04) 100%)` :
+            `radial-gradient(ellipse 110% 90% at 50% 50%, rgba(255,255,255,0.01) 0%, transparent 100%)`,
+          opacity: 0.8,
+          mixBlendMode: material === 'matte' ? 'multiply' : 'screen'
         }}
       />
     </div>
