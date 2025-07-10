@@ -2,7 +2,7 @@
 import React, { useRef, useMemo, useState } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
-import { Text, Box, RoundedBox } from '@react-three/drei';
+import { RoundedBox, Box } from '@react-three/drei';
 import { Mesh, Vector3 } from 'three';
 import { OakTemplate } from '@/types/oakTemplates';
 

@@ -201,25 +201,46 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
           {/* Materials Section */}
           <Collapsible open={materialsOpen} onOpenChange={setMaterialsOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
-                <div className="flex items-center gap-2">
-                  <Palette className="h-4 w-4" />
-                  <span className="font-medium">Materials</span>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-crd-blue/10 to-crd-green/10 group-hover:from-crd-blue/20 group-hover:to-crd-green/20 transition-all">
+                    <Palette className="h-4 w-4 text-crd-blue" />
+                  </div>
+                  <span className="font-medium text-foreground">Materials</span>
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3">
-              <div className="grid gap-2">
-                {materials.map(mat => <div key={mat.id} className={cn("p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md", material === mat.id ? "border-crd-orange bg-crd-orange/5 shadow-lg shadow-crd-orange/10" : "border-border hover:border-crd-orange/30")} onClick={() => onMaterialChange(mat.id)}>
+            <CollapsibleContent className="mt-4">
+              <div className="grid gap-3">
+                {materials.map(mat => (
+                  <div 
+                    key={mat.id} 
+                    className={cn(
+                      "group relative p-4 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg backdrop-blur-sm",
+                      material === mat.id 
+                        ? "border-crd-orange bg-gradient-to-br from-crd-orange/10 to-crd-orange/5 shadow-lg shadow-crd-orange/20" 
+                        : "border-border/50 bg-card/30 hover:border-crd-orange/40 hover:bg-crd-orange/5 hover:shadow-crd-orange/10"
+                    )} 
+                    onClick={() => onMaterialChange(mat.id)}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="text-2xl">{mat.icon}</div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{mat.name}</p>
-                        <p className="text-xs text-muted-foreground">{mat.description}</p>
+                      <div className="text-2xl p-2 rounded-lg bg-background/50 backdrop-blur-sm">
+                        {mat.icon}
                       </div>
-                      {material === mat.id && <div className="w-2 h-2 bg-crd-orange rounded-full" />}
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-foreground group-hover:text-crd-orange transition-colors">
+                          {mat.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {mat.description}
+                        </p>
+                      </div>
+                      {material === mat.id && (
+                        <div className="w-2 h-2 bg-crd-orange rounded-full animate-pulse" />
+                      )}
                     </div>
-                  </div>)}
+                  </div>
+                ))}
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -229,26 +250,35 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
           {/* Effects Section */}
           <Collapsible open={effectsOpen} onOpenChange={setEffectsOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="font-medium">CRD Styles</span>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-crd-orange/10 to-crd-green/10 group-hover:from-crd-orange/20 group-hover:to-crd-green/20 transition-all">
+                    <Sparkles className="h-4 w-4 text-crd-orange" />
+                  </div>
+                  <span className="font-medium text-foreground">Styles</span>
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 space-y-4">
-              {/* Preset Buttons */}
-              <div className="grid grid-cols-2 gap-2">
+            <CollapsibleContent className="mt-4 space-y-6">
+              {/* Enhanced Preset Cards */}
+              <div className="grid grid-cols-2 gap-3">
                 {effectPresets.map(preset => (
-                  <Button 
-                    key={preset.name} 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => applyPreset(preset)} 
-                    className="text-xs touch-manipulation"
+                  <div 
+                    key={preset.name}
+                    onClick={() => applyPreset(preset)}
+                    className="group relative cursor-pointer"
                   >
-                    {preset.name}
-                  </Button>
+                    <div className="p-4 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-crd-orange/30 hover:bg-crd-orange/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-crd-orange/10">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-crd-green/20 to-crd-blue/20 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-br from-crd-orange to-crd-green" />
+                        </div>
+                        <span className="text-xs font-medium text-foreground group-hover:text-crd-orange transition-colors">
+                          {preset.name}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
 
@@ -320,32 +350,44 @@ export const CreatorRightSidebar: React.FC<CreatorRightSidebarProps> = ({
           {/* Lighting Section */}
           <Collapsible open={lightingOpen} onOpenChange={setLightingOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-0 h-auto">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4" />
-                  <span className="font-medium">Lighting</span>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto group">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-500/10 to-orange-500/10 group-hover:from-yellow-500/20 group-hover:to-orange-500/20 transition-all">
+                    <Lightbulb className="h-4 w-4 text-yellow-500" />
+                  </div>
+                  <span className="font-medium text-foreground">Lighting</span>
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 space-y-4">
+            <CollapsibleContent className="mt-4 space-y-6">
               {/* Environment */}
               <div>
-                <p className="text-sm font-medium mb-2">Environment</p>
-                <div className="grid grid-cols-2 gap-2">
+                <p className="text-sm font-medium mb-3 text-foreground">Environment</p>
+                <div className="grid grid-cols-2 gap-3">
                 {environments.map(env => (
-                  <Button 
-                    key={env.id} 
-                    variant={lighting.environment === env.id ? "default" : "outline"} 
-                    size="sm" 
+                  <div
+                    key={env.id}
                     onClick={() => onLightingChange({
                       ...lighting,
                       environment: env.id
-                    })} 
-                    className="justify-start gap-2 text-xs touch-manipulation"
+                    })}
+                    className={cn(
+                      "group relative cursor-pointer p-3 rounded-xl border transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm",
+                      lighting.environment === env.id
+                        ? "border-crd-orange bg-gradient-to-br from-crd-orange/10 to-crd-orange/5 shadow-lg shadow-crd-orange/20"
+                        : "border-border/50 bg-card/30 hover:border-crd-orange/40 hover:bg-crd-orange/5"
+                    )}
                   >
-                    <span>{env.icon}</span>
-                    {env.name}
-                  </Button>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{env.icon}</span>
+                      <span className="text-xs font-medium text-foreground group-hover:text-crd-orange transition-colors">
+                        {env.name}
+                      </span>
+                      {lighting.environment === env.id && (
+                        <div className="ml-auto w-2 h-2 bg-crd-orange rounded-full animate-pulse" />
+                      )}
+                    </div>
+                  </div>
                 ))}
                 </div>
               </div>

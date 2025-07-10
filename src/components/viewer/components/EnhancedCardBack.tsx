@@ -81,57 +81,18 @@ export const EnhancedCardBack: React.FC<EnhancedCardBackProps> = ({
                   : 'brightness(1.1)'
                 }
                 ${effects.holographic > 0.3 
-                  ? 'drop-shadow(0 0 20px rgba(79, 255, 176, 0.5))'
+                  ? 'blur(0.5px) drop-shadow(0 0 20px rgba(79, 255, 176, 0.5))'
                   : effects.metallic > 0.3
-                  ? 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.4))'
+                  ? 'blur(0.3px) drop-shadow(0 0 15px rgba(255, 215, 0, 0.4))'
+                  : effects.prismatic > 0.3
+                  ? 'blur(0.8px)'
                   : ''
                 }
               `,
-              transform: isHovering ? 'scale(1.08)' : 'scale(1)'
+              transform: isHovering ? 'scale(1.08)' : 'scale(1)',
+              mixBlendMode: 'normal'
             }}
           />
-          
-          {/* Dynamic overlay effects based on material and effects */}
-          {(material === 'holographic' || effects.holographic > 0.5) && (
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: `
-                  conic-gradient(
-                    from ${mousePosition.x * 360}deg at 50% 50%,
-                    rgba(255, 107, 74, 0.3) 0deg,
-                    rgba(79, 255, 176, 0.4) 90deg,
-                    rgba(74, 144, 255, 0.3) 180deg,
-                    rgba(255, 107, 74, 0.3) 270deg
-                  )
-                `,
-                opacity: isHovering ? 0.7 : 0.4,
-                transition: 'opacity 0.3s ease',
-                mixBlendMode: 'screen'
-              }}
-            />
-          )}
-
-          {/* Prismatic rainbow effect */}
-          {effects.prismatic > 0.3 && (
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: `
-                  linear-gradient(
-                    ${mousePosition.x * 180}deg,
-                    rgba(255, 0, 128, ${effects.prismatic * 0.3}) 0%,
-                    rgba(0, 255, 255, ${effects.prismatic * 0.3}) 25%,
-                    rgba(255, 255, 0, ${effects.prismatic * 0.3}) 50%,
-                    rgba(255, 0, 255, ${effects.prismatic * 0.3}) 75%,
-                    rgba(0, 255, 128, ${effects.prismatic * 0.3}) 100%
-                  )
-                `,
-                mixBlendMode: 'overlay',
-                transform: `scale(${1 + effects.prismatic * 0.1})`
-              }}
-            />
-          )}
         </div>
       </div>
       
