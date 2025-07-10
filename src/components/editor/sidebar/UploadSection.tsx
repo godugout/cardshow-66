@@ -42,8 +42,8 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
       <h3 className="text-white font-medium">Upload Image</h3>
       
       <MediaUploadZone
-        bucket="card-assets"
-        folder="card-images"
+        bucket="card-images"
+        folder={`${user.id}`}
         maxFiles={1}
         generateThumbnail={true}
         optimize={true}

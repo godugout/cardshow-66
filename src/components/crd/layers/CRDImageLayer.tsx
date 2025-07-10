@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CRDRenderContext } from '@/types/crd';
 
 interface CRDImageLayerProps {
@@ -17,6 +17,21 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
   error
 }) => {
   const { card, frame } = context;
+  const [retryCount, setRetryCount] = useState(0);
+  const [imageKey, setImageKey] = useState(0);
+  
+  // Retry logic for newly uploaded images
+  useEffect(() => {
+    if (error && retryCount < 3 && card.imageUrl) {
+      const timer = setTimeout(() => {
+        console.log(`CRDImageLayer: Retrying image load (attempt ${retryCount + 1}):`, card.imageUrl);
+        setRetryCount(prev => prev + 1);
+        setImageKey(prev => prev + 1); // Force image reload
+      }, 1000 * (retryCount + 1)); // Exponential backoff: 1s, 2s, 3s
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount, card.imageUrl]);
   
   // Calculate image position and size based on frame placeholder
   const imageStyle: React.CSSProperties = {
@@ -103,13 +118,16 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
           <div className="text-white text-center">
             <div className="text-2xl mb-2">❌</div>
             <div className="text-sm">Failed to load</div>
-            <div className="text-xs mt-1 opacity-60">Check image URL</div>
+            <div className="text-xs mt-1 opacity-60">
+              {retryCount < 3 ? `Retrying... (${retryCount}/3)` : 'Check image URL'}
+            </div>
           </div>
         </div>
       )}
       
       {/* Actual image */}
       <img
+        key={imageKey} // Force reload on retry
         src={card.imageUrl}
         alt={card.title || 'Card image'}
         className="w-full h-full object-cover"
@@ -120,6 +138,7 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
         }}
         onLoad={() => {
           console.log('CRDImageLayer: Image loaded successfully:', card.imageUrl);
+          setRetryCount(0); // Reset retry count on successful load
           onLoad();
         }}
         onError={(e) => {
