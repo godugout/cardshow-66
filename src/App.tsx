@@ -225,6 +225,16 @@ function App() {
                   } 
                 />
                 
+                {/* CRD Maker PSD Import */}
+                <Route 
+                  path="/crdmkr/psd-import" 
+                  element={
+                    <MainLayout>
+                      <PSDStudioPage />
+                    </MainLayout>
+                  } 
+                />
+                
                 {/* Debug/Development routes */}
                 <Route 
                   path="/debug/psd-studio" 

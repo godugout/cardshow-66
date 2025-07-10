@@ -29,7 +29,7 @@ const Debug = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/debug/psd-studio">
+            <Link to="/crdmkr/psd-import">
               <Button className="w-full">
                 Launch PSD Studio
               </Button>

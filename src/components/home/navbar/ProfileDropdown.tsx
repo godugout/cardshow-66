@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, CreditCard, Bookmark, Settings, LogOut, Coins, Trophy } from "lucide-react";
+import { User, CreditCard, Bookmark, Settings, LogOut, Coins, Trophy, Shield } from "lucide-react";
 import { ProfileService } from "@/features/auth/services/profileService";
 
 export const ProfileDropdown = () => {
@@ -24,6 +24,7 @@ export const ProfileDropdown = () => {
   const displayName = user.user_metadata?.full_name || user.email || 'User';
   const avatarUrl = user.user_metadata?.avatar_url;
   const isDefaultAvatar = !avatarUrl || avatarUrl === ProfileService.getDefaultAvatarUrl();
+  const isAdmin = user?.email === 'admin@cardshow.com' || process.env.NODE_ENV === 'development';
   
   return (
     <DropdownMenu>
@@ -87,6 +88,14 @@ export const ProfileDropdown = () => {
             <span>Dashboard</span>
           </Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem asChild className="text-crd-white hover:bg-crd-mediumGray focus:bg-crd-mediumGray cursor-pointer">
+            <Link to="/admin" className="flex items-center">
+              <Shield className="mr-2 h-4 w-4" />
+              <span>Admin</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator className="bg-crd-mediumGray" />
         <DropdownMenuItem asChild className="text-crd-white hover:bg-crd-mediumGray focus:bg-crd-mediumGray cursor-pointer">
           <Link to="/settings" className="flex items-center">
