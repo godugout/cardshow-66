@@ -1003,6 +1003,10 @@ export type Database = {
         Args: { _user_id: string; _amount: number }
         Returns: boolean
       }
+      validate_file_upload: {
+        Args: { file_name: string; file_size: number; mime_type: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
