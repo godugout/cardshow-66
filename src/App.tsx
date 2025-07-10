@@ -29,6 +29,7 @@ import SubscriptionPage from './pages/SubscriptionPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
+import PSDStudioPage from './pages/PSDStudioPage';
 import MarketplacePage from './pages/Marketplace';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import NotFound from './pages/NotFound';
@@ -225,6 +226,14 @@ function App() {
                 />
                 
                 {/* Debug/Development routes */}
+                <Route 
+                  path="/debug/psd-studio" 
+                  element={
+                    <MainLayout>
+                      <PSDStudioPage />
+                    </MainLayout>
+                  } 
+                />
                 <Route 
                   path="/debug/psd-preview" 
                   element={
