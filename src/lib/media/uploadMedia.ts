@@ -124,7 +124,7 @@ export const uploadMedia = async ({
         width,
         height,
         duration,
-        metadata,
+        metadata: metadata as any,
         user_id: userId,
         thumbnail_path: thumbnailUrl ? `${userId}/${memoryId}/${uniqueId}_thumb.jpg` : undefined
       })
@@ -146,7 +146,6 @@ export const uploadMedia = async ({
       type: mediaData.asset_type as 'image' | 'video' | 'audio',
       url: fileUrl,
       thumbnailUrl,
-      name: file.name,
       originalFilename: file.name,
       size: file.size,
       createdAt: mediaData.created_at || new Date().toISOString(),
