@@ -41,11 +41,11 @@ export const bulkCardSaver = {
       }
 
       // Verify collection exists and user owns it
-      const { data: collection, error: collectionError } = await supabase
+      const { data: collection, error: collectionError } = await (supabase as any)
         .from('collections')
-        .select('id, owner_id')
+        .select('id, user_id')
         .eq('id', collectionId)
-        .eq('owner_id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (collectionError || !collection) {
@@ -108,9 +108,9 @@ export const bulkCardSaver = {
             continue;
           }
 
-          // Add card to collection
-          const { error: collectionCardError } = await supabase
-            .from('collection_cards')
+          // Add card to collection using collection_items table
+          const { error: collectionCardError } = await (supabase as any)
+            .from('collection_items')
             .insert({
               collection_id: collectionId,
               card_id: cardRecord.id

@@ -13,8 +13,8 @@ export const deleteMemory = async (id: string): Promise<void> => {
 
   await Promise.all(deleteMediaPromises);
 
-  const { error } = await supabase
-    .from('memories')
+  const { error } = await (supabase as any)
+    .from('cards')
     .delete()
     .eq('id', id);
 

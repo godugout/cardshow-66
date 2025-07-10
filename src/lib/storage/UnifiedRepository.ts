@@ -98,7 +98,7 @@ export class UnifiedRepository<T extends BaseEntity> {
         
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
-            query = query.eq(key, value);
+            query = (query as any).eq(key, value);
           });
         }
 

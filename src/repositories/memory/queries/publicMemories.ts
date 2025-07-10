@@ -16,10 +16,10 @@ export const getPublicMemories = async (
       search
     } = options;
 
-    let query = supabase
-      .from('memories')
-      .select('*, media(*)', { count: 'exact' })
-      .eq('visibility', 'public')
+    let query = (supabase as any)
+      .from('cards')
+      .select('*', { count: 'exact' })
+      .eq('is_public', true)
       .order('created_at', { ascending: false });
       
     // Skip app_id filter for now

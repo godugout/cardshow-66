@@ -18,9 +18,9 @@ export const getMemoriesByUserId = async (
       search
     } = options;
 
-    let query = supabase
-      .from('memories')
-      .select('*, media(*)', { count: 'exact' })
+    let query = (supabase as any)
+      .from('cards')
+      .select('*', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
       

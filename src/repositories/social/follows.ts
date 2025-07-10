@@ -1,29 +1,34 @@
-
+// Simplified follows using creator_follows table
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@/types/user';
 
 export const followUser = async (followerId: string, followedId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('follows')
-    .insert([{ followerId, followedId }]);
+  const { error } = await (supabase as any)
+    .from('creator_follows')
+    .insert([{ 
+      follower_id: followerId, 
+      following_id: followedId 
+    }]);
 
   if (error) throw error;
 };
 
 export const unfollowUser = async (followerId: string, followedId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('follows')
+  const { error } = await (supabase as any)
+    .from('creator_follows')
     .delete()
-    .match({ followerId, followedId });
+    .eq('follower_id', followerId)
+    .eq('following_id', followedId);
 
   if (error) throw error;
 };
 
 export const isFollowingUser = async (followerId: string, followedId: string): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from('follows')
+  const { data, error } = await (supabase as any)
+    .from('creator_follows')
     .select('id')
-    .match({ followerId, followedId })
+    .eq('follower_id', followerId)
+    .eq('following_id', followedId)
     .single();
 
   if (error && error.code !== 'PGRST116') throw error;
@@ -31,67 +36,75 @@ export const isFollowingUser = async (followerId: string, followedId: string): P
 };
 
 export const getUserFollowers = async (userId: string): Promise<User[]> => {
-  const { data, error } = await supabase
-    .from('follows')
-    .select('follower:users!follows_followerId_fkey(*)')
-    .eq('followedId', userId);
+  try {
+    const { data, error } = await (supabase as any)
+      .from('creator_follows')
+      .select('follower_id')
+      .eq('following_id', userId);
 
-  if (error) throw error;
-  
-  // Correctly extract the nested user objects from the Supabase response
-  if (!data || data.length === 0) return [];
-  
-  // Map through the data and extract the follower objects
-  const followers = data.map(item => {
-    // Ensure follower exists and has the expected structure
-    if (item && item.follower && typeof item.follower === 'object' && !Array.isArray(item.follower)) {
-      // Convert to User type with proper type checking
-      const user = item.follower as Record<string, any>;
-      return {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        profileImage: user.profileImage,
-        bio: user.bio,
-        createdAt: user.createdAt,
-        preferences: user.preferences
-      } as User;
-    }
-    return null;
-  }).filter((user): user is User => user !== null);
-  
-  return followers;
+    if (error) throw error;
+    
+    if (!data || data.length === 0) return [];
+    
+    // Get user profiles for followers
+    const followerIds = data.map((f: any) => f.follower_id);
+    const { data: profiles, error: profileError } = await (supabase as any)
+      .from('profiles')
+      .select('*')
+      .in('user_id', followerIds);
+
+    if (profileError) throw profileError;
+
+    const followers = (profiles || []).map((profile: any) => ({
+      id: profile.user_id,
+      username: profile.username || '',
+      email: profile.email || '',
+      profileImage: profile.avatar_url || '',
+      bio: profile.bio || '',
+      createdAt: profile.created_at,
+      preferences: {}
+    } as User));
+    
+    return followers;
+  } catch (error) {
+    console.error('Error getting followers:', error);
+    return [];
+  }
 };
 
 export const getUserFollowing = async (userId: string): Promise<User[]> => {
-  const { data, error } = await supabase
-    .from('follows')
-    .select('followed:users!follows_followedId_fkey(*)')
-    .eq('followerId', userId);
+  try {
+    const { data, error } = await (supabase as any)
+      .from('creator_follows')
+      .select('following_id')
+      .eq('follower_id', userId);
 
-  if (error) throw error;
-  
-  // Correctly extract the nested user objects from the Supabase response
-  if (!data || data.length === 0) return [];
-  
-  // Map through the data and extract the followed objects
-  const following = data.map(item => {
-    // Ensure followed exists and has the expected structure
-    if (item && item.followed && typeof item.followed === 'object' && !Array.isArray(item.followed)) {
-      // Convert to User type with proper type checking
-      const user = item.followed as Record<string, any>;
-      return {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        profileImage: user.profileImage,
-        bio: user.bio,
-        createdAt: user.createdAt,
-        preferences: user.preferences
-      } as User;
-    }
-    return null;
-  }).filter((user): user is User => user !== null);
-  
-  return following;
+    if (error) throw error;
+    
+    if (!data || data.length === 0) return [];
+    
+    // Get user profiles for following
+    const followingIds = data.map((f: any) => f.following_id);
+    const { data: profiles, error: profileError } = await (supabase as any)
+      .from('profiles')
+      .select('*')
+      .in('user_id', followingIds);
+
+    if (profileError) throw profileError;
+
+    const following = (profiles || []).map((profile: any) => ({
+      id: profile.user_id,
+      username: profile.username || '',
+      email: profile.email || '',
+      profileImage: profile.avatar_url || '',
+      bio: profile.bio || '',
+      createdAt: profile.created_at,
+      preferences: {}
+    } as User));
+    
+    return following;
+  } catch (error) {
+    console.error('Error getting following:', error);
+    return [];
+  }
 };

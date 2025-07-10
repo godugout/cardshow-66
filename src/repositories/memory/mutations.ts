@@ -10,27 +10,42 @@ export const createMemory = async (params: CreateMemoryParams): Promise<Memory> 
     // Mock app_id
     const appId = null;
     
-    const { data, error } = await supabase
-      .from('memories')
+    const { data, error } = await (supabase as any)
+      .from('cards')
       .insert({
         user_id: params.userId,
         title: params.title,
         description: params.description,
-        team_id: params.teamId,
-        game_id: params.gameId,
-        location: params.location,
-        visibility: params.visibility,
+        // team_id: params.teamId, // Not in cards schema
+        // game_id: params.gameId, // Not in cards schema
+        // location: params.location, // Not in cards schema
+        // visibility: params.visibility, // Not in cards schema
         tags: params.tags || [],
-        metadata: params.metadata,
-        app_id: appId
+        // metadata: params.metadata, // Not in cards schema
+        is_public: params.visibility === 'public'
       })
-      .select('*, media(*)')
+      .select('*')
       .single();
 
     if (error) throw new Error(`Failed to create memory: ${error.message}`);
     if (!data) throw new Error('No data returned after creating memory');
 
-    return data as Memory;
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description,
+      teamId: '', // Not in cards schema
+      gameId: '', // Not in cards schema
+      location: null, // Not in cards schema
+      visibility: data.is_public ? 'public' : 'private',
+      createdAt: data.created_at,
+      tags: data.tags || [],
+      metadata: {}, // Not in cards schema
+      media: [], // Will be handled separately
+      commentCount: 0,
+      reactions: []
+    } as Memory;
   } catch (error) {
     console.error('Error in createMemory:', error);
     
@@ -77,17 +92,39 @@ export const updateMemory = async (params: UpdateMemoryParams): Promise<Memory> 
     if (params.tags !== undefined) updates.tags = params.tags;
     if (params.metadata !== undefined) updates.metadata = params.metadata;
 
-    const { data, error } = await supabase
-      .from('memories')
-      .update(updates)
+    const cardUpdates: any = {};
+    
+    if (params.title !== undefined) cardUpdates.title = params.title;
+    if (params.description !== undefined) cardUpdates.description = params.description;
+    if (params.visibility !== undefined) cardUpdates.is_public = params.visibility === 'public';
+    if (params.tags !== undefined) cardUpdates.tags = params.tags;
+
+    const { data, error } = await (supabase as any)
+      .from('cards')
+      .update(cardUpdates)
       .eq('id', params.id)
-      .select('*, media(*)')
+      .select('*')
       .single();
 
     if (error) throw new Error(`Failed to update memory: ${error.message}`);
     if (!data) throw new Error(`Memory not found: ${params.id}`);
 
-    return data as Memory;
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description,
+      teamId: '', // Not in cards schema
+      gameId: '', // Not in cards schema
+      location: null, // Not in cards schema
+      visibility: data.is_public ? 'public' : 'private',
+      createdAt: data.created_at,
+      tags: data.tags || [],
+      metadata: {}, // Not in cards schema
+      media: [], // Will be handled separately
+      commentCount: 0,
+      reactions: []
+    } as Memory;
   } catch (error) {
     console.error('Error in updateMemory:', error);
     

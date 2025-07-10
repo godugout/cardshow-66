@@ -4,10 +4,10 @@ import { toast } from 'sonner';
 
 export const makeUserCardsPublic = async (userId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('cards')
       .update({ is_public: true })
-      .eq('creator_id', userId)
+      .eq('user_id', userId)
       .eq('is_public', false);
 
     if (error) {

@@ -20,10 +20,10 @@ export const getUserCollections = async (userId: string, options: CollectionList
   const { page = 1, pageSize = 10, search } = options;
   const offset = calculateOffset(page, pageSize);
 
-  let query = supabase
+  let query = (supabase as any)
     .from('collections')
     .select('*', { count: 'exact' })
-    .eq('owner_id', userId)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (search) {
@@ -48,10 +48,10 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
   const { page = 1, pageSize = 10, search } = options;
   const offset = calculateOffset(page, pageSize);
 
-  let query = supabase
+  let query = (supabase as any)
     .from('collections')
     .select('*', { count: 'exact' })
-    .eq('visibility', 'public')
+    .eq('is_public', true)
     .order('created_at', { ascending: false });
 
   if (search) {
@@ -73,10 +73,10 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 };
 
 export const getHotCollections = async (limit = 10): Promise<Collection[]> => {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('collections')
     .select('*')
-    .eq('visibility', 'public')
+    .eq('is_public', true)
     .order('created_at', { ascending: false })
     .limit(limit);
 
