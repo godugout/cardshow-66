@@ -46,17 +46,14 @@ export const LightingSystem: React.FC<LightingSystemProps> = ({ lighting }) => {
       
       {/* Dramatic lighting */}
       {lighting.preset === 'dramatic' && (
-        <>
-          <spotLight
-            position={[0, 10, 0]}
-            angle={0.3}
-            penumbra={1}
-            intensity={lighting.shadowIntensity / 50}
-            color={lightColor}
-            castShadow
-          />
-          <pointLight position={[-5, 5, 3]} intensity={0.3} color="#ffffff" />
-        </>
+        <spotLight
+          position={[0, 10, 0]}
+          angle={0.3}
+          penumbra={1}
+          intensity={lighting.shadowIntensity / 50}
+          color={lightColor}
+          castShadow
+        />
       )}
       
       {/* Neon lighting */}
@@ -64,39 +61,8 @@ export const LightingSystem: React.FC<LightingSystemProps> = ({ lighting }) => {
         <>
           <pointLight position={[3, 3, 3]} intensity={0.5} color="#ff0080" />
           <pointLight position={[-3, 3, 3]} intensity={0.5} color="#0080ff" />
-          <pointLight position={[0, -3, 2]} intensity={0.3} color="#00ff80" />
         </>
       )}
-      
-      {/* Studio lighting for material showcase */}
-      {lighting.preset === 'studio' && (
-        <>
-          <directionalLight
-            position={[5, 5, 5]}
-            intensity={lighting.intensity / 120}
-            color="#ffffff"
-            castShadow
-          />
-          <directionalLight
-            position={[-5, 5, 5]}
-            intensity={lighting.intensity / 150}
-            color="#f0f0ff"
-          />
-          <pointLight position={[0, 0, 8]} intensity={0.2} color="#ffffff" />
-        </>
-      )}
-      
-      {/* Environment light for different materials */}
-      <hemisphereLight 
-        args={["#87CEEB", "#8B4513", 0.2]}
-      />
-      
-      {/* Fill light to prevent harsh shadows */}
-      <pointLight 
-        position={[0, -5, 3]} 
-        intensity={0.1} 
-        color="#ffffff" 
-      />
     </>
   );
 };

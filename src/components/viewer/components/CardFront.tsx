@@ -1,9 +1,10 @@
 
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
+import { CardEffectsLayer } from './CardEffectsLayer';
 import { CardImageRenderer } from './CardImageRenderer';
-import { MaterialBlankCard } from './MaterialBlankCard';
-import { MaterialWallpaper } from './MaterialWallpaper';
+import { CardContentDisplay } from './CardContentDisplay';
+import { CardInteractiveLighting } from './CardInteractiveLighting';
 import { useEffectContext } from '../contexts/EffectContext';
 
 interface CardFrontProps {
@@ -25,24 +26,8 @@ export const CardFront: React.FC<CardFrontProps> = ({
     effectIntensity,
     mousePosition,
     effectValues,
-    materialSettings
+    interactiveLighting
   } = useEffectContext();
-
-  // Get current material - fallback to holographic
-  const currentMaterial = 'holographic';
-  
-  // Convert effectValues to effects format
-  const effects = {
-    metallic: effectValues?.metallic?.intensity || 0,
-    holographic: effectValues?.holographic?.intensity || 0,
-    chrome: effectValues?.chrome?.intensity || 0,
-    crystal: effectValues?.crystal?.intensity || 0,
-    vintage: effectValues?.vintage?.intensity || 0,
-    prismatic: effectValues?.prismatic?.intensity || 0,
-    interference: effectValues?.interference?.intensity || 0,
-    rainbow: effectValues?.rainbow?.intensity || 0,
-    particles: false
-  };
 
   console.log('CardFront: Rendering with card data:', {
     id: card.id,
@@ -52,31 +37,29 @@ export const CardFront: React.FC<CardFrontProps> = ({
   });
 
   return (
-    <>
-      {/* Material Wallpaper - Behind everything */}
-      <MaterialWallpaper
-        material={currentMaterial}
-        effects={effects}
-        mousePosition={mousePosition}
-        isHovering={isHovering}
-      />
+    <div className="absolute inset-0 rounded-xl overflow-hidden">
+      {/* Base Card Layer - z-index 10 */}
+      <div className="absolute inset-0 z-10" style={frameStyles} />
       
-      <div className="absolute inset-0 rounded-xl overflow-hidden">
-        {/* Card Content - z-index 30 */}
-        <div className="relative h-full z-30">
-          {card.image_url ? (
-            <CardImageRenderer card={card} />
-          ) : (
-            <MaterialBlankCard
-              card={card}
-              material={currentMaterial}
-              effects={effects}
-              mousePosition={mousePosition}
-              isHovering={isHovering}
-            />
-          )}
-        </div>
+      {/* Surface Texture Layer - z-index 20 */}
+      <div className="absolute inset-0 z-20">
+        {SurfaceTexture}
       </div>
-    </>
+      
+      {/* Card Content with Enhanced Effects - z-index 30 */}
+      <div className="relative h-full z-30">
+        {card.image_url ? (
+          <CardImageRenderer card={card} />
+        ) : (
+          <CardContentDisplay card={card} />
+        )}
+      </div>
+      
+      {/* Effects Layer - z-index 40 - Above everything else */}
+      <CardEffectsLayer />
+
+      {/* Interactive lighting enhancement overlay - z-index 50 */}
+      <CardInteractiveLighting />
+    </div>
   );
 };

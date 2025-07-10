@@ -10,17 +10,11 @@ export const detectWebGLCapabilities = (): WebGLCapabilities => {
       supported: false,
       version: 'none',
       maxTextureSize: 0,
-      maxVertexTextures: 0,
-      maxFragmentUniforms: 0,
-      maxVertexUniforms: 0,
-      maxVaryings: 0,
-      maxTextureUnits: 0,
       maxAnisotropy: 0,
       supportsFloatTextures: false,
       supportsDepthTexture: false,
       extensions: [],
-      performanceScore: 0,
-      webgl2: false
+      performanceScore: 0
     };
   }
 
@@ -47,18 +41,12 @@ export const detectWebGLCapabilities = (): WebGLCapabilities => {
     supported: true,
     version: gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1',
     maxTextureSize,
-    maxVertexTextures: gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    maxFragmentUniforms: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
-    maxVertexUniforms: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
-    maxVaryings: gl.getParameter(gl.MAX_VARYING_VECTORS),
-    maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
     maxAnisotropy: extensions.includes('EXT_texture_filter_anisotropic') ? 
       gl.getParameter(gl.getExtension('EXT_texture_filter_anisotropic')!.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0,
     supportsFloatTextures: extensions.includes('OES_texture_float'),
     supportsDepthTexture: extensions.includes('WEBGL_depth_texture'),
     extensions,
-    performanceScore,
-    webgl2: gl instanceof WebGL2RenderingContext
+    performanceScore
   };
 };
 

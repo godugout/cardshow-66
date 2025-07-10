@@ -31,10 +31,7 @@ export const MATERIAL_SETTINGS = {
     BASE_TRANSMISSION: 0.1,
     BASE_CLEARCOAT: 1.0,
     BASE_REFLECTIVITY: 1.0,
-    ENV_MAP_INTENSITY: 2.0,
-    ANIMATION_SPEED: 1.0,
-    REFLECTION_PATTERN: 'diagonal',
-    COLOR_SHIFT_INTENSITY: 0.8
+    ENV_MAP_INTENSITY: 2.0
   },
   
   CHROME: {
@@ -43,10 +40,7 @@ export const MATERIAL_SETTINGS = {
     BASE_CLEARCOAT: 1.0,
     BASE_REFLECTIVITY: 1.0,
     ENV_MAP_INTENSITY: 3.0,
-    COLOR: [0.8, 0.8, 0.9] as const,
-    ANIMATION_SPEED: 0.3,
-    REFLECTION_PATTERN: 'vertical',
-    SURFACE_DISTORTION: 0.02
+    COLOR: [0.8, 0.8, 0.9] as const
   },
   
   GOLD: {
@@ -55,10 +49,7 @@ export const MATERIAL_SETTINGS = {
     BASE_CLEARCOAT: 0.8,
     BASE_REFLECTIVITY: 0.9,
     ENV_MAP_INTENSITY: 2.5,
-    COLOR: [1.0, 0.84, 0.0] as const,
-    ANIMATION_SPEED: 0.5,
-    REFLECTION_PATTERN: 'circular',
-    WARMTH_FACTOR: 1.2
+    COLOR: [1.0, 0.84, 0.0] as const
   },
   
   CRYSTAL: {
@@ -68,22 +59,7 @@ export const MATERIAL_SETTINGS = {
     BASE_CLEARCOAT: 1.0,
     BASE_REFLECTIVITY: 1.0,
     ENV_MAP_INTENSITY: 2.0,
-    COLOR: [0.95, 0.95, 1.0] as const,
-    ANIMATION_SPEED: 0.8,
-    REFLECTION_PATTERN: 'fractal',
-    REFRACTION_STRENGTH: 0.15
-  },
-  
-  MATTE: {
-    BASE_METALNESS: 0.1,
-    BASE_ROUGHNESS: 0.9,
-    BASE_CLEARCOAT: 0.0,
-    BASE_REFLECTIVITY: 0.2,
-    ENV_MAP_INTENSITY: 0.5,
-    COLOR: [1.0, 1.0, 1.0] as const,
-    ANIMATION_SPEED: 0.0,
-    REFLECTION_PATTERN: 'none',
-    TEXTURE_ENHANCEMENT: 1.3
+    COLOR: [0.95, 0.95, 1.0] as const
   }
 };
 

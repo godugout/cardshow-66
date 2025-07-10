@@ -6,9 +6,12 @@ import { cn } from '@/lib/utils';
 import type { CardData } from '@/types/card';
 import { CRDFrameRenderer } from '@/components/frames/crd/CRDFrameRenderer';
 import { EnhancedCardBack } from './components/EnhancedCardBack';
-import { UnifiedMaterialEffects } from './components/UnifiedMaterialEffects';
+import { CardEdgeEffects } from './components/CardEdgeEffects';
+import { AdvancedMaterialSystem } from './components/AdvancedMaterialSystem';
+import { InteractiveLightingEngine } from './components/InteractiveLightingEngine';
 import { EnhancedDesignControls } from './components/EnhancedDesignControls';
 import { EnhancedMaterialControls } from './components/EnhancedMaterialControls';
+import { EnhancedLightingControls } from './components/EnhancedLightingControls';
 import { getCRDFrameById } from '@/data/crdFrames';
 
 export interface CardSide {
@@ -44,7 +47,6 @@ interface EnhancedCardContainerProps {
   className?: string;
   allowFlip?: boolean;
   showControls?: boolean;
-  forceSide?: 'front' | 'back'; // Force showing a specific side
 }
 
 export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
@@ -55,8 +57,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   height = 630,
   className = '',
   allowFlip = true,
-  showControls = true,
-  forceSide
+  showControls = true
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -115,56 +116,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
 
   const currentSide = isFlipped ? backSide : frontSide;
   const currentFrame = getCRDFrameById(currentSide.frameId);
-
-  // Sync effects from props - force updates when props change
-  useEffect(() => {
-    if (initialFrontSide?.effects) {
-      setFrontSide(prev => ({ ...prev, effects: { ...prev.effects, ...initialFrontSide.effects } }));
-    }
-    if (initialFrontSide?.material) {
-      setFrontSide(prev => ({ ...prev, material: initialFrontSide.material }));
-    }
-    if (initialFrontSide?.lighting) {
-      setFrontSide(prev => ({ ...prev, lighting: { ...prev.lighting, ...initialFrontSide.lighting } }));
-    }
-    if (initialFrontSide?.frameId) {
-      setFrontSide(prev => ({ ...prev, frameId: initialFrontSide.frameId }));
-    }
-  }, [JSON.stringify(initialFrontSide)]);
-
-  useEffect(() => {
-    if (initialBackSide?.effects) {
-      setBackSide(prev => ({ ...prev, effects: { ...prev.effects, ...initialBackSide.effects } }));
-    }
-    if (initialBackSide?.material) {
-      setBackSide(prev => ({ ...prev, material: initialBackSide.material }));
-    }
-    if (initialBackSide?.lighting) {
-      setBackSide(prev => ({ ...prev, lighting: { ...prev.lighting, ...initialBackSide.lighting } }));
-    }
-    if (initialBackSide?.frameId) {
-      setBackSide(prev => ({ ...prev, frameId: initialBackSide.frameId }));
-    }
-  }, [JSON.stringify(initialBackSide)]);
-
-  // Debug logs
-  console.log('EnhancedCardContainer - Debug:', {
-    cardImageUrl: card.image_url,
-    frameId: currentSide.frameId,
-    hasFrame: !!currentFrame,
-    frontSideEffects: frontSide.effects,
-    backSideEffects: backSide.effects,
-    currentMaterial: currentSide.material,
-    isFlipped,
-    forceSide
-  });
-
-  // Sync with forced side
-  useEffect(() => {
-    if (forceSide) {
-      setIsFlipped(forceSide === 'back');
-    }
-  }, [forceSide]);
 
   // Update side configurations
   const updateSide = (side: 'front' | 'back', updates: Partial<CardSide>) => {
@@ -267,36 +218,40 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
               }}
             >
               <Card className="relative w-full h-full overflow-hidden shadow-2xl bg-transparent">
-                {/* Unified Material Effects System */}
-                <UnifiedMaterialEffects 
+                {/* Advanced Material System */}
+                <AdvancedMaterialSystem 
                   material={frontSide.material}
                   effects={frontSide.effects}
-                  lighting={frontSide.lighting}
+                  mousePosition={mousePos}
+                  isHovering={isHovering}
+                />
+                
+                {/* Interactive Lighting */}
+                <InteractiveLightingEngine
+                  settings={frontSide.lighting}
                   mousePosition={mousePos}
                   isHovering={isHovering}
                 />
                 
                 {/* Frame with Image */}
-                {currentFrame ? (
-                  <div className="relative z-10">
-                    <CRDFrameRenderer
-                      frame={currentFrame}
-                      userImage={card.image_url}
-                      width={width}
-                      height={height}
-                      className=""
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-white">
-                    <div className="text-center p-4">
-                      <p className="text-lg font-medium">Card Preview</p>
-                      <p className="text-sm text-gray-300 mt-2">
-                        {card.image_url ? 'Image loaded' : 'Upload an image to see your card'}
-                      </p>
-                    </div>
-                  </div>
+                {currentFrame && (
+                  <CRDFrameRenderer
+                    frame={currentFrame}
+                    userImage={card.image_url}
+                    width={width}
+                    height={height}
+                    className="relative z-10"
+                  />
                 )}
+                
+                {/* Card Edge Effects */}
+                <CardEdgeEffects
+                  effects={frontSide.effects}
+                  material={frontSide.material}
+                  lighting={frontSide.lighting}
+                  mousePosition={mousePos}
+                  isHovering={isHovering}
+                />
               </Card>
             </div>
 
@@ -378,9 +333,11 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             )}
             
             {viewMode === 'lighting' && (
-              <div className="text-center p-8 text-muted-foreground">
-                <p>Lighting controls integrated into unified material system</p>
-              </div>
+              <EnhancedLightingControls
+                currentSide={currentSide}
+                isFlipped={isFlipped}
+                onUpdateSide={updateSide}
+              />
             )}
           </div>
         </div>

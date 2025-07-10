@@ -22,7 +22,7 @@ export const useCustomAuth = () => {
   useEffect(() => {
     const subscription = customAuthService.onAuthStateChange();
     setAuthState({
-      user: customAuthService.getCurrentUser(),
+      user: null,
       loading: false,
     });
 

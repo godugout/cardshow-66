@@ -6,7 +6,6 @@ import { ImagePlus, Camera, Upload } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 import { FramePreviewRenderer } from '../../frames/FramePreviewRenderer';
 import { ENHANCED_FRAME_TEMPLATES } from '../../frames/EnhancedFrameTemplates';
-import { CardEffectsLayer } from '@/components/viewer/components/CardEffectsLayer';
 
 interface StudioCardPreviewProps {
   uploadedImage?: string;
@@ -47,15 +46,12 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
             cardName={cardName}
             previewMode="interactive"
           />
-
-          {/* Visual Effects Layer */}
-          <CardEffectsLayer />
           
           {/* Edit overlay for uploaded image */}
           {uploadedImage && onImageUpload && (
             <button
               onClick={onImageUpload}
-              className="absolute top-2 left-2 bg-black/70 hover:bg-black/90 text-white p-2 rounded-full transition-colors z-50"
+              className="absolute top-2 left-2 bg-black/70 hover:bg-black/90 text-white p-2 rounded-full transition-colors"
               title="Change image"
             >
               <Camera className="w-4 h-4" />

@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Image, Loader2 } from 'lucide-react';
-import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,7 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
   className,
   children
 }) => {
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
 
   const uploadFile = useCallback(async (file: File) => {

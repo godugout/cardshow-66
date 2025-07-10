@@ -1,9 +1,6 @@
 
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
-import { CardImageRenderer } from './CardImageRenderer';
-import { MaterialBlankCard } from './MaterialBlankCard';
-import { MaterialWallpaper } from './MaterialWallpaper';
 
 interface EnhancedCardContainerProps {
   card: CardData;
@@ -14,20 +11,6 @@ interface EnhancedCardContainerProps {
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ComponentType;
-  material: string;
-  effects: {
-    metallic: number;
-    holographic: number;
-    chrome: number;
-    crystal: number;
-    vintage: number;
-    prismatic: number;
-    interference: number;
-    rainbow: number;
-    particles: boolean;
-  };
-  mousePosition: { x: number; y: number };
-  isHovering: boolean;
   onMouseDown: () => void;
   onMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
   onMouseEnter: () => void;
@@ -44,10 +27,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
-  material,
-  effects,
-  mousePosition,
-  isHovering,
   onMouseDown,
   onMouseMove,
   onMouseEnter,
@@ -55,45 +34,29 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   onClick
 }) => {
   return (
-    <>
-      {/* Material Wallpaper - Behind everything */}
-      <MaterialWallpaper
-        material={material}
-        effects={effects}
-        mousePosition={mousePosition}
-        isHovering={isHovering}
-      />
-      
-      <div 
-        className="w-full h-full rounded-xl overflow-hidden relative"
-        style={{
-          ...frameStyles,
-          transform: `scale(${zoom})`,
-          cursor: isDragging ? 'grabbing' : 'grab'
-        }}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onClick={onClick}
-      >
-        {/* Hide surface texture since we have material wallpaper */}
-        
-        {/* Card Content - Show image if available, otherwise show material blank card */}
-        <div className="relative w-full h-full z-30">
-          {card.image_url ? (
-            <CardImageRenderer card={card} />
-          ) : (
-            <MaterialBlankCard
-              card={card}
-              material={material}
-              effects={effects}
-              mousePosition={mousePosition}
-              isHovering={isHovering}
-            />
+    <div 
+      className="w-full h-full rounded-xl overflow-hidden"
+      style={{
+        ...frameStyles,
+        ...enhancedEffectStyles,
+        transform: `scale(${zoom})`,
+        cursor: isDragging ? 'grabbing' : 'grab'
+      }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+    >
+      <SurfaceTexture />
+      <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+        <div className="text-center p-4">
+          <h3 className="text-xl font-bold text-gray-800 mb-2">{card.title}</h3>
+          {card.description && (
+            <p className="text-gray-600 text-sm">{card.description}</p>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
