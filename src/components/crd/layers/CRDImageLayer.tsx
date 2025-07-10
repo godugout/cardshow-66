@@ -141,8 +141,17 @@ export const CRDImageLayer: React.FC<CRDImageLayerProps> = ({
           setRetryCount(0); // Reset retry count on successful load
           onLoad();
         }}
-        onError={(e) => {
+        onError={async (e) => {
           console.error('CRDImageLayer: Image failed to load:', card.imageUrl, e);
+          
+          // Test if the URL is accessible
+          try {
+            const response = await fetch(card.imageUrl, { method: 'HEAD' });
+            console.log('CRDImageLayer: URL test response:', response.status, response.statusText);
+          } catch (fetchError) {
+            console.error('CRDImageLayer: URL not accessible:', fetchError);
+          }
+          
           onError();
         }}
         draggable={false}

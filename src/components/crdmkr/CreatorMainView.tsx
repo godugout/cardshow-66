@@ -50,6 +50,19 @@ export const CreatorMainView: React.FC<CreatorMainViewProps> = ({
       .from('card-images')
       .getPublicUrl(filePath);
 
+    console.log('CreatorMainView: Upload successful');
+    console.log('  - File path:', filePath);
+    console.log('  - Data path:', data.path);
+    console.log('  - Public URL:', publicUrl);
+    
+    // Test the URL immediately after upload
+    try {
+      const testResponse = await fetch(publicUrl, { method: 'HEAD' });
+      console.log('CreatorMainView: URL test after upload:', testResponse.status, testResponse.statusText);
+    } catch (testError) {
+      console.error('CreatorMainView: URL not accessible immediately after upload:', testError);
+    }
+
     return {
       path: data.path,
       publicUrl,
