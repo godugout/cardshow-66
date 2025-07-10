@@ -21,6 +21,7 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
 }) => {
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
 
   const psd = file.processedPSD;
   const hasLayers = psd.layers.length > 0;
@@ -59,6 +60,18 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
   const handleZoomIn = () => setCanvasZoom(prev => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setCanvasZoom(prev => Math.max(prev - 0.25, 0.25));
   const handleZoomReset = () => setCanvasZoom(1);
+
+  const handleLayerToggle = (layerId: string) => {
+    setHiddenLayers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(layerId)) {
+        newSet.delete(layerId);
+      } else {
+        newSet.add(layerId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -156,7 +169,8 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
                     <div className="h-full min-h-[400px]">
                       <EnhancedPSDCanvasPreview
                         processedPSD={psd}
-                        selectedLayerId={selectedLayerId}
+                        selectedLayerId={selectedLayerId || ''}
+                        hiddenLayers={hiddenLayers}
                         onLayerSelect={setSelectedLayerId}
                       />
                     </div>
@@ -260,10 +274,11 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
             <TabsContent value="layers" className="h-full m-0">
               <SimplifiedLayerInspector
                 layers={psd.layers}
-                extractedImages={psd.extractedImages}
-                selectedLayerId={selectedLayerId}
+                selectedLayerId={selectedLayerId || ''}
                 onLayerSelect={setSelectedLayerId}
-                showAdvancedFeatures={mode !== 'beginner'}
+                hiddenLayers={hiddenLayers}
+                onLayerToggle={handleLayerToggle}
+                viewMode={mode === 'beginner' ? 'inspect' : 'frame'}
               />
             </TabsContent>
 
