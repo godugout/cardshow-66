@@ -1,5 +1,6 @@
 import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import type { Card, CardRarity } from '@/types/card';
+import { analyzeCardImage, generateEnhancedMetadata } from '@/services/cardAnalysisService';
 
 export interface PSDToCardData {
   title: string;
@@ -23,13 +24,14 @@ export interface PSDToCardData {
   design_metadata: {
     source: 'psd-import';
     psd_data: EnhancedProcessedPSD;
+    ai_analysis?: any;
   };
 }
 
-export const convertPSDToCardData = (
+export const convertPSDToCardData = async (
   psd: EnhancedProcessedPSD,
   filename: string
-): PSDToCardData => {
+): Promise<PSDToCardData> => {
   // Extract layer statistics
   const layersWithImages = psd.layers.filter(layer => 
     'hasRealImage' in layer && layer.hasRealImage
@@ -75,23 +77,40 @@ export const convertPSDToCardData = (
     rarity = 'uncommon';
   }
 
-  // Generate default title with CRD Project + date
+  // Get main image URL for analysis
+  const mainImageUrl = psd.extractedImages?.flattenedImageUrl || 
+    psd.extractedImages?.layerImages?.[0]?.imageUrl || '';
+
+  // Try to analyze the image with Gemini AI for more accurate metadata
+  let enhancedMetadata: any = null;
+  if (mainImageUrl) {
+    try {
+      console.log('Analyzing card image with Gemini AI...');
+      const analysisResult = await analyzeCardImage(mainImageUrl);
+      
+      if (analysisResult.success && analysisResult.analysis) {
+        enhancedMetadata = generateEnhancedMetadata(analysisResult.analysis);
+        console.log('Enhanced metadata generated:', enhancedMetadata);
+      }
+    } catch (error) {
+      console.warn('Failed to analyze image with Gemini, using fallback metadata:', error);
+    }
+  }
+
+  // Generate default title with date
   const now = new Date();
   const dateString = now.getFullYear().toString() + 
                     (now.getMonth() + 1).toString().padStart(2, '0') + 
                     now.getDate().toString().padStart(2, '0') + 
                     now.getHours().toString().padStart(2, '0');
-  const baseTitle = `CRD Project ${dateString}`;
 
-  // Generate description based on PSD content
-  let description = `A ${rarity} card created from a high-quality PSD design`;
-  if (characterLayers > 0) description += ' featuring character elements';
-  if (backgroundLayers > 0) description += ' with detailed backgrounds';
-  if (effectLayers > 0) description += ' and special effects';
-  description += '.';
+  // Use enhanced metadata if available, otherwise fall back to PSD-based analysis
+  const baseTitle = enhancedMetadata?.title || `CRD Project ${dateString}`;
+  const description = enhancedMetadata?.description || 
+    `A ${rarity} card created from a high-quality PSD design${characterLayers > 0 ? ' featuring character elements' : ''}${backgroundLayers > 0 ? ' with detailed backgrounds' : ''}${effectLayers > 0 ? ' and special effects' : ''}.`;
 
-  // Generate tags based on layer names and content
-  const tags = [
+  // Combine AI-generated tags with PSD-based tags
+  const baseTags = [
     'psd-import',
     rarity,
     ...(characterLayers > 0 ? ['character'] : []),
@@ -101,16 +120,23 @@ export const convertPSDToCardData = (
     ...(qualityScore >= 80 ? ['high-quality'] : []),
     ...(psd.layers.length >= 10 ? ['complex'] : ['simple'])
   ];
+  
+  const tags = enhancedMetadata?.tags 
+    ? [...new Set([...baseTags, ...enhancedMetadata.tags])]
+    : baseTags;
 
-  // Suggest category
-  let suggestedCategory = 'artwork';
-  if (characterLayers > 0) suggestedCategory = 'character';
-  if (filename.toLowerCase().includes('sport')) suggestedCategory = 'sports';
-  if (filename.toLowerCase().includes('game')) suggestedCategory = 'gaming';
+  // Use AI-detected category if available
+  let suggestedCategory = enhancedMetadata?.category || 'artwork';
+  if (!enhancedMetadata) {
+    if (characterLayers > 0) suggestedCategory = 'character';
+    if (filename.toLowerCase().includes('sport')) suggestedCategory = 'sports';
+    if (filename.toLowerCase().includes('game')) suggestedCategory = 'gaming';
+  }
 
-  // Get main image URL (flattened image or first layer with image)
-  const mainImageUrl = psd.extractedImages?.flattenedImageUrl || 
-    psd.extractedImages?.layerImages?.[0]?.imageUrl || '';
+  // Use AI-detected rarity if confidence is high enough
+  const finalRarity = (enhancedMetadata?.rarity && enhancedMetadata.detectedElements?.confidence > 70) 
+    ? enhancedMetadata.rarity 
+    : rarity;
 
   const thumbnailUrl = psd.extractedImages?.thumbnailUrl || mainImageUrl;
 
@@ -125,7 +151,7 @@ export const convertPSDToCardData = (
     description,
     image_url: mainImageUrl,
     thumbnail_url: thumbnailUrl,
-    rarity,
+    rarity: finalRarity,
     tags,
     suggested_category: suggestedCategory,
     quality_score: qualityScore,
@@ -141,7 +167,8 @@ export const convertPSDToCardData = (
     },
     design_metadata: {
       source: 'psd-import',
-      psd_data: psd
+      psd_data: psd,
+      ai_analysis: enhancedMetadata?.detectedElements || null
     }
   };
 };

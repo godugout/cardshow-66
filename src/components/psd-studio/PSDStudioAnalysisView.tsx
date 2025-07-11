@@ -9,6 +9,7 @@ import { SimplifiedLayerInspector } from '@/components/debug/components/Simplifi
 import { calculateCardPreviewZoom } from '@/utils/canvasZoom';
 import { convertPSDToCardData, isPSDReadyForCardCreation } from '@/utils/psdToCardConverter';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Eye, Layers, BarChart3, Info, ZoomIn, ZoomOut, RotateCw, Sparkles } from 'lucide-react';
 
 interface PSDStudioAnalysisViewProps {
@@ -27,6 +28,7 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
+  const [isCreatingCard, setIsCreatingCard] = useState(false);
 
   // Calculate optimal zoom when component mounts or viewport changes
   useEffect(() => {
@@ -103,20 +105,29 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
     });
   };
 
-  const handleCreateCard = () => {
+  const handleCreateCard = async () => {
     if (!isPSDReadyForCardCreation(psd)) {
       return;
     }
 
-    const cardData = convertPSDToCardData(psd, file.fileName);
-    
-    // Navigate to card creator with PSD data
-    navigate('/crdmkr', { 
-      state: { 
-        fromPSD: true,
-        psdCardData: cardData 
-      } 
-    });
+    setIsCreatingCard(true);
+    try {
+      const cardData = await convertPSDToCardData(psd, file.fileName);
+      
+      // Navigate to card creator with PSD data
+      navigate('/crdmkr', { 
+        state: { 
+          fromPSD: true,
+          psdCardData: cardData 
+        } 
+      });
+    } catch (error) {
+      console.error('Failed to convert PSD to card data:', error);
+      toast.error('Failed to analyze image. Using basic metadata.');
+      
+      // Continue without AI analysis - the function will use fallback metadata
+      setIsCreatingCard(false);
+    }
   };
 
   return (

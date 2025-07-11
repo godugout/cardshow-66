@@ -1,110 +1,201 @@
-
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
+
+interface CardAnalysis {
+  cardType: string
+  manufacturer: string
+  playerName?: string
+  teamName?: string
+  year?: string
+  set?: string
+  sport?: string
+  category: string
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+  detectedText: string[]
+  logos: string[]
+  description: string
+  suggestedTags: string[]
+  confidence: number
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { imageData } = await req.json();
-
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured')
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const { imageUrl, imageData } = await req.json()
+    
+    if (!imageUrl && !imageData) {
+      return new Response(
+        JSON.stringify({ error: 'Either imageUrl or imageData is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    console.log('Analyzing card image with Gemini...')
+
+    // Prepare the image data for Gemini
+    let imageBase64 = imageData
+    if (imageUrl && !imageData) {
+      // Fetch image if only URL provided
+      const imageResponse = await fetch(imageUrl)
+      const imageBuffer = await imageResponse.arrayBuffer()
+      imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)))
+    }
+
+    // Remove data URL prefix if present
+    if (imageBase64?.startsWith('data:')) {
+      imageBase64 = imageBase64.split(',')[1]
+    }
+
+    const prompt = `Analyze this trading card image and extract detailed information. Please provide a comprehensive analysis focusing on:
+
+1. Card Type: What type of card is this? (sports card, trading card, gaming card, etc.)
+2. Manufacturer: Who made this card? Look for logos and brands (Topps, Panini, Upper Deck, etc.)
+3. Player/Character: If applicable, who is featured on the card?
+4. Team/Franchise: What team or franchise is represented?
+5. Year/Set: Can you identify the year or set this card is from?
+6. Sport/Category: What sport or category does this belong to?
+7. Text Analysis: What text is visible on the card?
+8. Logos/Branding: What logos or brand elements can you identify?
+9. Rarity Assessment: Based on visual cues, design quality, and special features, what rarity would you assign?
+10. Overall Description: Provide a detailed description of what you see
+
+Please be as specific and accurate as possible. If you're uncertain about something, indicate your confidence level.
+
+Respond in JSON format with this structure:
+{
+  "cardType": "string",
+  "manufacturer": "string", 
+  "playerName": "string or null",
+  "teamName": "string or null",
+  "year": "string or null",
+  "set": "string or null",
+  "sport": "string or null",
+  "category": "string",
+  "rarity": "common|uncommon|rare|epic|legendary",
+  "detectedText": ["array of text found"],
+  "logos": ["array of logos/brands identified"],
+  "description": "detailed description",
+  "suggestedTags": ["array of relevant tags"],
+  "confidence": "number between 0-100"
+}`
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert trading card analyzer. Analyze the uploaded image and provide card details in JSON format. Focus on:
-            - What's depicted in the image (character, object, scene)
-            - Visual style and artistic elements
-            - Potential rarity based on artwork quality
-            - Appropriate categories and tags
-            
-            Return JSON with: title, description, rarity (common/uncommon/rare/epic/legendary), tags (array), category, type, series`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Analyze this trading card image and provide suggested details:'
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageData
-                }
+        contents: [{
+          parts: [
+            { text: prompt },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: imageBase64
               }
-            ]
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.7
-      }),
-    });
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          topK: 32,
+          topP: 1,
+          maxOutputTokens: 2048,
+        }
+      })
+    })
 
-    const data = await response.json();
-    
-    if (!data.choices || !data.choices[0]) {
-      throw new Error('No response from AI');
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Gemini API error:', errorText)
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`)
     }
 
-    const aiResponse = data.choices[0].message.content;
-    
-    // Try to parse JSON response
-    let analysisResult;
+    const result = await response.json()
+    console.log('Gemini response:', result)
+
+    if (!result.candidates || result.candidates.length === 0) {
+      throw new Error('No analysis generated by Gemini')
+    }
+
+    const generatedText = result.candidates[0].content.parts[0].text
+    console.log('Generated analysis:', generatedText)
+
+    // Try to parse JSON from the response
+    let analysis: CardAnalysis
     try {
-      analysisResult = JSON.parse(aiResponse);
-    } catch {
-      // If JSON parsing fails, create structured response from text
-      analysisResult = {
-        title: 'AI-Analyzed Card',
-        description: aiResponse.substring(0, 200) + '...',
+      // Extract JSON from the response (in case there's additional text)
+      const jsonMatch = generatedText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        analysis = JSON.parse(jsonMatch[0])
+      } else {
+        analysis = JSON.parse(generatedText)
+      }
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError)
+      // Fallback: create analysis from unstructured response
+      analysis = {
+        cardType: 'trading card',
+        manufacturer: 'unknown',
+        category: 'sports',
         rarity: 'common',
-        tags: ['ai-analyzed', 'custom'],
-        category: 'Custom',
-        type: 'Character',
-        series: 'AI Collection'
-      };
+        detectedText: [],
+        logos: [],
+        description: generatedText,
+        suggestedTags: ['analyzed'],
+        confidence: 50
+      }
     }
 
-    return new Response(JSON.stringify(analysisResult), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Error analyzing image:', error);
-    
-    // Return default values on error
-    const defaultResponse = {
-      title: 'Custom Trading Card',
-      description: 'A unique collectible card with custom artwork.',
-      rarity: 'common',
-      tags: ['custom', 'trading-card'],
-      category: 'Trading Card',
-      type: 'Character',
-      series: 'Custom Collection'
-    };
+    // Validate and sanitize the analysis
+    analysis.confidence = Math.min(100, Math.max(0, analysis.confidence || 50))
+    analysis.rarity = ['common', 'uncommon', 'rare', 'epic', 'legendary'].includes(analysis.rarity) 
+      ? analysis.rarity 
+      : 'common'
 
-    return new Response(JSON.stringify(defaultResponse), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.log('Final analysis:', analysis)
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        analysis,
+        metadata: {
+          model: 'gemini-1.5-flash',
+          timestamp: new Date().toISOString()
+        }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
+
+  } catch (error) {
+    console.error('Error in analyze-card-image function:', error)
+    return new Response(
+      JSON.stringify({ 
+        success: false,
+        error: 'Failed to analyze image', 
+        details: error.message 
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
-});
+})
