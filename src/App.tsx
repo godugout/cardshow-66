@@ -39,6 +39,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import { CardsPage } from './components/cards/CardsPage';
 import CrdMkr from './pages/CrdMkr';
 import DebugDetection from './pages/DebugDetection';
+import CRDDesignGuide from './pages/CRDDesignGuide';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -282,6 +283,14 @@ function App() {
                   element={
                     <MainLayout>
                       <Debug />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/crd-design-guide" 
+                  element={
+                    <MainLayout>
+                      <CRDDesignGuide />
                     </MainLayout>
                   } 
                 />
