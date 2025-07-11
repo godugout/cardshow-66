@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PSDStudioFile } from '@/pages/PSDStudioPage';
 import { EnhancedPSDCanvasPreview } from '@/components/debug/components/EnhancedPSDCanvasPreview';
 import { SimplifiedLayerInspector } from '@/components/debug/components/SimplifiedLayerInspector';
+import { calculateCardPreviewZoom } from '@/utils/canvasZoom';
 import { Eye, Layers, BarChart3, Info, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface PSDStudioAnalysisViewProps {
@@ -19,9 +20,35 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
   mode,
   onFileUpdate
 }) => {
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
+
+  // Calculate optimal zoom when component mounts or viewport changes
+  useEffect(() => {
+    const calculateOptimalZoom = () => {
+      if (canvasContainerRef.current && file.processedPSD) {
+        const containerRect = canvasContainerRef.current.getBoundingClientRect();
+        const optimalZoom = calculateCardPreviewZoom(
+          { width: containerRect.width, height: containerRect.height },
+          { width: file.processedPSD.width, height: file.processedPSD.height }
+        );
+        setCanvasZoom(optimalZoom);
+      }
+    };
+
+    // Initial calculation
+    const timer = setTimeout(calculateOptimalZoom, 100);
+    
+    // Recalculate on window resize
+    window.addEventListener('resize', calculateOptimalZoom);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculateOptimalZoom);
+    };
+  }, [file.processedPSD]);
 
   const psd = file.processedPSD;
   const hasLayers = psd.layers.length > 0;
@@ -166,12 +193,13 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
                       <h3 className="font-semibold">Canvas Preview</h3>
                       <Badge variant="outline">Live Preview</Badge>
                     </div>
-                    <div className="h-full min-h-[400px]">
+                    <div ref={canvasContainerRef} className="h-full min-h-[400px]">
                       <EnhancedPSDCanvasPreview
                         processedPSD={psd}
                         selectedLayerId={selectedLayerId || ''}
                         hiddenLayers={hiddenLayers}
                         onLayerSelect={setSelectedLayerId}
+                        initialZoom={canvasZoom}
                       />
                     </div>
                   </Card>
