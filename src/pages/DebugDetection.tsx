@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { CardDetectionTester } from '@/components/debug/CardDetectionTester';
+import { EnhancedCardDetectionTester } from '@/components/debug/EnhancedCardDetectionTester';
 
 const DebugDetection = () => {
-  return <CardDetectionTester />;
+  return <EnhancedCardDetectionTester />;
 };
 
 export default DebugDetection;

@@ -38,6 +38,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import { CardsPage } from './components/cards/CardsPage';
 import CrdMkr from './pages/CrdMkr';
+import DebugDetection from './pages/DebugDetection';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -265,6 +266,14 @@ function App() {
                   element={
                     <MainLayout>
                       <BulkPSDAnalysisPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/debug/card-detection" 
+                  element={
+                    <MainLayout>
+                      <DebugDetection />
                     </MainLayout>
                   } 
                 />

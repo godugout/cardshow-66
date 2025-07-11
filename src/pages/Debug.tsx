@@ -17,6 +17,26 @@ const Debug = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Card Detection Tester */}
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FileImage className="h-5 w-5 text-primary" />
+              <CardTitle>Card Detection Tester</CardTitle>
+            </div>
+            <CardDescription>
+              Advanced card detection testing with multiple algorithms and AI analysis
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/debug/card-detection">
+              <Button className="w-full">
+                Launch Detection Tester
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
         {/* Unified PSD Studio */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
