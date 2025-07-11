@@ -75,12 +75,13 @@ export const convertPSDToCardData = (
     rarity = 'uncommon';
   }
 
-  // Generate title from filename
-  const baseTitle = filename
-    .replace(/\.(psd|PSD)$/, '')
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase())
-    .trim();
+  // Generate default title with CRD Project + date
+  const now = new Date();
+  const dateString = now.getFullYear().toString() + 
+                    (now.getMonth() + 1).toString().padStart(2, '0') + 
+                    now.getDate().toString().padStart(2, '0') + 
+                    now.getHours().toString().padStart(2, '0');
+  const baseTitle = `CRD Project ${dateString}`;
 
   // Generate description based on PSD content
   let description = `A ${rarity} card created from a high-quality PSD design`;
