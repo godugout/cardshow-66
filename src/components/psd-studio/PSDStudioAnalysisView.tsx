@@ -7,7 +7,9 @@ import { PSDStudioFile } from '@/pages/PSDStudioPage';
 import { EnhancedPSDCanvasPreview } from '@/components/debug/components/EnhancedPSDCanvasPreview';
 import { SimplifiedLayerInspector } from '@/components/debug/components/SimplifiedLayerInspector';
 import { calculateCardPreviewZoom } from '@/utils/canvasZoom';
-import { Eye, Layers, BarChart3, Info, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { convertPSDToCardData, isPSDReadyForCardCreation } from '@/utils/psdToCardConverter';
+import { useNavigate } from 'react-router-dom';
+import { Eye, Layers, BarChart3, Info, ZoomIn, ZoomOut, RotateCw, Sparkles } from 'lucide-react';
 
 interface PSDStudioAnalysisViewProps {
   file: PSDStudioFile;
@@ -20,6 +22,7 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
   mode,
   onFileUpdate
 }) => {
+  const navigate = useNavigate();
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
@@ -97,6 +100,22 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
         newSet.add(layerId);
       }
       return newSet;
+    });
+  };
+
+  const handleCreateCard = () => {
+    if (!isPSDReadyForCardCreation(psd)) {
+      return;
+    }
+
+    const cardData = convertPSDToCardData(psd, file.fileName);
+    
+    // Navigate to card creator with PSD data
+    navigate('/crdmkr', { 
+      state: { 
+        fromPSD: true,
+        psdCardData: cardData 
+      } 
     });
   };
 
@@ -279,7 +298,18 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
                   <Card className="p-4">
                     <h3 className="font-semibold mb-3">Quick Actions</h3>
                     <div className="space-y-2">
-                      <Button size="sm" className="w-full justify-start">
+                      {/* Primary CTA: Create Card */}
+                      <Button 
+                        size="sm" 
+                        className="w-full justify-start bg-gradient-to-r from-crd-orange to-crd-green hover:from-crd-orange/90 hover:to-crd-green/90"
+                        onClick={handleCreateCard}
+                        disabled={!isPSDReadyForCardCreation(psd)}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Create Card from PSD
+                      </Button>
+                      
+                      <Button size="sm" variant="outline" className="w-full justify-start">
                         <Eye className="w-4 h-4 mr-2" />
                         Preview All Layers
                       </Button>

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useIntegratedCardEditor } from '@/hooks/useIntegratedCardEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { ImageUploader } from './ImageUploader';
 import { FrameSelector } from './FrameSelector';
 import { EffectsPanel } from './EffectsPanel';
 import type { CardRarity } from '@/types/card';
+import type { PSDToCardData } from '@/utils/psdToCardConverter';
 
 const rarityOptions: { value: CardRarity; label: string; color: string }[] = [
   { value: 'common', label: 'Common', color: 'bg-gray-500' },
@@ -25,6 +27,7 @@ const rarityOptions: { value: CardRarity; label: string; color: string }[] = [
 ];
 
 export const CardCreationInterface: React.FC = () => {
+  const location = useLocation();
   const {
     cardData,
     updateField,
@@ -36,11 +39,26 @@ export const CardCreationInterface: React.FC = () => {
     isSaving,
     layers,
     addLayer,
-    updateLayer
+    updateLayer,
+    initializeFromPSD
   } = useIntegratedCardEditor();
 
   const [activePanel, setActivePanel] = useState<'image' | 'frame' | 'effects' | 'text'>('image');
   const [tags, setTags] = useState<string>('');
+  const [isFromPSD, setIsFromPSD] = useState(false);
+
+  // Handle PSD data initialization
+  useEffect(() => {
+    const state = location.state as { fromPSD?: boolean; psdCardData?: PSDToCardData } | null;
+    
+    if (state?.fromPSD && state?.psdCardData && initializeFromPSD) {
+      setIsFromPSD(true);
+      initializeFromPSD(state.psdCardData);
+      setTags(state.psdCardData.tags.join(', '));
+      // Start with frame panel if coming from PSD
+      setActivePanel('frame');
+    }
+  }, [location.state, initializeFromPSD]);
 
   const handleTagsChange = useCallback((value: string) => {
     setTags(value);
@@ -66,6 +84,11 @@ export const CardCreationInterface: React.FC = () => {
             <CardTitle className="flex items-center gap-2">
               <Type className="w-5 h-5" />
               Card Information
+              {isFromPSD && (
+                <Badge variant="outline" className="text-xs bg-gradient-to-r from-crd-orange/10 to-crd-green/10">
+                  From PSD
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

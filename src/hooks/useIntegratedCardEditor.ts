@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { CardRarity } from '@/types/card';
 import { uploadCardImage } from '@/lib/cardImageUploader';
+import type { PSDToCardData } from '@/utils/psdToCardConverter';
 
 interface CardData {
   id?: string;
@@ -183,6 +184,55 @@ export const useIntegratedCardEditor = () => {
     ));
   }, []);
 
+  const initializeFromPSD = useCallback((psdData: PSDToCardData) => {
+    setCardData({
+      title: psdData.title,
+      description: psdData.description,
+      image_url: psdData.image_url,
+      thumbnail_url: psdData.thumbnail_url,
+      rarity: psdData.rarity,
+      template_id: '',
+      tags: psdData.tags,
+      is_public: false,
+      design_metadata: psdData.design_metadata
+    });
+
+    // Add layers based on PSD data
+    const psdLayers: Layer[] = [
+      {
+        id: 'psd-background',
+        name: 'PSD Background',
+        type: 'image',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        data: { 
+          imageUrl: psdData.image_url,
+          source: 'psd-import',
+          psdMetadata: psdData.psd_metadata
+        }
+      }
+    ];
+
+    // Add additional layers for extracted images
+    psdData.psd_metadata.extracted_images.forEach((imageUrl, index) => {
+      if (imageUrl !== psdData.image_url) {
+        psdLayers.push({
+          id: `psd-layer-${index}`,
+          name: `PSD Layer ${index + 1}`,
+          type: 'image',
+          visible: false,
+          locked: false,
+          opacity: 1,
+          data: { imageUrl, source: 'psd-layer' }
+        });
+      }
+    });
+
+    setLayers(psdLayers);
+    toast.success(`Initialized card from PSD: ${psdData.psd_metadata.original_filename}`);
+  }, []);
+
   return {
     // Card data
     cardData,
@@ -206,6 +256,9 @@ export const useIntegratedCardEditor = () => {
     saveCard,
     publishCard,
     isSaving,
+    
+    // PSD initialization
+    initializeFromPSD,
     
     // Auth
     user
