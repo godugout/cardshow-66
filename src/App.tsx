@@ -38,6 +38,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import { CardsPage } from './components/cards/CardsPage';
 import CrdMkr from './pages/CrdMkr';
+import Profile from './pages/Profile';
 import DebugDetection from './pages/DebugDetection';
 import CRDDesignGuide from './pages/CRDDesignGuide';
 
@@ -211,7 +212,7 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <MainLayout>
-                        <div className="p-8 text-center text-white">Profile page coming soon!</div>
+                        <Profile />
                       </MainLayout>
                     </ProtectedRoute>
                   } 
