@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { ArrowRight, Layers, Image, Palette, Download, Eye, Settings } from 'lucide-react';
+import { ArrowRight, Layers, Image, Palette, Download, Eye, Settings, Maximize2 } from 'lucide-react';
 import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import { toast } from 'sonner';
+import { LayerThumbnailModal } from './LayerThumbnailModal';
+import { CompositePreviewCanvas } from './CompositePreviewCanvas';
 
 interface PSDToFrameConverterProps {
   processedPSD: EnhancedProcessedPSD;
@@ -45,6 +47,7 @@ export const PSDToFrameConverter: React.FC<PSDToFrameConverterProps> = ({
   );
 
   const [previewMode, setPreviewMode] = useState<'layers' | 'composite'>('composite');
+  const [selectedLayerModal, setSelectedLayerModal] = useState<string | null>(null);
 
   const updateLayerMapping = useCallback((layerId: string, updates: Partial<LayerMapping>) => {
     setLayerMappings(prev =>
@@ -179,18 +182,26 @@ export const PSDToFrameConverter: React.FC<PSDToFrameConverterProps> = ({
                     <div key={mapping.layerId} className="border rounded-lg p-3 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          {previewUrl ? (
-                            <img
-                              src={previewUrl}
-                              alt={mapping.name}
-                              className="w-12 h-12 object-cover rounded border"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded border flex items-center justify-center">
-                              <Image className="w-6 h-6 text-gray-400" />
-                            </div>
-                          )}
-                          <div>
+                          <div className="relative group">
+                            {previewUrl ? (
+                              <div className="relative">
+                                <img
+                                  src={previewUrl}
+                                  alt={mapping.name}
+                                  className="w-24 h-24 object-cover rounded border cursor-pointer transition-all hover:shadow-lg"
+                                  onClick={() => setSelectedLayerModal(mapping.layerId)}
+                                />
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                                  <Maximize2 className="w-5 h-5 text-white" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-24 h-24 bg-gradient-to-br from-muted/50 to-muted rounded border flex items-center justify-center">
+                                <Image className="w-8 h-8 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
                             <p className="font-medium text-sm">{mapping.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {layer?.bounds ? 
@@ -198,6 +209,12 @@ export const PSDToFrameConverter: React.FC<PSDToFrameConverterProps> = ({
                                 'No dimensions'
                               }
                             </p>
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className={`w-2 h-2 rounded-full ${getElementTypeColor(mapping.elementType)}`} />
+                              <span className="text-xs text-muted-foreground capitalize">
+                                {mapping.elementType}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <Switch
@@ -271,51 +288,58 @@ export const PSDToFrameConverter: React.FC<PSDToFrameConverterProps> = ({
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {previewMode === 'composite' ? (
-              <div className="aspect-[5/7] bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                {processedPSD.extractedImages.flattenedImageUrl ? (
-                  <img
-                    src={processedPSD.extractedImages.flattenedImageUrl}
-                    alt="Frame preview"
-                    className="max-w-full max-h-full object-contain rounded"
-                  />
-                ) : (
-                  <div className="text-center text-gray-500">
-                    <Palette className="w-12 h-12 mx-auto mb-2" />
-                    <p>Frame Preview</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {enabledLayers.map((mapping) => {
-                  const previewUrl = processedPSD.layerPreviews.get(mapping.layerId);
-                  return (
-                    <div key={mapping.layerId} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
-                      {previewUrl ? (
-                        <img
-                          src={previewUrl}
-                          alt={mapping.name}
-                          className="w-16 h-16 object-cover rounded border"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded border flex items-center justify-center">
-                          <Image className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{mapping.name}</p>
-                        <div className="flex items-center gap-1">
-                          <div className={`w-2 h-2 rounded-full ${getElementTypeColor(mapping.elementType)}`} />
-                          <span className="text-xs text-muted-foreground capitalize">
-                            {mapping.elementType}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
+              <CompositePreviewCanvas
+                layers={layerMappings.map(mapping => {
+                  const layer = processedPSD.layers.find(l => l.id === mapping.layerId);
+                  const enhancedLayer = layer as any;
+                  return {
+                    id: mapping.layerId,
+                    imageUrl: enhancedLayer?.imageUrl,
+                    thumbnailUrl: enhancedLayer?.thumbnailUrl,
+                    bounds: layer?.bounds,
+                    elementType: mapping.elementType,
+                    enabled: mapping.enabled,
+                    name: mapping.name
+                  };
                 })}
+                psdWidth={processedPSD.width}
+                psdHeight={processedPSD.height}
+              />
+            ) : (
+              <div className="p-4">
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {enabledLayers.map((mapping) => {
+                    const previewUrl = processedPSD.layerPreviews.get(mapping.layerId);
+                    return (
+                      <div key={mapping.layerId} className="flex items-center gap-3 p-2 bg-muted/30 rounded cursor-pointer hover:bg-muted/50 transition-colors"
+                           onClick={() => setSelectedLayerModal(mapping.layerId)}>
+                        {previewUrl ? (
+                          <img
+                            src={previewUrl}
+                            alt={mapping.name}
+                            className="w-16 h-16 object-cover rounded border"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-muted rounded border flex items-center justify-center">
+                            <Image className="w-8 h-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{mapping.name}</p>
+                          <div className="flex items-center gap-1">
+                            <div className={`w-2 h-2 rounded-full ${getElementTypeColor(mapping.elementType)}`} />
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {mapping.elementType}
+                            </span>
+                          </div>
+                        </div>
+                        <Maximize2 className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </CardContent>
@@ -336,6 +360,25 @@ export const PSDToFrameConverter: React.FC<PSDToFrameConverterProps> = ({
           Convert to Frame
         </Button>
       </div>
+
+      {/* Layer Detail Modal */}
+      {selectedLayerModal && (() => {
+        const mapping = layerMappings.find(m => m.layerId === selectedLayerModal);
+        const layer = processedPSD.layers.find(l => l.id === selectedLayerModal);
+        const enhancedLayer = layer as any;
+        
+        return (
+          <LayerThumbnailModal
+            isOpen={true}
+            onClose={() => setSelectedLayerModal(null)}
+            layerName={mapping?.name || 'Unknown Layer'}
+            fullImageUrl={enhancedLayer?.imageUrl}
+            thumbnailUrl={enhancedLayer?.thumbnailUrl}
+            bounds={layer?.bounds}
+            elementType={mapping?.elementType}
+          />
+        );
+      })()}
     </div>
   );
 };
