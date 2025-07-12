@@ -9,13 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Upload, Save, Eye, Sparkles, Image, Type, Layers, Palette } from 'lucide-react';
+import { Upload, Save, Eye, Sparkles, Image, Type, Layers, Palette, FileImage } from 'lucide-react';
 import { CardPreview } from './CardPreview';
 import { ImageUploader } from './ImageUploader';
 import { FrameSelector } from './FrameSelector';
 import { EffectsPanel } from './EffectsPanel';
+import { PSDUploadZone } from './PSDUploadZone';
+import { PSDToFrameConverter } from './PSDToFrameConverter';
 import type { CardRarity } from '@/types/card';
 import type { PSDToCardData } from '@/utils/psdToCardConverter';
+import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 
 const rarityOptions: { value: CardRarity; label: string; color: string }[] = [
   { value: 'common', label: 'Common', color: 'bg-gray-500' },
@@ -43,9 +46,11 @@ export const CardCreationInterface: React.FC = () => {
     initializeFromPSD
   } = useIntegratedCardEditor();
 
-  const [activePanel, setActivePanel] = useState<'image' | 'frame' | 'effects' | 'text'>('image');
+  const [activePanel, setActivePanel] = useState<'psd' | 'image' | 'frame' | 'effects' | 'text'>('psd');
   const [tags, setTags] = useState<string>('');
   const [isFromPSD, setIsFromPSD] = useState(false);
+  const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);
+  const [showPSDConverter, setShowPSDConverter] = useState(false);
 
   // Handle PSD data initialization
   useEffect(() => {
@@ -73,6 +78,57 @@ export const CardCreationInterface: React.FC = () => {
   const handlePublish = useCallback(async () => {
     await publishCard();
   }, [publishCard]);
+
+  const handlePSDProcessed = useCallback((psd: EnhancedProcessedPSD) => {
+    setProcessedPSD(psd);
+    setShowPSDConverter(true);
+  }, []);
+
+  const handlePSDFrameConverted = useCallback((frameData: any) => {
+    // Convert PSD frame data to card initialization
+    if (initializeFromPSD) {
+      const cardData: PSDToCardData = {
+        title: frameData.name,
+        description: `Created from ${frameData.originalPSD}`,
+        image_url: frameData.extractedImages?.flattenedImageUrl || '',
+        thumbnail_url: frameData.extractedImages?.thumbnailUrl || '',
+        tags: ['psd-import', 'custom-frame'],
+        suggested_category: 'imported',
+        rarity: 'common' as CardRarity,
+        quality_score: 85,
+        psd_metadata: {
+          original_filename: frameData.originalPSD || 'unknown.psd',
+          dimensions: frameData.dimensions,
+          layer_count: frameData.layers.length,
+          has_character_layers: frameData.layers.some((l: any) => l.type === 'foreground'),
+          has_background_layers: frameData.layers.some((l: any) => l.type === 'background'),
+          has_text_layers: frameData.layers.some((l: any) => l.type === 'text'),
+          has_effect_layers: frameData.layers.some((l: any) => l.type === 'effect'),
+          extracted_images: frameData.extractedImages?.layerImages?.map((img: any) => img.imageUrl) || []
+        },
+        design_metadata: {
+          source: 'psd-import',
+          psd_data: frameData.extractedImages,
+          ai_analysis: null
+        }
+      };
+      
+      initializeFromPSD(cardData);
+      setIsFromPSD(true);
+      setTags(cardData.tags.join(', '));
+    }
+    
+    // Switch to frame panel for final adjustments
+    setActivePanel('frame');
+    setShowPSDConverter(false);
+    setProcessedPSD(null);
+  }, [initializeFromPSD]);
+
+  const handleBackToPSDUpload = useCallback(() => {
+    setShowPSDConverter(false);
+    setProcessedPSD(null);
+    setActivePanel('psd');
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -165,7 +221,16 @@ export const CardCreationInterface: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="grid grid-cols-5 gap-2 mb-4">
+              <Button
+                variant={activePanel === 'psd' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActivePanel('psd')}
+                className="flex flex-col items-center gap-1 h-auto py-2"
+              >
+                <FileImage className="w-4 h-4" />
+                <span className="text-xs">PSD</span>
+              </Button>
               <Button
                 variant={activePanel === 'image' ? 'default' : 'outline'}
                 size="sm"
@@ -207,6 +272,18 @@ export const CardCreationInterface: React.FC = () => {
             <Separator className="my-4" />
 
             {/* Panel Content */}
+            {activePanel === 'psd' && (
+              showPSDConverter && processedPSD ? (
+                <PSDToFrameConverter
+                  processedPSD={processedPSD}
+                  onConvertToCard={handlePSDFrameConverted}
+                  onBack={handleBackToPSDUpload}
+                />
+              ) : (
+                <PSDUploadZone onPSDProcessed={handlePSDProcessed} />
+              )
+            )}
+
             {activePanel === 'image' && (
               <ImageUploader onImageUpload={handleImageUpload} currentImage={cardData.image_url} />
             )}
