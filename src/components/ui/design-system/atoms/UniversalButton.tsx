@@ -12,8 +12,8 @@ const universalButtonVariants = cva(
       variant: {
         primary: "bg-crd-green text-black hover:bg-crd-green/90 focus-visible:ring-crd-green shadow-sm hover:shadow-md",
         secondary: "bg-card text-foreground border border-border hover:bg-accent/20 hover:border-accent/30 shadow-sm",
-        outline: "border border-border text-foreground hover:bg-accent/10 hover:border-accent hover:text-accent",
-        ghost: "text-foreground hover:bg-accent/10 hover:text-accent",
+        outline: "border border-border text-white hover:bg-crd-green/10 hover:border-crd-green hover:text-crd-green focus-visible:ring-crd-green",
+        ghost: "text-white hover:bg-crd-green/10 hover:text-crd-green focus-visible:ring-crd-green",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
         success: "bg-crd-green text-black hover:bg-crd-green/90 shadow-sm",
         gradient: "bg-gradient-to-r from-crd-orange via-crd-green to-crd-blue text-white hover:opacity-90 shadow-md hover:shadow-lg",
