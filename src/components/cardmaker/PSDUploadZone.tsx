@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, FileImage, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { unifiedPSDService } from '@/services/psdProcessor/unifiedPsdService';
 import { toast } from 'sonner';
+import { useOverlay } from '../overlay/OverlayProvider';
 import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 
 interface PSDUploadZoneProps {
@@ -16,6 +17,7 @@ export const PSDUploadZone: React.FC<PSDUploadZoneProps> = ({ onPSDProcessed }) 
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const { openOverlay } = useOverlay();
 
   const processPSDFile = useCallback(async (file: File) => {
     setCurrentFile(file);
@@ -58,9 +60,16 @@ export const PSDUploadZone: React.FC<PSDUploadZoneProps> = ({ onPSDProcessed }) 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
-      processPSDFile(file);
+      // Open the PSD workflow overlay instead of processing inline
+      openOverlay('psd-workflow', {
+        file,
+        onFrameCreated: (frameData: any) => {
+          onPSDProcessed(frameData);
+          toast.success('Frame created successfully!');
+        }
+      });
     }
-  }, [processPSDFile]);
+  }, [openOverlay, onPSDProcessed]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

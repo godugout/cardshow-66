@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type OverlayType = 'card-detection' | 'card-review' | 'enhanced-card-detection';
+type OverlayType = 'card-detection' | 'card-review' | 'enhanced-card-detection' | 'psd-workflow';
 
 interface OverlayContextType {
   isOpen: boolean;

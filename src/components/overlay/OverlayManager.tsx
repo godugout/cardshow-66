@@ -2,6 +2,7 @@
 import React from 'react';
 import { useOverlay } from './OverlayProvider';
 import { EnhancedCardDetectionDialog } from './EnhancedCardDetectionDialog';
+import { PSDWorkflowDialog } from './PSDWorkflowDialog';
 
 export const OverlayManager = () => {
   const { isOpen, overlayType, overlayData, closeOverlay } = useOverlay();
@@ -12,6 +13,17 @@ export const OverlayManager = () => {
         isOpen={isOpen}
         onClose={closeOverlay}
         onCardsExtracted={overlayData?.onCardsExtracted}
+      />
+    );
+  }
+
+  if (overlayType === 'psd-workflow') {
+    return (
+      <PSDWorkflowDialog
+        isOpen={isOpen}
+        onClose={closeOverlay}
+        file={overlayData?.file}
+        onFrameCreated={overlayData?.onFrameCreated}
       />
     );
   }
