@@ -13,7 +13,12 @@ const CRDAssistantToolbar = () => {
     designRules: 'CRD Black (#1a1a1a), Green (#00C851), Orange (#FF6D00), Blue (#2D9CDB), DM Sans font',
     currentFocus: '',
     avoidFiles: '',
+    animationTrigger: 'double-click',
+    requirePrecision: true,
+    visualExpectations: 'corona glow, reflective monolith, obsidian depth, floating moon',
+    stateBehavior: 'persistent',
   });
+  const [showDebugMode, setShowDebugMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const textareaRef = useRef(null);
 
@@ -83,40 +88,63 @@ Current focus: ${projectContext.currentFocus}`,
 Please provide a solution that maintains our design system and doesn't break existing functionality.`,
       },
       {
-        id: 'refactor',
-        name: 'Refactor Code',
-        template: `Refactor this code from ${projectContext.name} to improve performance and maintainability:
-
-\`\`\`tsx
-[PASTE_CODE]
-\`\`\`
-
-**Goals**:
-- Improve TypeScript types
-- Add proper error handling
-- Optimize for mobile performance
-- Maintain our design system: ${projectContext.designRules}
-- Ensure compatibility with: ${projectContext.stack}
-
-Keep the same functionality but make it cleaner and more efficient.`,
+        id: 'fix-glitch',
+        name: 'Fix Glitching Animations',
+        template: `Fix the jitter in [component]. Use useMemo or static constants for any visuals using Math.random. Make sure visual randomness does not change on re-render.`,
       },
       {
-        id: 'mobile',
-        name: 'Mobile Responsive',
-        template: `Make this ${projectContext.name} component fully mobile responsive:
+        id: 'clean-refactor',
+        name: 'Clean Refactor',
+        template: `Fully remove [old system name] and replace with [new system]. Confirm every reference, import, and hook is cleaned. Do not leave lingering props or state.`,
+      },
+      {
+        id: 'animation-trigger',
+        name: 'Animation Trigger System',
+        template: `Create an animation trigger system that activates when the card reaches:
+- 400% zoom
+- 45°+ tilt
+- both edges of the card span beyond 100% screen width
 
-\`\`\`tsx
-[PASTE_COMPONENT]
-\`\`\`
+Trigger: ${projectContext.animationTrigger}
+Precision Required: ${projectContext.requirePrecision ? 'Yes' : 'No'}
+Visual Effects: ${projectContext.visualExpectations}
+State Behavior: ${projectContext.stateBehavior}
 
-**Requirements**:
-- Mobile-first approach
-- Touch-friendly interactions
-- Proper spacing for thumbs
-- Optimized for iPhone and Android
-- Maintain design system: ${projectContext.designRules}
+If held for 2s, trigger full Kubrick sequence. Otherwise, show progressive UI indicator of how close the user is to ideal alignment.`,
+      },
+      {
+        id: 'cinematic-sequence',
+        name: 'Cinematic Sequence',
+        template: `Once triggered, animate the following:
+1. Obsidian transformation
+2. Sun glow peeking over top edge from behind
+3. Moon descending from above
+4. Light beam through all elements
+5. Environmental stars reflected in monolith
 
-Include any necessary Tailwind classes and ensure smooth transitions.`,
+Visual Expectations: ${projectContext.visualExpectations}
+State Behavior: ${projectContext.stateBehavior}`,
+      },
+      {
+        id: 'debug-checklist',
+        name: 'Debug Checklist',
+        template: `Generate a debug checklist for ${projectContext.name} animation issues:
+
+**Checklist Items:**
+□ Verify imports are correct
+□ Confirm state cleared properly
+□ Check animation mounted only once
+□ Confirm visual effects load order
+□ Test trigger thresholds: ${projectContext.animationTrigger}
+□ Validate precision requirements: ${projectContext.requirePrecision ? 'Required' : 'Optional'}
+□ Check visual effects: ${projectContext.visualExpectations}
+□ Verify state behavior: ${projectContext.stateBehavior}
+
+**Debugging Steps:**
+1. Add console.log to track state changes
+2. Check Three.js render order
+3. Verify animation cleanup
+4. Test on different devices`,
       },
     ],
     design: [
@@ -294,6 +322,55 @@ Keep it concise but comprehensive.`,
                 onChange={(e) => setProjectContext({ ...projectContext, currentFocus: e.target.value })}
                 className="w-full bg-background text-foreground px-3 py-2 rounded mt-1 border border-border"
                 placeholder="e.g., 3D card viewer, mobile UX"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-muted-foreground text-sm">Animation Trigger Type</label>
+                <select
+                  value={projectContext.animationTrigger}
+                  onChange={(e) => setProjectContext({ ...projectContext, animationTrigger: e.target.value })}
+                  className="w-full bg-background text-foreground px-3 py-2 rounded mt-1 border border-border"
+                >
+                  <option value="double-click">Double-click</option>
+                  <option value="precise-viewing">Precise viewing alignment</option>
+                  <option value="gesture-based">Gesture-based (drag-up, zoom)</option>
+                  <option value="auto-trigger">Auto-trigger on stable viewing</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-muted-foreground text-sm">State Behavior</label>
+                <select
+                  value={projectContext.stateBehavior}
+                  onChange={(e) => setProjectContext({ ...projectContext, stateBehavior: e.target.value })}
+                  className="w-full bg-background text-foreground px-3 py-2 rounded mt-1 border border-border"
+                >
+                  <option value="persistent">Persistent (resets on route)</option>
+                  <option value="freezes">Freezes on trigger</option>
+                  <option value="interactable">Always interactable</option>
+                  <option value="manual-cancel">Allow manual cancel</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-muted-foreground text-sm flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={projectContext.requirePrecision}
+                  onChange={(e) => setProjectContext({ ...projectContext, requirePrecision: e.target.checked })}
+                  className="rounded"
+                />
+                Require Precision Positioning
+              </label>
+            </div>
+            <div>
+              <label className="text-muted-foreground text-sm">Visual Expectations</label>
+              <input
+                type="text"
+                value={projectContext.visualExpectations}
+                onChange={(e) => setProjectContext({ ...projectContext, visualExpectations: e.target.value })}
+                className="w-full bg-background text-foreground px-3 py-2 rounded mt-1 border border-border"
+                placeholder="e.g., corona glow, reflective monolith, obsidian depth"
               />
             </div>
           </div>
