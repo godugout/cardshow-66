@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useStudioState } from '@/hooks/useStudioState';
+import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
 import { Crown, Users, Gamepad2, Camera, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -134,14 +134,26 @@ const TEMPLATES: Template[] = [
 ];
 
 export const TemplateLibrary: React.FC = () => {
-  const { updateLighting, updateDesign } = useStudioState();
+  const { updateLighting, updateMaterial, setSelectedCard } = useAdvancedStudio();
 
   const applyTemplate = (template: Template) => {
     // Apply lighting settings
     updateLighting(template.settings.lighting);
     
-    // Apply design settings
-    updateDesign(template.settings.design);
+    // Apply material settings if available
+    if (template.settings.material) {
+      updateMaterial(template.settings.material);
+    }
+    
+    // Update the card with the template design
+    setSelectedCard({
+      id: 'template-card',
+      title: template.name,
+      image_url: '/placeholder.svg',
+      backgroundColor: template.settings.design.backgroundColor,
+      primaryColor: template.settings.design.primaryColor,
+      template: template.id
+    });
     
     toast.success(`Applied ${template.name} template`);
   };

@@ -81,16 +81,21 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     const metalness = (material?.metalness || 50) / 100;
     const roughness = (material?.roughness || 50) / 100;
     const emission = (material?.emission || 0) / 100;
+    
+    // Apply template colors if available
+    const backgroundColor = card?.backgroundColor || '#2a2a2a';
+    const primaryColor = card?.primaryColor || '#4a9eff';
 
     switch (material?.preset) {
       case 'holographic':
         return (
           <meshStandardMaterial
             {...baseProps}
+            color={primaryColor}
             metalness={0.3}
             roughness={0.1}
-            emissive={new THREE.Color(0x444444)}
-            emissiveIntensity={emission}
+            emissive={new THREE.Color(backgroundColor)}
+            emissiveIntensity={emission * 0.5}
           />
         );
       case 'metallic':
@@ -98,9 +103,10 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         return (
           <meshStandardMaterial
             {...baseProps}
+            color={backgroundColor}
             metalness={metalness}
             roughness={roughness}
-            emissive={emission > 0 ? new THREE.Color(0x444444) : new THREE.Color(0x000000)}
+            emissive={emission > 0 ? new THREE.Color(primaryColor) : new THREE.Color(0x000000)}
             emissiveIntensity={emission}
             envMapIntensity={2}
           />
@@ -120,10 +126,11 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         return (
           <meshStandardMaterial
             {...baseProps}
+            color={backgroundColor}
             metalness={metalness}
             roughness={roughness}
-            emissive={emission > 0 ? new THREE.Color(0x444444) : new THREE.Color(0x000000)}
-            emissiveIntensity={emission}
+            emissive={emission > 0 ? new THREE.Color(primaryColor) : new THREE.Color(backgroundColor)}
+            emissiveIntensity={emission * 0.3}
           />
         );
     }
