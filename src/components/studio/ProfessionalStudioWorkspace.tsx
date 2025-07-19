@@ -33,6 +33,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { ProfessionalViewport } from './viewport/ProfessionalViewport';
+import { ProfessionalTimeline } from './timeline/ProfessionalTimeline';
 import { useStudioState } from '@/hooks/studio/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
@@ -442,51 +443,18 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
 
       {/* Bottom Panel - Timeline & Animation Controls */}
       {!bottomPanelCollapsed && (
-        <div className="h-32 bg-crd-dark border-t border-crd-border">
-          <div className="h-8 bg-crd-darkest border-b border-crd-border flex items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <SkipBack className="w-3 h-3" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-6 w-6 p-0"
-                onClick={handlePlayPause}
-              >
-                {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-              </Button>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <SkipForward className="w-3 h-3" />
-              </Button>
-              <span className="text-xs text-crd-text-secondary ml-2">
-                {currentFrame} / {totalFrames}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-3 h-3 text-crd-text-secondary" />
-                <Slider defaultValue={[75]} max={100} min={0} className="w-16" />
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setBottomPanelCollapsed(true)}
-              >
-                <ChevronLeft className="w-4 h-4 rotate-90" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="flex-1 p-2">
-            <div className="h-full bg-crd-darkest rounded-sm border border-crd-border p-2">
-              <div className="flex items-center justify-center h-full text-xs text-crd-text-secondary">
-                Timeline & Keyframe Editor
-              </div>
-            </div>
-          </div>
+        <div className="h-64">
+          <ProfessionalTimeline
+            mode={mode}
+            onAnimationUpdate={(timelineState) => {
+              // Handle timeline updates here
+              console.log('Timeline updated:', timelineState);
+            }}
+            onExport={(format, options) => {
+              // Handle export here
+              console.log('Export:', format, options);
+            }}
+          />
         </div>
       )}
 
