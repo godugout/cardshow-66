@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown, Copy, Check, Code, Palette, Megaphone, Briefcase, Settings, X, Minimize2, Maximize2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, Copy, Check, Code, Palette, Megaphone, Briefcase, Settings, X, Minimize2, Maximize2, Monitor, Play, SkipForward, RotateCcw, CheckCircle } from 'lucide-react';
 
 const CRDAssistantToolbar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -20,6 +20,17 @@ const CRDAssistantToolbar = () => {
   });
   const [showDebugMode, setShowDebugMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [debugState, setDebugState] = useState({
+    scale: '1.0x',
+    tilt: '0°',
+    zoom: '100%',
+    centered: false,
+    triggerFlags: [],
+    cooldown: false,
+    readiness: 'idle',
+    phase: 'none',
+    lovablePrompt: ''
+  });
   const textareaRef = useRef(null);
 
   // Load saved context on mount
@@ -34,6 +45,50 @@ const CRDAssistantToolbar = () => {
   useEffect(() => {
     localStorage.setItem('crd-assistant-context', JSON.stringify(projectContext));
   }, [projectContext]);
+
+  // Lovable prompt monitoring
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location.hostname.includes('lovable')) return;
+
+    let throttleTimeout = null;
+    
+    const handlePromptInput = (e) => {
+      if (throttleTimeout) return;
+      
+      throttleTimeout = setTimeout(() => {
+        const value = e.target.value;
+        setDebugState(prev => ({ ...prev, lovablePrompt: value }));
+        
+        // Dispatch custom event
+        window.dispatchEvent(new CustomEvent('prompt:changed', { detail: value }));
+        
+        // Check for key phrases
+        const keyPhrases = ['fix animation', 'alignment system', 'kubrick', 'monolith', 'glitch', 'jitter'];
+        const hasKeyPhrase = keyPhrases.some(phrase => value.toLowerCase().includes(phrase));
+        
+        if (hasKeyPhrase) {
+          console.log('[CRD-PROMPT-DETECTED]', value.substring(0, 100) + '...');
+        }
+        
+        throttleTimeout = null;
+      }, 100);
+    };
+
+    const observer = new MutationObserver(() => {
+      const promptInput = document.querySelector('textarea[placeholder*="prompt" i], textarea[class*="prompt" i], #prompt-input, [data-testid="prompt-input"]');
+      if (promptInput && !promptInput.hasAttribute('data-crd-monitored')) {
+        promptInput.addEventListener('keyup', handlePromptInput);
+        promptInput.setAttribute('data-crd-monitored', 'true');
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      if (throttleTimeout) clearTimeout(throttleTimeout);
+    };
+  }, []);
 
   const modes = {
     dev: { icon: Code, label: 'Dev', color: 'text-crd-orange' },
@@ -404,6 +459,13 @@ Keep it concise but comprehensive.`,
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowDebugMode(!showDebugMode)}
+              className={`text-muted-foreground hover:text-foreground p-1 ${showDebugMode ? 'text-crd-orange' : ''}`}
+              title="Debug Mode"
+            >
+              <Monitor className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => setShowSettings(!showSettings)}
               className="text-muted-foreground hover:text-foreground p-1"
               title="Settings"
@@ -476,6 +538,114 @@ Keep it concise but comprehensive.`,
           </div>
         )}
       </div>
+
+      {/* Debug Overlay - "Monolith Dev Mode" */}
+      {showDebugMode && (
+        <div className="fixed bottom-4 left-4 bg-card border border-border rounded-lg shadow-xl p-4 w-80 z-40">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-foreground font-semibold text-sm flex items-center gap-2">
+              <Monitor className="w-4 h-4 text-crd-orange" />
+              Monolith Dev Mode
+            </h3>
+            <button
+              onClick={() => setShowDebugMode(false)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Real-time Transform Viewer */}
+          <div className="space-y-3">
+            <div className="bg-background p-3 rounded border border-border">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2">TRANSFORM STATUS</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>Scale: <span className="text-crd-orange">{debugState.scale}</span></div>
+                <div>Tilt: <span className="text-crd-blue">{debugState.tilt}</span></div>
+                <div>Zoom: <span className="text-crd-green">{debugState.zoom}</span></div>
+                <div>Centered: <span className={debugState.centered ? 'text-crd-green' : 'text-muted-foreground'}>{debugState.centered ? 'YES' : 'NO'}</span></div>
+              </div>
+            </div>
+
+            {/* State Log */}
+            <div className="bg-background p-3 rounded border border-border">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2">STATE LOG</h4>
+              <div className="text-xs space-y-1">
+                <div>Readiness: <span className="text-crd-orange">{debugState.readiness}</span></div>
+                <div>Cooldown: <span className={debugState.cooldown ? 'text-crd-blue' : 'text-muted-foreground'}>{debugState.cooldown ? 'ACTIVE' : 'NONE'}</span></div>
+                <div>Flags: <span className="text-crd-green">{debugState.triggerFlags.join(', ') || 'none'}</span></div>
+              </div>
+            </div>
+
+            {/* Phase Preview */}
+            <div className="bg-background p-3 rounded border border-border">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2">PHASE PREVIEW</h4>
+              <div className="text-xs">
+                Current: <span className="text-crd-orange">{debugState.phase}</span>
+              </div>
+              <div className="flex gap-1 mt-2">
+                {['sun rising', 'moon descending', 'alignment complete'].map((phase, index) => (
+                  <div
+                    key={phase}
+                    className={`px-2 py-1 rounded text-xs ${
+                      debugState.phase === phase ? 'bg-crd-orange text-black' : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {phase}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Control Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDebugState(prev => ({ ...prev, phase: 'sun rising' }))}
+                className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded text-xs transition-colors"
+                title="Test Phase"
+              >
+                <Play className="w-3 h-3" />
+                Test
+              </button>
+              <button
+                onClick={() => setDebugState(prev => ({ ...prev, phase: 'alignment complete' }))}
+                className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded text-xs transition-colors"
+                title="Skip Phase"
+              >
+                <SkipForward className="w-3 h-3" />
+                Skip
+              </button>
+              <button
+                onClick={() => setDebugState(prev => ({ ...prev, phase: 'none', readiness: 'idle', triggerFlags: [], cooldown: false }))}
+                className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded text-xs transition-colors"
+                title="Reset"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset
+              </button>
+              <button
+                onClick={() => setDebugState(prev => ({ ...prev, phase: 'alignment complete', readiness: 'complete' }))}
+                className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-crd-green text-black hover:bg-crd-green/80 rounded text-xs transition-colors"
+                title="Force Complete"
+              >
+                <CheckCircle className="w-3 h-3" />
+                Complete
+              </button>
+            </div>
+
+            {/* Lovable Prompt Watcher */}
+            {debugState.lovablePrompt && (
+              <div className="bg-background p-3 rounded border border-border">
+                <h4 className="text-xs font-medium text-muted-foreground mb-2">LOVABLE PROMPT STREAM</h4>
+                <div className="text-xs text-foreground font-mono bg-muted p-2 rounded max-h-20 overflow-y-auto">
+                  {debugState.lovablePrompt.substring(0, 150)}
+                  {debugState.lovablePrompt.length > 150 && '...'}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
