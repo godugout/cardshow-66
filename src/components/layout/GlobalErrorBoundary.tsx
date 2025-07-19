@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlertTriangle, Home, RefreshCw, Bug, Palette, Camera } from 'lucide-react';
@@ -99,8 +98,11 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   onRetry, 
   onReload 
 }) => {
-  const navigate = useNavigate();
   const isDevelopment = window.location.hostname === 'localhost';
+
+  const handleNavigation = (path: string) => {
+    window.location.href = path;
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -162,7 +164,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Button 
-                onClick={() => navigate('/')} 
+                onClick={() => handleNavigation('/')} 
                 variant="ghost" 
                 className="flex flex-col h-auto p-4"
               >
@@ -170,7 +172,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
                 <span className="text-sm">Home</span>
               </Button>
               <Button 
-                onClick={() => navigate('/create')} 
+                onClick={() => handleNavigation('/create')} 
                 variant="ghost" 
                 className="flex flex-col h-auto p-4"
               >
@@ -178,7 +180,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
                 <span className="text-sm">Create</span>
               </Button>
               <Button 
-                onClick={() => navigate('/studio')} 
+                onClick={() => handleNavigation('/studio')} 
                 variant="ghost" 
                 className="flex flex-col h-auto p-4"
               >
