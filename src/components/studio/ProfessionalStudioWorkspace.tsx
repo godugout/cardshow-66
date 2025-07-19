@@ -34,7 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { ProfessionalViewport } from './viewport/ProfessionalViewport';
 import { ProfessionalTimeline } from './timeline/ProfessionalTimeline';
-import { useStudioState } from '@/hooks/studio/useStudioState';
+import { useStudioState } from '@/hooks/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
 export type WorkspacePreset = 'quick-edit' | 'animation-studio' | 'cinematic-mode';

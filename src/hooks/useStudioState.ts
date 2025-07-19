@@ -42,6 +42,11 @@ export interface StudioState {
   design: DesignState;
   layers: LayerState[];
   selectedLayerId: string | null;
+  currentCard?: {
+    id: string;
+    title: string;
+    image_url?: string;
+  };
 }
 
 const initialLightingState: LightingState = {
@@ -106,7 +111,12 @@ export const useStudioState = () => {
     lighting: initialLightingState,
     design: initialDesignState,
     layers: initialLayers,
-    selectedLayerId: 'image'
+    selectedLayerId: 'image',
+    currentCard: {
+      id: 'demo-card',
+      title: 'Demo Card',
+      image_url: '/placeholder.svg'
+    }
   });
 
   const updateLighting = useCallback((updates: Partial<LightingState>) => {
@@ -184,6 +194,7 @@ export const useStudioState = () => {
 
   return {
     studioState,
+    currentCard: studioState.currentCard,
     updateLighting,
     updateDesign,
     updateLayer,
