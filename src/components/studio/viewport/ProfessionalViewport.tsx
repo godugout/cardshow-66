@@ -58,7 +58,7 @@ import {
   Film,
   Orbit
 } from 'lucide-react';
-import { useStudioState } from '@/hooks/useStudioState';
+import { useStudioState } from '@/hooks/studio/useStudioState';
 
 export type CameraPreset = 'hero-shot' | 'product-view' | 'cinematic' | 'social-media' | '360-showcase';
 export type ShadingMode = 'wireframe' | 'material-preview' | 'final-render' | 'normals' | 'depth';

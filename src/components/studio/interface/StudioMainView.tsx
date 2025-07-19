@@ -5,7 +5,7 @@ import { Sparkles, Zap, Maximize, Minimize } from 'lucide-react';
 import { StudioCardRenderer } from '../renderer/StudioCardRenderer';
 import { Advanced3DCardRenderer } from '../advanced/Advanced3DCardRenderer';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { StudioState } from '@/hooks/useStudioState';
+import type { StudioState } from '@/hooks/studio/useStudioState';
 
 interface StudioMainViewProps {
   show3DPreview: boolean;

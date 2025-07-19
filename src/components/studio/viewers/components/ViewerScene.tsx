@@ -2,7 +2,7 @@
 import React from 'react';
 import { Environment, Text } from '@react-three/drei';
 import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
-import { useStudioState } from '@/hooks/useStudioState';
+import { useStudioState } from '@/hooks/studio/useStudioState';
 import { Card3DMesh } from './Card3DMesh';
 import { LightingSystem } from './LightingSystem';
 

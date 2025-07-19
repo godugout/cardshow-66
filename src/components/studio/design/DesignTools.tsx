@@ -22,7 +22,7 @@ import {
   Layers
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { DesignState } from '@/hooks/useStudioState';
+import type { DesignState } from '@/hooks/studio/useStudioState';
 
 interface DesignToolsProps {
   designState: DesignState;

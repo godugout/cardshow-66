@@ -20,7 +20,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { LayerState } from '@/hooks/useStudioState';
+import type { LayerState } from '@/hooks/studio/useStudioState';
 
 interface EnhancedLayersPanelProps {
   layers: LayerState[];

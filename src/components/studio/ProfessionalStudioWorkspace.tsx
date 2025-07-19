@@ -39,8 +39,8 @@ import { MaterialLibrary } from './assets/MaterialLibrary';
 import { EffectsLibrary } from './assets/EffectsLibrary';
 import { SceneHierarchy } from './hierarchy/SceneHierarchy';
 import { ExportPanel } from './export/ExportPanel';
-import { StudioPropertiesPanel } from './StudioPropertiesPanel';
-import { useStudioState } from '@/hooks/useStudioState';
+import { StudioPropertiesPanel } from './properties/StudioPropertiesPanel';
+import { useStudioState } from '@/hooks/studio/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
 export type WorkspacePreset = 'quick-edit' | 'animation-studio' | 'cinematic-mode';
@@ -271,7 +271,7 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
                     </TabsList>
 
                     <TabsContent value="properties" className="flex-1 m-0">
-                      <StudioPropertiesPanel isOpen={true} onClose={() => {}} />
+                      <StudioPropertiesPanel />
                     </TabsContent>
 
                     <TabsContent value="export" className="flex-1 m-0">

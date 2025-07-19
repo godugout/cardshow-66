@@ -70,11 +70,11 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
     }, 1000);
   };
 
-  const handleOpenEnhancedStudio = () => {
+  const handleOpenStudio = () => {
     setShowEnhancedPanel(true);
   };
 
-  const handleCloseEnhancedStudio = () => {
+  const handleCloseStudio = () => {
     setShowEnhancedPanel(false);
   };
 
@@ -122,7 +122,7 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
                 <div className="flex items-center">
                   <Settings className="w-5 h-5 text-purple-400 mr-2" />
                   <div>
-                    <h4 className="text-white font-medium">Enhanced Studio</h4>
+                    <h4 className="text-white font-medium">Studio</h4>
                     <p className="text-gray-400 text-xs">Advanced customization tools</p>
                   </div>
                 </div>
@@ -130,7 +130,7 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
               
               <div className="grid grid-cols-2 gap-2">
                 <Button
-                  onClick={handleOpenEnhancedStudio}
+                  onClick={handleOpenStudio}
                   className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-2"
                 >
                   <Settings className="w-3 h-3 mr-1" />
@@ -171,7 +171,7 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
           onToggleFullscreen={() => {}}
           onDownload={onDownload}
           onShare={onShare}
-          onClose={handleCloseEnhancedStudio}
+          onClose={handleCloseStudio}
           onCardImageUpdate={onCardImageUpdate}
           card={card}
         />

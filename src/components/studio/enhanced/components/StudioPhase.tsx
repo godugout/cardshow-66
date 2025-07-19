@@ -19,7 +19,7 @@ import {
   Share2
 } from 'lucide-react';
 import { EnhancedExportDialog } from '@/components/studio/export/EnhancedExportDialog';
-import { useStudioState } from '@/hooks/useStudioState';
+import { useStudioState } from '@/hooks/studio/useStudioState';
 import { toast } from 'sonner';
 
 interface StudioPhaseProps {

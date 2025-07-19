@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lightbulb, Sun, Moon, Zap, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-import type { LightingState } from '@/hooks/useStudioState';
+import type { LightingState } from '@/hooks/studio/useStudioState';
 
 interface LightingPreset {
   id: string;

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Camera } from 'lucide-react';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { StudioState } from '@/hooks/useStudioState';
+import type { StudioState } from '@/hooks/studio/useStudioState';
 
 interface StudioCardRendererProps {
   template: {

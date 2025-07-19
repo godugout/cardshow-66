@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { localStorageManager } from '@/lib/storage/LocalStorageManager';
-import { useStudioState } from './useStudioState';
+import { useStudioState } from './studio/useStudioState';
 import { toast } from 'sonner';
 
 export interface PersistedStudioState {

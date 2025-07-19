@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { FigmaToolbar } from './FigmaToolbar';
 import { FigmaLeftPanel } from './FigmaLeftPanel';
-import { StudioPropertiesPanel } from '../StudioPropertiesPanel';
+import { StudioPropertiesPanel } from '../properties/StudioPropertiesPanel';
 import { FigmaBottomPanel } from './FigmaBottomPanel';
 import { FigmaCanvas } from './FigmaCanvas';
 import { toast } from 'sonner';
@@ -61,10 +61,11 @@ export const FigmaStudioLayout: React.FC<FigmaStudioLayoutProps> = ({ children }
         </div>
 
         {/* Right Panel */}
-        <StudioPropertiesPanel
-          isOpen={rightPanelOpen}
-          onClose={() => setRightPanelOpen(false)}
-        />
+        {rightPanelOpen && (
+          <div className="w-80 bg-crd-dark border-l border-crd-border">
+            <StudioPropertiesPanel />
+          </div>
+        )}
       </div>
     </div>
   );
