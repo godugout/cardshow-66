@@ -1,8 +1,19 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
+export interface EffectLayer {
+  id: string;
+  type: 'holographic' | 'chrome' | 'glow' | 'particle' | 'distortion';
+  enabled: boolean;
+  intensity: number;
+  opacity: number;
+  blendMode: string;
+  parameters: Record<string, any>;
+}
+
 export interface AdvancedStudioState {
   selectedCard: any | null;
+  viewMode: '2d' | '3d';
   material: {
     preset: string;
     metalness: number;
@@ -26,13 +37,10 @@ export interface AdvancedStudioState {
   environment: {
     preset: string;
     hdriIntensity: number;
+    backgroundBlur: number;
+    backgroundBrightness: number;
   };
-  effectLayers: Array<{
-    id: string;
-    type: string;
-    enabled: boolean;
-    intensity: number;
-  }>;
+  effectLayers: EffectLayer[];
 }
 
 interface AdvancedStudioContextType {
@@ -42,8 +50,10 @@ interface AdvancedStudioContextType {
   updateAnimation: (updates: Partial<AdvancedStudioState['animation']>) => void;
   updateEnvironment: (updates: Partial<AdvancedStudioState['environment']>) => void;
   setSelectedCard: (card: any) => void;
-  addEffectLayer: (layer: any) => void;
-  updateEffectLayer: (id: string, updates: any) => void;
+  setViewMode: (mode: '2d' | '3d') => void;
+  applyPreset: (type: string, presetId: string) => void;
+  addEffectLayer: (layer: Partial<EffectLayer>) => void;
+  updateEffectLayer: (id: string, updates: Partial<EffectLayer>) => void;
   removeEffectLayer: (id: string) => void;
 }
 
@@ -51,6 +61,7 @@ const AdvancedStudioContext = createContext<AdvancedStudioContextType | undefine
 
 const initialState: AdvancedStudioState = {
   selectedCard: null,
+  viewMode: '3d',
   material: {
     preset: 'standard',
     metalness: 50,
@@ -73,7 +84,9 @@ const initialState: AdvancedStudioState = {
   },
   environment: {
     preset: 'studio',
-    hdriIntensity: 1
+    hdriIntensity: 1,
+    backgroundBlur: 0,
+    backgroundBrightness: 100
   },
   effectLayers: []
 };
@@ -101,11 +114,41 @@ export const AdvancedStudioProvider: React.FC<{ children: ReactNode }> = ({ chil
     setState(prev => ({ ...prev, selectedCard: card }));
   }, []);
 
-  const addEffectLayer = useCallback((layer: any) => {
-    setState(prev => ({ ...prev, effectLayers: [...prev.effectLayers, layer] }));
+  const setViewMode = useCallback((mode: '2d' | '3d') => {
+    setState(prev => ({ ...prev, viewMode: mode }));
   }, []);
 
-  const updateEffectLayer = useCallback((id: string, updates: any) => {
+  const applyPreset = useCallback((type: string, presetId: string) => {
+    // Apply environment, material, or lighting presets
+    if (type === 'environment') {
+      const environmentPresets = {
+        studio: { hdriIntensity: 1, backgroundBlur: 0, backgroundBrightness: 100 },
+        nature: { hdriIntensity: 1.2, backgroundBlur: 20, backgroundBrightness: 80 },
+        sunset: { hdriIntensity: 0.8, backgroundBlur: 30, backgroundBrightness: 60 },
+        neon: { hdriIntensity: 1.5, backgroundBlur: 50, backgroundBrightness: 40 }
+      };
+      const preset = environmentPresets[presetId as keyof typeof environmentPresets];
+      if (preset) {
+        updateEnvironment({ preset: presetId, ...preset });
+      }
+    }
+  }, []);
+
+  const addEffectLayer = useCallback((layer: Partial<EffectLayer>) => {
+    const newLayer: EffectLayer = {
+      id: Math.random().toString(36).substr(2, 9),
+      type: 'holographic',
+      enabled: true,
+      intensity: 50,
+      opacity: 100,
+      blendMode: 'normal',
+      parameters: {},
+      ...layer
+    };
+    setState(prev => ({ ...prev, effectLayers: [...prev.effectLayers, newLayer] }));
+  }, []);
+
+  const updateEffectLayer = useCallback((id: string, updates: Partial<EffectLayer>) => {
     setState(prev => ({
       ...prev,
       effectLayers: prev.effectLayers.map(layer =>
@@ -128,6 +171,8 @@ export const AdvancedStudioProvider: React.FC<{ children: ReactNode }> = ({ chil
     updateAnimation,
     updateEnvironment,
     setSelectedCard,
+    setViewMode,
+    applyPreset,
     addEffectLayer,
     updateEffectLayer,
     removeEffectLayer

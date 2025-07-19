@@ -33,6 +33,20 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
     toggleLayerVisibility
   } = useStudioEffects();
 
+  // Fix the advanced3DEffects to match expected interface
+  const correctedAdvanced3DEffects = {
+    holographic: advanced3DEffects.shadows || false,
+    metalness: 0.5,
+    roughness: 0.5,
+    particles: advanced3DEffects.reflections || false,
+    glow: advanced3DEffects.bloom || false,
+    glowColor: '#00ff88',
+    bloom: advanced3DEffects.bloom || false,
+    bloomStrength: 1.0,
+    bloomRadius: 0.5,
+    bloomThreshold: 0.8
+  };
+
   const handleEffectChange = (effectId: string, parameterId: string, value: number | boolean | string) => {
     onEffectChange(effectId, parameterId, value);
     // Clear preset selection when manual changes are made
@@ -82,12 +96,12 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
 
       {showAdvanced && (
         <AdvancedEffectsPanel
-          advanced3DEffects={advanced3DEffects}
+          advanced3DEffects={correctedAdvanced3DEffects}
           onAdvanced3DChange={handleAdvanced3DChange}
           effectLayers={effectLayers}
           selectedLayerId={selectedLayerId}
-          onAddEffectLayer={addEffectLayer}
-          onUpdateEffectLayer={updateEffectLayer}
+          onAddEffectLayer={(type) => addEffectLayer({ type, name: `${type} effect` })}
+          onUpdateEffectLayer={(layer) => updateEffectLayer(layer.id, layer)}
           onRemoveEffectLayer={removeEffectLayer}
           onToggleLayerVisibility={toggleLayerVisibility}
         />

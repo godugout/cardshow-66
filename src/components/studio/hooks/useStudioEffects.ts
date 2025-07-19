@@ -1,12 +1,23 @@
 
 import { useState, useCallback } from 'react';
 
+export interface EffectLayerData {
+  id: string;
+  name: string;
+  type: 'holographic' | 'chrome' | 'glow' | 'particle' | 'distortion';
+  visible: boolean;
+  intensity: number;
+  opacity: number;
+  parameters: Record<string, any>;
+}
+
 export interface EffectLayer {
   id: string;
   name: string;
-  type: string;
+  type: 'holographic' | 'chrome' | 'glow' | 'particle' | 'distortion';
   visible: boolean;
   intensity: number;
+  opacity: number;
   parameters: Record<string, any>;
 }
 
@@ -21,14 +32,15 @@ export const useStudioEffects = () => {
     antialiasing: true
   });
 
-  const addEffectLayer = useCallback((type: string) => {
+  const addEffectLayer = useCallback((layerData: Partial<EffectLayerData>) => {
     const newLayer: EffectLayer = {
       id: `effect-${Date.now()}`,
-      name: `${type} Effect`,
-      type,
+      name: layerData.name || `${layerData.type} Effect`,
+      type: layerData.type || 'holographic',
       visible: true,
-      intensity: 50,
-      parameters: {}
+      intensity: layerData.intensity || 50,
+      opacity: layerData.opacity || 100,
+      parameters: layerData.parameters || {}
     };
     setEffectLayers(prev => [...prev, newLayer]);
     setSelectedLayerId(newLayer.id);
