@@ -1,36 +1,25 @@
 
 import React from 'react';
-import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
+import { Button } from '@/components/ui/button';
+import { Play, Pause, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 
 export const ViewerUI: React.FC = () => {
-  const { state } = useAdvancedStudio();
-  
   return (
-    <>
-      {/* Performance indicator */}
-      <div className="absolute top-4 left-4 z-10">
-        <div className="bg-black/50 backdrop-blur-sm rounded px-3 py-1 text-sm text-white">
-          Quality: {state.renderQuality.toUpperCase()}
-        </div>
+    <div className="absolute top-4 right-4 flex flex-col gap-2">
+      <div className="flex gap-2 bg-black/20 backdrop-blur-sm rounded-lg p-2">
+        <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+          <Play className="w-4 h-4" />
+        </Button>
+        <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+          <RotateCcw className="w-4 h-4" />
+        </Button>
+        <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+          <ZoomIn className="w-4 h-4" />
+        </Button>
+        <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+          <ZoomOut className="w-4 h-4" />
+        </Button>
       </div>
-      
-      {/* Animation status */}
-      {state.animation.isPlaying && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-          <div className="bg-crd-green/20 backdrop-blur-sm rounded px-3 py-1 text-sm text-crd-green border border-crd-green/50 animate-pulse">
-            Animation Playing - {state.animation.preset}
-          </div>
-        </div>
-      )}
-      
-      {/* Effect layers indicator */}
-      {state.effectLayers.length > 0 && (
-        <div className="absolute top-4 right-4 z-10">
-          <div className="bg-crd-green/20 backdrop-blur-sm rounded px-3 py-1 text-sm text-crd-green border border-crd-green/50">
-            {state.effectLayers.filter(l => l.enabled).length} Effects Active
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 };

@@ -1,75 +1,62 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-export interface EffectLayerData {
+export interface EffectLayer {
   id: string;
   name: string;
-  type: 'holographic' | 'metallic' | 'prismatic' | 'vintage' | 'crystal' | 'foil';
-  opacity: number;
-  blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light' | 'color-dodge' | 'color-burn';
+  type: string;
   visible: boolean;
-  parameters: Record<string, number>;
+  intensity: number;
+  parameters: Record<string, any>;
 }
 
 export const useStudioEffects = () => {
-  const [effectLayers, setEffectLayers] = useState<EffectLayerData[]>([]);
-  const [selectedLayerId, setSelectedLayerId] = useState<string>('');
+  const [effectLayers, setEffectLayers] = useState<EffectLayer[]>([]);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [advanced3DEffects, setAdvanced3DEffects] = useState({
-    holographic: false,
-    metalness: 0.1,
-    roughness: 0.4,
-    particles: false,
-    glow: false,
-    glowColor: '#00ffff',
+    shadows: true,
+    reflections: true,
+    ambientOcclusion: false,
     bloom: false,
-    bloomStrength: 1.5,
-    bloomRadius: 0.4,
-    bloomThreshold: 0.85
+    antialiasing: true
   });
 
-  const addEffectLayer = (type: EffectLayerData['type']) => {
-    const newLayer: EffectLayerData = {
-      id: `layer-${Date.now()}`,
-      name: `${type.charAt(0).toUpperCase() + type.slice(1)} Effect`,
+  const addEffectLayer = useCallback((type: string) => {
+    const newLayer: EffectLayer = {
+      id: `effect-${Date.now()}`,
+      name: `${type} Effect`,
       type,
-      opacity: 100,
-      blendMode: 'normal',
       visible: true,
-      parameters: {
-        intensity: 50,
-        spread: 30,
-        shimmer: 40,
-        depth: 25
-      }
+      intensity: 50,
+      parameters: {}
     };
     setEffectLayers(prev => [...prev, newLayer]);
     setSelectedLayerId(newLayer.id);
-  };
+  }, []);
 
-  const updateEffectLayer = (updatedLayer: EffectLayerData) => {
+  const updateEffectLayer = useCallback((id: string, updates: Partial<EffectLayer>) => {
     setEffectLayers(prev => prev.map(layer => 
-      layer.id === updatedLayer.id ? updatedLayer : layer
+      layer.id === id ? { ...layer, ...updates } : layer
     ));
-  };
+  }, []);
 
-  const removeEffectLayer = (layerId: string) => {
-    setEffectLayers(prev => prev.filter(layer => layer.id !== layerId));
-    if (selectedLayerId === layerId) {
-      setSelectedLayerId('');
+  const removeEffectLayer = useCallback((id: string) => {
+    setEffectLayers(prev => prev.filter(layer => layer.id !== id));
+    if (selectedLayerId === id) {
+      setSelectedLayerId(null);
     }
-  };
+  }, [selectedLayerId]);
 
-  const toggleLayerVisibility = (layerId: string) => {
-    setEffectLayers(prev => prev.map(layer =>
-      layer.id === layerId ? { ...layer, visible: !layer.visible } : layer
+  const toggleLayerVisibility = useCallback((id: string) => {
+    setEffectLayers(prev => prev.map(layer => 
+      layer.id === id ? { ...layer, visible: !layer.visible } : layer
     ));
-  };
+  }, []);
 
   return {
     effectLayers,
     selectedLayerId,
     advanced3DEffects,
-    setSelectedLayerId,
     setAdvanced3DEffects,
     addEffectLayer,
     updateEffectLayer,

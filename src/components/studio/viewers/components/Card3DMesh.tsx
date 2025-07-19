@@ -1,10 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { HolographicMaterial } from '../../shaders/HolographicMaterial';
-import { MetallicMaterial } from '../../shaders/MetallicMaterial';
-import { ParticleSystem } from '../../effects/ParticleSystem';
-import { GlowEffect } from '../../effects/GlowEffect';
 import * as THREE from 'three';
 
 interface Card3DMeshProps {
@@ -23,51 +19,78 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   const meshRef = useRef<THREE.Mesh>(null);
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   
-  // Load card texture
+  // Load card texture safely
   useEffect(() => {
-    if (card?.image) {
+    if (card?.image || card?.image_url) {
       const loader = new THREE.TextureLoader();
-      loader.load(card.image, (loadedTexture) => {
-        setTexture(loadedTexture);
-      });
+      const imageUrl = card.image || card.image_url || '/placeholder.svg';
+      loader.load(
+        imageUrl,
+        (loadedTexture) => {
+          setTexture(loadedTexture);
+        },
+        undefined,
+        (error) => {
+          console.warn('Failed to load texture:', error);
+          // Create a simple colored texture as fallback
+          const canvas = document.createElement('canvas');
+          canvas.width = 512;
+          canvas.height = 712;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, 512, 712);
+            ctx.fillStyle = '#4a9eff';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('CRD', 256, 356);
+          }
+          const fallbackTexture = new THREE.CanvasTexture(canvas);
+          setTexture(fallbackTexture);
+        }
+      );
     }
-  }, [card?.image]);
+  }, [card?.image, card?.image_url]);
   
-  // Animation logic
+  // Animation logic with safety checks
   useFrame((state, delta) => {
-    if (!meshRef.current) return;
+    if (!meshRef.current || !animation) return;
     
     if (animation.preset === 'rotate' && animation.isPlaying) {
-      meshRef.current.rotation.y += delta * (animation.speed / 50);
+      meshRef.current.rotation.y += delta * ((animation.speed || 50) / 50);
     }
     
     if (animation.preset === 'float' && animation.isPlaying) {
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.2 * (animation.amplitude / 100);
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.2 * ((animation.amplitude || 50) / 100);
     }
     
     if (animation.preset === 'pulse' && animation.isPlaying) {
-      const scale = 1 + Math.sin(state.clock.elapsedTime * 3) * 0.1 * (animation.amplitude / 100);
+      const scale = 1 + Math.sin(state.clock.elapsedTime * 3) * 0.1 * ((animation.amplitude || 50) / 100);
       meshRef.current.scale.setScalar(scale);
     }
   });
 
-  // Create material based on preset
+  // Create material based on preset with safe defaults
   const createMaterial = () => {
     const baseProps = {
-      transparent: material.transparency > 0,
-      opacity: 1 - (material.transparency / 100),
+      transparent: (material?.transparency || 0) > 0,
+      opacity: 1 - ((material?.transparency || 0) / 100),
+      map: texture
     };
 
-    switch (material.preset) {
+    const metalness = (material?.metalness || 50) / 100;
+    const roughness = (material?.roughness || 50) / 100;
+    const emission = (material?.emission || 0) / 100;
+
+    switch (material?.preset) {
       case 'holographic':
         return (
           <meshStandardMaterial
             {...baseProps}
-            map={texture}
             metalness={0.3}
             roughness={0.1}
             emissive={new THREE.Color(0x444444)}
-            emissiveIntensity={material.emission / 100}
+            emissiveIntensity={emission}
           />
         );
       case 'metallic':
@@ -75,11 +98,10 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         return (
           <meshStandardMaterial
             {...baseProps}
-            map={texture}
-            metalness={material.metalness / 100}
-            roughness={material.roughness / 100}
-            emissive={material.emission > 0 ? new THREE.Color(0x444444) : new THREE.Color(0x000000)}
-            emissiveIntensity={material.emission / 100}
+            metalness={metalness}
+            roughness={roughness}
+            emissive={emission > 0 ? new THREE.Color(0x444444) : new THREE.Color(0x000000)}
+            emissiveIntensity={emission}
             envMapIntensity={2}
           />
         );
@@ -87,10 +109,9 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         return (
           <meshPhysicalMaterial
             {...baseProps}
-            map={texture}
             metalness={0}
             roughness={0}
-            transmission={material.transparency / 100}
+            transmission={Math.min(0.9, (material?.transparency || 0) / 100)}
             thickness={0.5}
             ior={1.5}
           />
@@ -99,51 +120,35 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         return (
           <meshStandardMaterial
             {...baseProps}
-            map={texture}
-            metalness={material.metalness / 100}
-            roughness={material.roughness / 100}
-            emissive={material.emission > 0 ? new THREE.Color(0x444444) : new THREE.Color(0x000000)}
-            emissiveIntensity={material.emission / 100}
+            metalness={metalness}
+            roughness={roughness}
+            emissive={emission > 0 ? new THREE.Color(0x444444) : new THREE.Color(0x000000)}
+            emissiveIntensity={emission}
           />
         );
     }
   };
 
-  // Check for active effects
-  const glowEffect = effectLayers.find(e => e.type === 'glow' && e.enabled);
-  const particleEffect = effectLayers.find(e => e.type === 'particle' && e.enabled);
-  const holographicEffect = effectLayers.find(e => e.type === 'holographic' && e.enabled);
+  // Check for active effects safely
+  const glowEffect = effectLayers?.find(e => e.type === 'glow' && e.enabled);
 
   return (
     <group>
-      {/* Particle effects */}
-      {particleEffect && (
-        <ParticleSystem
-          count={50}
-          intensity={particleEffect.intensity}
-          enabled={true}
-        />
-      )}
+      {/* Main card mesh */}
+      <mesh ref={meshRef}>
+        <boxGeometry args={[2.5, 3.5, 0.1]} />
+        {createMaterial()}
+      </mesh>
       
-      {/* Main card with glow effect */}
-      <GlowEffect
-        intensity={glowEffect?.intensity || 0}
-        color="#4ade80"
-        enabled={!!glowEffect}
-      >
-        <mesh ref={meshRef}>
-          <boxGeometry args={[2.5, 3.5, 0.1]} />
-          {createMaterial()}
-        </mesh>
-      </GlowEffect>
-      
-      {/* Holographic overlay effect */}
-      {holographicEffect && material.preset === 'holographic' && (
+      {/* Simple glow effect if enabled */}
+      {glowEffect && (
         <mesh position={[0, 0, 0.052]}>
-          <planeGeometry args={[2.3, 3.3]} />
-          <HolographicMaterial intensity={holographicEffect.intensity}>
-            <meshBasicMaterial transparent opacity={0.5} />
-          </HolographicMaterial>
+          <boxGeometry args={[2.52, 3.52, 0.001]} />
+          <meshBasicMaterial
+            color="#4ade80"
+            transparent
+            opacity={(glowEffect.intensity || 50) / 100 * 0.3}
+          />
         </mesh>
       )}
     </group>

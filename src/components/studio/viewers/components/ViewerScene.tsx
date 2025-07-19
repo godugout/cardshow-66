@@ -2,12 +2,17 @@
 import React from 'react';
 import { Environment, Text } from '@react-three/drei';
 import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
+import { useStudioState } from '@/hooks/useStudioState';
 import { Card3DMesh } from './Card3DMesh';
 import { LightingSystem } from './LightingSystem';
 
 export const ViewerScene: React.FC = () => {
   const { state } = useAdvancedStudio();
+  const { currentCard } = useStudioState();
   const { selectedCard, material, lighting, animation, environment, effectLayers } = state;
+  
+  // Use selectedCard from advanced studio or fallback to currentCard from studio state
+  const cardToRender = selectedCard || currentCard;
   
   // Map environment presets to valid drei presets
   const getEnvironmentPreset = (preset: string) => {
@@ -33,9 +38,9 @@ export const ViewerScene: React.FC = () => {
       <LightingSystem lighting={lighting} />
       
       {/* Main card or placeholder */}
-      {selectedCard ? (
+      {cardToRender ? (
         <Card3DMesh 
-          card={selectedCard}
+          card={cardToRender}
           material={material}
           animation={animation}
           effectLayers={effectLayers}
