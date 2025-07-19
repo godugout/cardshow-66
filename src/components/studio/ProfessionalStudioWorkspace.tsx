@@ -32,7 +32,11 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { ProfessionalViewport } from './viewers/ProfessionalViewport';
+import { Professional3DViewer } from './viewers/Professional3DViewer';
+import { SimpleTimeline } from './timeline/SimpleTimeline';
+import { TemplateLibrary } from './assets/TemplateLibrary';
+import { MaterialLibrary } from './assets/MaterialLibrary';
+import { EffectsLibrary } from './assets/EffectsLibrary';
 import { useStudioState } from '@/hooks/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
@@ -198,39 +202,10 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="assets" className="flex-1 p-3 space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Templates</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          {[1, 2, 3, 4].map(i => (
-                            <Card key={i} className="aspect-[3/4] bg-crd-darkest border-crd-border hover:border-crd-accent cursor-pointer">
-                              <div className="w-full h-full rounded-sm bg-gradient-to-br from-crd-accent/20 to-crd-accent/5"></div>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Materials</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                          {['Metallic', 'Glossy', 'Matte', 'Holographic', 'Carbon', 'Glass'].map(material => (
-                            <div key={material} className="aspect-square bg-crd-darkest border border-crd-border rounded-sm flex items-center justify-center text-xs cursor-pointer hover:border-crd-accent">
-                              {material}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Effects</h3>
-                        <div className="space-y-1">
-                          {['Glow', 'Particle System', 'Lightning', 'Smoke', 'Fire'].map(effect => (
-                            <div key={effect} className="p-2 bg-crd-darkest border border-crd-border rounded-sm text-xs hover:border-crd-accent cursor-pointer">
-                              {effect}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                    <TabsContent value="assets" className="flex-1 p-3 space-y-4 overflow-auto">
+                      <TemplateLibrary />
+                      <MaterialLibrary />
+                      <EffectsLibrary />
                     </TabsContent>
 
                     <TabsContent value="hierarchy" className="flex-1 p-3">
@@ -309,7 +284,7 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
               </div>
 
               {/* 3D Viewport */}
-              <ProfessionalViewport />
+              <Professional3DViewer />
             </div>
           </Panel>
 
@@ -440,10 +415,20 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
         </PanelGroup>
       </div>
 
-      {/* Bottom Panel - Simple Timeline Placeholder */}
+      {/* Bottom Panel - Timeline */}
       {!bottomPanelCollapsed && (
-        <div className="h-64 bg-crd-dark border-t border-crd-border flex items-center justify-center">
-          <p className="text-crd-text-secondary text-sm">Timeline (Coming Soon)</p>
+        <div className="h-64">
+          <SimpleTimeline
+            mode={mode}
+            onAnimationUpdate={(timelineState) => {
+              // Handle timeline updates
+              console.log('Timeline updated:', timelineState);
+            }}
+            onExport={(format, options) => {
+              // Handle export
+              console.log('Export:', format, options);
+            }}
+          />
         </div>
       )}
 
