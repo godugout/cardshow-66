@@ -37,6 +37,9 @@ import { SimpleTimeline } from './timeline/SimpleTimeline';
 import { TemplateLibrary } from './assets/TemplateLibrary';
 import { MaterialLibrary } from './assets/MaterialLibrary';
 import { EffectsLibrary } from './assets/EffectsLibrary';
+import { SceneHierarchy } from './hierarchy/SceneHierarchy';
+import { ExportPanel } from './export/ExportPanel';
+import { StudioPropertiesPanel } from './StudioPropertiesPanel';
 import { useStudioState } from '@/hooks/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
@@ -208,47 +211,8 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
                       <EffectsLibrary />
                     </TabsContent>
 
-                    <TabsContent value="hierarchy" className="flex-1 p-3">
-                      <div className="space-y-1">
-                        {studioState.layers.map((layer, index) => (
-                          <div
-                            key={layer.id}
-                            className={`flex items-center gap-2 p-2 rounded-sm cursor-pointer ${
-                              studioState.selectedLayerId === layer.id 
-                                ? 'bg-crd-accent/20 border border-crd-accent' 
-                                : 'hover:bg-crd-darkest'
-                            }`}
-                            onClick={() => selectLayer(layer.id)}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateLayer(layer.id, { visible: !layer.visible });
-                              }}
-                            >
-                              {layer.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateLayer(layer.id, { locked: !layer.locked });
-                              }}
-                            >
-                              {layer.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                            </Button>
-                            <span className="text-xs flex-1">{layer.name}</span>
-                            <Badge variant="outline" className="text-xs px-1 py-0">
-                              {layer.type}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
+                    <TabsContent value="hierarchy" className="flex-1 m-0">
+                      <SceneHierarchy />
                     </TabsContent>
                   </Tabs>
                 </div>
@@ -306,106 +270,12 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="properties" className="flex-1 p-3 space-y-4">
-                      {/* Transform */}
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Transform</h3>
-                        <div className="space-y-2">
-                          <div>
-                            <label className="text-xs text-crd-text-secondary">Position X</label>
-                            <Slider defaultValue={[0]} max={100} min={-100} step={1} className="mt-1" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-crd-text-secondary">Position Y</label>
-                            <Slider defaultValue={[0]} max={100} min={-100} step={1} className="mt-1" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-crd-text-secondary">Rotation</label>
-                            <Slider defaultValue={[0]} max={360} min={0} step={1} className="mt-1" />
-                          </div>
-                          <div>
-                            <label className="text-xs text-crd-text-secondary">Scale</label>
-                            <Slider defaultValue={[100]} max={200} min={10} step={1} className="mt-1" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Lighting */}
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Lighting</h3>
-                        <div className="space-y-2">
-                          <div>
-                            <label className="text-xs text-crd-text-secondary">Ambient Intensity</label>
-                            <Slider 
-                              value={[studioState.lighting.ambientIntensity]} 
-                              onValueChange={([value]) => updateLighting({ ambientIntensity: value })}
-                              max={100} 
-                              min={0} 
-                              step={1} 
-                              className="mt-1" 
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs text-crd-text-secondary">Shadow Intensity</label>
-                            <Slider 
-                              value={[studioState.lighting.shadowIntensity]} 
-                              onValueChange={([value]) => updateLighting({ shadowIntensity: value })}
-                              max={100} 
-                              min={0} 
-                              step={1} 
-                              className="mt-1" 
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Materials */}
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Material</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          {['Default', 'Metallic', 'Glossy', 'Matte'].map(material => (
-                            <Button key={material} variant="outline" size="sm" className="text-xs">
-                              {material}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
+                    <TabsContent value="properties" className="flex-1 m-0">
+                      <StudioPropertiesPanel isOpen={true} onClose={() => {}} />
                     </TabsContent>
 
-                    <TabsContent value="export" className="flex-1 p-3 space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Export Options</h3>
-                        <div className="space-y-2">
-                          <Button className="w-full" size="sm">
-                            <Download className="w-4 h-4 mr-2" />
-                            High-Res PNG
-                          </Button>
-                          <Button variant="outline" className="w-full" size="sm">
-                            Export 3D Model
-                          </Button>
-                          <Button variant="outline" className="w-full" size="sm">
-                            Share to Marketplace
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Format Settings</h3>
-                        <div className="space-y-2 text-xs">
-                          <div className="flex justify-between">
-                            <span>Resolution:</span>
-                            <span>4K (3840×2160)</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Format:</span>
-                            <span>PNG (Alpha)</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Quality:</span>
-                            <span>Ultra</span>
-                          </div>
-                        </div>
-                      </div>
+                    <TabsContent value="export" className="flex-1 m-0">
+                      <ExportPanel />
                     </TabsContent>
                   </Tabs>
                 </div>
