@@ -32,7 +32,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { Professional3DViewer } from './viewers/Professional3DViewer';
+import { ProfessionalViewport } from './viewport/ProfessionalViewport';
 import { useStudioState } from '@/hooks/studio/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
@@ -309,7 +309,7 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
               </div>
 
               {/* 3D Viewport */}
-              <Professional3DViewer />
+              <ProfessionalViewport />
             </div>
           </Panel>
 
