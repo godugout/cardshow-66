@@ -32,8 +32,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { ProfessionalViewport } from './viewport/ProfessionalViewport';
-import { ProfessionalTimeline } from './timeline/ProfessionalTimeline';
+import { ProfessionalViewport } from './viewers/ProfessionalViewport';
 import { useStudioState } from '@/hooks/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
@@ -441,20 +440,10 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
         </PanelGroup>
       </div>
 
-      {/* Bottom Panel - Timeline & Animation Controls */}
+      {/* Bottom Panel - Simple Timeline Placeholder */}
       {!bottomPanelCollapsed && (
-        <div className="h-64">
-          <ProfessionalTimeline
-            mode={mode}
-            onAnimationUpdate={(timelineState) => {
-              // Handle timeline updates here
-              console.log('Timeline updated:', timelineState);
-            }}
-            onExport={(format, options) => {
-              // Handle export here
-              console.log('Export:', format, options);
-            }}
-          />
+        <div className="h-64 bg-crd-dark border-t border-crd-border flex items-center justify-center">
+          <p className="text-crd-text-secondary text-sm">Timeline (Coming Soon)</p>
         </div>
       )}
 
