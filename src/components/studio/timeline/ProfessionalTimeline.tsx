@@ -22,7 +22,6 @@ import {
   Lock,
   Unlock,
   Copy,
-  Copy,
   Trash2,
   Plus,
   Zap,
