@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { CardCreationInterface } from '@/components/cardmaker/CardCreationInterface';
 import { CreatorOnboardingFlow } from '@/components/creator/CreatorOnboardingFlow';
+import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -120,7 +121,9 @@ export default function CrdMkr() {
               )}
             </div>
             
-            <CardCreationInterface />
+            <OverlayProvider>
+              <CardCreationInterface />
+            </OverlayProvider>
           </div>
         </div>
       </div>
