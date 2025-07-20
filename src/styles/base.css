@@ -2,85 +2,105 @@
 @tailwind base;
 
 :root {
-  /* CRD Design System - HSL Colors */
-  --crd-orange: 12 100% 65%;  /* #FF6B4A converted to HSL */
-  --crd-green: 156 100% 65%;  /* #4FFFB0 converted to HSL */
-  --crd-blue: 220 100% 65%;   /* #4A90FF converted to HSL */
+  /* CRD Design System - HSL Colors - Updated from actual interface */
+  --crd-orange: 12 100% 65%;  /* #FF6B4A */
+  --crd-green: 156 100% 65%;  /* #4ade80 */
+  --crd-blue: 220 100% 65%;   /* #4A90FF */
   
-  /* Core Theme - Dark by Default */
-  --background: 220 5% 10%;    /* #1a1a1c converted to HSL */
-  --foreground: 0 0% 99%;      /* #fcfcfd converted to HSL */
-  --card: 220 6% 13%;          /* #1e1e23 converted to HSL */
-  --card-foreground: 0 0% 99%;
-  --border: 220 12% 16%;       /* #232934 converted to HSL */
+  /* Interface Colors - From screenshots */
+  --background: 220 8% 4%;     /* #0a0a0b - Main background */
+  --foreground: 0 0% 99%;      /* #ffffff - Primary text */
+  --card: 220 6% 8%;           /* #131316 - Card backgrounds */
+  --card-foreground: 0 0% 99%; /* #ffffff - Card text */
+  --border: 220 12% 20%;       /* #334155 - Borders */
+  --panel: 220 15% 12%;        /* #1a1f2e - Side panels */
   
   /* Shadcn UI Compatible Colors */
-  --popover: 220 6% 13%;
+  --popover: 220 6% 8%;        /* Card background */
   --popover-foreground: 0 0% 99%;
-  --primary: 12 100% 65%;      /* CRD Orange as primary */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 12% 16%;
+  --primary: 156 100% 65%;     /* CRD Green as primary */
+  --primary-foreground: 0 0% 0%;
+  --secondary: 220 12% 20%;    /* Border color */
   --secondary-foreground: 0 0% 99%;
-  --muted: 220 8% 15%;
-  --muted-foreground: 220 5% 65%;
-  --accent: 156 100% 65%;      /* CRD Green as accent */
-  --accent-foreground: 0 0% 10%;
-  --destructive: 0 84% 60%;
+  --muted: 220 8% 15%;         /* Muted backgrounds */
+  --muted-foreground: 220 5% 65%; /* Muted text */
+  --accent: 156 100% 65%;      /* CRD Green accent */
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;    /* Error red */
   --destructive-foreground: 0 0% 98%;
-  --input: 220 12% 16%;
-  --ring: 12 100% 65%;         /* CRD Orange for focus rings */
-  --radius: 0.5rem;
+  --input: 220 12% 20%;        /* Input backgrounds */
+  --ring: 156 100% 65%;        /* Focus rings - CRD Green */
+  --radius: 0.75rem;           /* 12px default radius */
 
-  /* Legacy Cardshow colors (will be phased out) */
-  --cardshow-green: #45B26B;
-  --cardshow-orange: #EA6E48;
-  --cardshow-purple: #9757D7;
-  --cardshow-blue: #3772FF;
-  --cardshow-white: #FCFCFD;
-  --cardshow-lightGray: #777E90;
-  --cardshow-mediumGray: #353945;
-  --cardshow-darkGray: #23262F;
-  --cardshow-darkest: #121212;
-  --editor-dark: #1a1a1a;
-  --editor-darker: #121212;
-  --editor-tool: #2a2a2a;
-  --editor-border: #333333;
-  --editor-canvas: #2c2c2c;
+  /* Status Colors - From interface */
+  --success: 156 100% 65%;     /* Green */
+  --warning: 32 95% 50%;       /* Amber */
+  --error: 0 84% 60%;          /* Red */
+  --info: 217 91% 60%;         /* Blue */
+  
+  /* Marketplace Colors - From screenshots */
+  --price: 156 100% 65%;       /* Price green */
+  --bid: 32 95% 50%;           /* Bid orange */
+  --auction: 0 84% 60%;        /* Auction red */
+  --verified: 156 100% 65%;    /* Verified green */
+  
+  /* Interface States */
+  --hover: 220 8% 14%;         /* Hover backgrounds */
+  --active: 220 12% 20%;       /* Active states */
+  --focus: 156 100% 65%;       /* Focus color */
+  
+  /* Navigation */
+  --nav-bg: 220 8% 4% / 0.8;   /* Semi-transparent nav */
+  --nav-border: 220 12% 20%;   /* Nav border */
+  --nav-height: 64px;          /* Fixed nav height */
 }
 
 .dark {
-  --background: 220 5% 10%;
+  /* Dark theme overrides - matching interface */
+  --background: 220 8% 4%;
   --foreground: 0 0% 99%;
-  --card: 220 6% 13%;
+  --card: 220 6% 8%;
   --card-foreground: 0 0% 99%;
-  --popover: 220 6% 13%;
+  --popover: 220 6% 8%;
   --popover-foreground: 0 0% 99%;
-  --primary: 12 100% 65%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 12% 16%;
+  --primary: 156 100% 65%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 220 12% 20%;
   --secondary-foreground: 0 0% 99%;
   --muted: 220 8% 15%;
   --muted-foreground: 220 5% 65%;
   --accent: 156 100% 65%;
-  --accent-foreground: 0 0% 10%;
+  --accent-foreground: 0 0% 0%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 220 12% 16%;
-  --input: 220 12% 16%;
-  --ring: 12 100% 65%;
+  --border: 220 12% 20%;
+  --input: 220 12% 20%;
+  --ring: 156 100% 65%;
 }
 
-/* CRD Gradient Utility */
+/* CRD Gradient Utilities */
 .crd-gradient {
   background: linear-gradient(135deg, hsl(var(--crd-orange)) 0%, hsl(var(--crd-green)) 50%, hsl(var(--crd-blue)) 100%);
 }
 
-/* CRD Gradient Text */
 .crd-gradient-text {
   background: linear-gradient(135deg, hsl(var(--crd-orange)) 0%, hsl(var(--crd-green)) 50%, hsl(var(--crd-blue)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Card Glow Effects - From interface */
+.card-glow-green {
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+}
+
+.card-glow-blue {
+  box-shadow: 0 0 20px rgba(74, 144, 255, 0.4);
+}
+
+.card-glow-purple {
+  box-shadow: 0 0 20px rgba(151, 87, 215, 0.4);
 }
 
 @layer base {
@@ -91,22 +111,38 @@
   body {
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   html {
-    /* Force dark theme by default */
     color-scheme: dark;
+    scroll-behavior: smooth;
   }
   
+  /* Typography Scale - From interface */
   h1 {
-    @apply text-4xl font-bold mb-4;
+    @apply text-3xl font-bold mb-4 text-foreground;
   }
   
   h2 {
-    @apply text-3xl font-bold mb-3;
+    @apply text-2xl font-bold mb-3 text-foreground;
   }
   
   h3 {
-    @apply text-2xl font-bold mb-2;
+    @apply text-xl font-semibold mb-2 text-foreground;
+  }
+  
+  h4 {
+    @apply text-lg font-medium mb-2 text-foreground;
+  }
+  
+  /* Focus styles for accessibility */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }

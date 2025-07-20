@@ -25,6 +25,8 @@ export {
 // Enhanced Design System Components Export
 export { designTokens } from './tokens';
 export type { DesignTokens } from './tokens';
+export { ComponentSpecs, ComponentUsageExamples } from './ComponentSpecs';
+export { InteractiveExamples } from './InteractiveExamples';
 
 // Atoms
 export { UniversalButton } from './atoms/UniversalButton';
@@ -41,10 +43,21 @@ export { UniversalNavbar } from './organisms/UniversalNavbar';
 // Templates
 export { UniversalPageLayout } from './templates/UniversalPageLayout';
 
+// Main Design Guide
+export { default as CRDDesignGuide } from './CRDDesignGuide';
+
 // Legacy exports for backward compatibility
 export { Typography, Heading, AccentText } from './Typography';
 export { colors } from './colors';
-export type { BrandColor, NeutralColor, ColorKey } from './colors';
+export type { 
+  BrandColor, 
+  InterfaceColor, 
+  TextColor, 
+  StatusColor, 
+  MarketplaceColor,
+  NeutralColor, 
+  ColorKey 
+} from './colors';
 export { PSDCard } from './PSDCard';
 export { PSDButton } from './PSDButton';
 export { psdTokens } from './psd-tokens';
