@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Upload, Save, Eye, Sparkles, Image, Type, Layers, Palette, FileImage } from 'lucide-react';
-import { CardPreview } from './CardPreview';
+import { StudioPreviewButton } from './StudioPreviewButton';
+import { EnhancedCardPreview } from './EnhancedCardPreview';
 import { ImageUploader } from './ImageUploader';
 import { FrameSelector } from './FrameSelector';
 import { EffectsPanel } from './EffectsPanel';
@@ -18,6 +19,7 @@ import { PSDUploadZone } from './PSDUploadZone';
 import { PSDToFrameConverter } from './PSDToFrameConverter';
 import { MaterialLibrary } from '@/components/studio/assets/MaterialLibrary';
 import { EffectsLibrary } from '@/components/studio/assets/EffectsLibrary';
+import { TextEditingPanel } from './TextEditingPanel';
 import type { CardRarity } from '@/types/card';
 import type { PSDToCardData } from '@/utils/psdToCardConverter';
 import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
@@ -53,6 +55,8 @@ export const CardCreationInterface: React.FC = () => {
   const [isFromPSD, setIsFromPSD] = useState(false);
   const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);
   const [showPSDConverter, setShowPSDConverter] = useState(false);
+  const [textElements, setTextElements] = useState<any[]>([]);
+  const [selectedTextElement, setSelectedTextElement] = useState<string>('');
 
   // Handle PSD data initialization
   useEffect(() => {
@@ -131,6 +135,24 @@ export const CardCreationInterface: React.FC = () => {
     setProcessedPSD(null);
     setActivePanel('psd');
   }, []);
+
+  // Text element handlers
+  const handleAddTextElement = useCallback((element: any) => {
+    const newElement = { ...element, id: `text-${Date.now()}` };
+    setTextElements(prev => [...prev, newElement]);
+    setSelectedTextElement(newElement.id);
+  }, []);
+
+  const handleUpdateTextElement = useCallback((id: string, updates: any) => {
+    setTextElements(prev => prev.map(el => el.id === id ? { ...el, ...updates } : el));
+  }, []);
+
+  const handleDeleteTextElement = useCallback((id: string) => {
+    setTextElements(prev => prev.filter(el => el.id !== id));
+    if (selectedTextElement === id) {
+      setSelectedTextElement('');
+    }
+  }, [selectedTextElement]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -320,10 +342,14 @@ export const CardCreationInterface: React.FC = () => {
             )}
 
             {activePanel === 'text' && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Type className="w-12 h-12 mx-auto mb-2" />
-                <p>Text editing tools coming soon...</p>
-              </div>
+              <TextEditingPanel
+                elements={textElements}
+                selectedElement={selectedTextElement}
+                onAddElement={handleAddTextElement}
+                onUpdateElement={handleUpdateTextElement}
+                onDeleteElement={handleDeleteTextElement}
+                onSelectElement={setSelectedTextElement}
+              />
             )}
           </CardContent>
         </Card>
@@ -339,6 +365,12 @@ export const CardCreationInterface: React.FC = () => {
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
+          <StudioPreviewButton
+            cardData={cardData}
+            selectedFrame={selectedFrame}
+            layers={[...layers, ...textElements]}
+            disabled={isSaving || !cardData.title.trim()}
+          />
           <Button
             onClick={handlePublish}
             disabled={isSaving || !cardData.title.trim() || !cardData.image_url}
@@ -360,10 +392,19 @@ export const CardCreationInterface: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <CardPreview
+            <EnhancedCardPreview
               card={cardData}
               selectedFrame={selectedFrame}
-              layers={layers}
+              layers={[...layers, ...textElements.map(el => ({
+                id: el.id,
+                name: el.content || 'Text',
+                type: 'text' as const,
+                visible: el.visible,
+                locked: false,
+                opacity: el.opacity,
+                data: el
+              }))]}
+              showControls={true}
             />
           </CardContent>
         </Card>
