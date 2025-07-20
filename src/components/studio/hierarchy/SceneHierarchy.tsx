@@ -42,11 +42,11 @@ export const SceneHierarchy: React.FC = () => {
   const { state } = useAdvancedStudio();
   
   // Mock layer functions for now
-  const updateLayer = () => {};
-  const addLayer = () => {};
-  const removeLayer = () => {};
-  const reorderLayers = () => {};
-  const selectLayer = () => {};
+  const updateLayer = (layer: any) => {};
+  const addLayer = (layer: any) => {};
+  const removeLayer = (layerId: string) => {};
+  const reorderLayers = (layers: any[]) => {};
+  const selectLayer = (layerId: string) => {};
   
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['card-layers']));
 
@@ -83,15 +83,14 @@ export const SceneHierarchy: React.FC = () => {
   };
 
   const handleDuplicateLayer = (layerId: string) => {
-    const layer = state.layers.find(l => l.id === layerId);
+    const layer = state.effectLayers.find(l => l.id === layerId);
     if (layer) {
       const duplicatedLayer = {
         ...layer,
-        id: `${layer.id}-copy-${Date.now()}`,
-        name: `${layer.name} Copy`
+        id: `${layer.id}-copy-${Date.now()}`
       };
       addLayer(duplicatedLayer);
-      toast.success('Layer duplicated');
+      toast.success('Effect layer duplicated');
     }
   };
 
