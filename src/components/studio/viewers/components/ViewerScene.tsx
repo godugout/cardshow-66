@@ -7,8 +7,41 @@ import { Float, MeshDistortMaterial, Sparkles } from '@react-three/drei';
 
 export const ViewerScene: React.FC = () => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const { state } = useAdvancedStudio();
   const [time, setTime] = useState(0);
+  
+  // Safe context access with fallback
+  let state;
+  try {
+    const context = useAdvancedStudio();
+    state = context.state;
+  } catch (error) {
+    // Fallback state when context is not available
+    state = {
+      selectedCard: {
+        image_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png'
+      },
+      material: {
+        preset: 'standard',
+        metalness: 50,
+        roughness: 50,
+        transparency: 0,
+        emission: 0
+      },
+      lighting: {
+        preset: 'studio',
+        ambientLight: 70,
+        intensity: 80,
+        shadowIntensity: 40
+      },
+      animation: {
+        preset: 'none',
+        isPlaying: false,
+        speed: 50,
+        amplitude: 50
+      },
+      effectLayers: []
+    };
+  }
 
   // Load card texture
   const texture = useLoader(TextureLoader, state.selectedCard?.image_url || '/placeholder.svg');
