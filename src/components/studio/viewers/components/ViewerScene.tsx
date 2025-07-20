@@ -18,7 +18,7 @@ export const ViewerScene: React.FC = () => {
     // Fallback state when context is not available
     state = {
       selectedCard: {
-        image_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png'
+        image_url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&h=1120'
       },
       material: {
         preset: 'standard',

@@ -65,8 +65,8 @@ const defaultCard = {
   description: 'Your canvas awaits! Start customizing this card or create a new one.',
   rarity: 'common',
   tags: ['welcome', 'studio'],
-  image_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
-  thumbnail_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+  image_url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&h=1120',
+  thumbnail_url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&h=560',
   design_metadata: { isDefault: true },
   visibility: 'private'
 };
