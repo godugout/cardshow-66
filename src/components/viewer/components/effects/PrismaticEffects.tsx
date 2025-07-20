@@ -6,6 +6,8 @@ import { HolographicEffect } from './HolographicEffect';
 import { InterferenceEffect } from './InterferenceEffect';
 import { PrizmEffect } from './PrizmEffect';
 import { CrystalEffect } from './CrystalEffect';
+import { GoldEffect } from './GoldEffect';
+import { FoilSprayEffect } from './FoilSprayEffect';
 
 interface PrismaticEffectsProps {
   effectValues: EffectValues;
@@ -18,12 +20,21 @@ export const PrismaticEffects: React.FC<PrismaticEffectsProps> = ({
   mousePosition,
   enhancedLightingData
 }) => {
+  // Check if any effects are active
+  const hasActiveEffects = Object.values(effectValues).some(effect => 
+    typeof effect === 'object' && effect?.intensity > 0
+  );
+
+  if (!hasActiveEffects) return null;
+
   return (
     <>
       <HolographicEffect effectValues={effectValues} mousePosition={mousePosition} />
       <InterferenceEffect effectValues={effectValues} mousePosition={mousePosition} />
       <PrizmEffect effectValues={effectValues} mousePosition={mousePosition} />
       <CrystalEffect effectValues={effectValues} mousePosition={mousePosition} />
+      <GoldEffect effectValues={effectValues} mousePosition={mousePosition} />
+      <FoilSprayEffect effectValues={effectValues} mousePosition={mousePosition} />
     </>
   );
 };
