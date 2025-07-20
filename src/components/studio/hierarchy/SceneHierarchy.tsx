@@ -1,318 +1,295 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
+import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
 import { 
+  Layers, 
   Eye, 
   EyeOff, 
   Lock, 
   Unlock, 
-  MoreVertical,
-  ChevronDown,
+  ChevronDown, 
   ChevronRight,
-  Layers,
-  Box,
-  Lightbulb,
-  Camera,
-  Trash2,
+  MoreHorizontal,
+  Plus,
   Copy,
-  Edit
+  Trash2,
+  Image,
+  Type,
+  Square,
+  Circle
 } from 'lucide-react';
-import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
-interface SceneObject {
-  id: string;
-  name: string;
-  type: 'card' | 'light' | 'camera' | 'effect' | 'environment';
-  visible: boolean;
-  locked: boolean;
-  children?: SceneObject[];
-  properties?: Record<string, any>;
-}
+const getLayerIcon = (type: string) => {
+  switch (type) {
+    case 'image': return Image;
+    case 'text': return Type;
+    case 'shape': return Square;
+    case 'background': return Circle;
+    default: return Layers;
+  }
+};
 
 export const SceneHierarchy: React.FC = () => {
-  const { state, updateEffectLayer, removeEffectLayer } = useAdvancedStudio();
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['scene', 'effects']));
-  const [editingName, setEditingName] = useState<string | null>(null);
+  const { state } = useAdvancedStudio();
+  
+  // Mock layer functions for now
+  const updateLayer = () => {};
+  const addLayer = () => {};
+  const removeLayer = () => {};
+  const reorderLayers = () => {};
+  const selectLayer = () => {};
+  
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['card-layers']));
 
-  // Build scene hierarchy from current state
-  const sceneHierarchy: SceneObject = {
-    id: 'scene',
-    name: 'Scene',
-    type: 'environment',
-    visible: true,
-    locked: false,
-    children: [
-      ...(state.selectedCard ? [{
-        id: 'main-card',
-        name: state.selectedCard.title || 'Card',
-        type: 'card' as const,
-        visible: true,
-        locked: false,
-        properties: {
-          material: state.material.preset,
-          template: state.selectedCard.template
-        }
-      }] : []),
-      {
-        id: 'lighting',
-        name: 'Lighting',
-        type: 'light' as const,
-        visible: true,
-        locked: false,
-        properties: {
-          preset: state.lighting.preset,
-          intensity: state.lighting.intensity,
-          ambient: state.lighting.ambientLight
-        }
-      },
-      {
-        id: 'environment',
-        name: 'Environment',
-        type: 'environment' as const,
-        visible: true,
-        locked: false,
-        properties: {
-          preset: state.environment.preset,
-          hdri: state.environment.hdriIntensity
-        }
-      },
-      ...(state.effectLayers.length > 0 ? [{
-        id: 'effects',
-        name: 'Effects',
-        type: 'effect' as const,
-        visible: true,
-        locked: false,
-        children: state.effectLayers.map(layer => ({
-          id: layer.id,
-          name: layer.type.charAt(0).toUpperCase() + layer.type.slice(1),
-          type: 'effect' as const,
-          visible: layer.enabled,
-          locked: false,
-          properties: {
-            intensity: layer.intensity,
-            opacity: layer.opacity,
-            blendMode: layer.blendMode
-          }
-        }))
-      }] : [])
-    ]
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'card': return Box;
-      case 'light': return Lightbulb;
-      case 'camera': return Camera;
-      case 'effect': return Layers;
-      case 'environment': return Eye;
-      default: return Box;
-    }
-  };
-
-  const toggleExpanded = (id: string) => {
-    setExpandedItems(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
+  const toggleGroupExpansion = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
       } else {
-        next.add(id);
+        newSet.add(groupId);
       }
-      return next;
+      return newSet;
     });
   };
 
-  const handleVisibilityToggle = (id: string, visible: boolean) => {
-    if (id.startsWith('effect-') || state.effectLayers.find(l => l.id === id)) {
-      updateEffectLayer(id, { enabled: visible });
-    }
-    toast.success(`${visible ? 'Showed' : 'Hid'} object`);
+  const handleLayerToggle = (layerId: string, property: 'visible' | 'locked') => {
+    // Mock implementation
+    toast.success(`Toggled ${property} for layer`);
   };
 
-  const handleDelete = (id: string) => {
-    if (state.effectLayers.find(l => l.id === id)) {
-      removeEffectLayer(id);
-      toast.success('Effect removed');
-    }
+  const handleAddLayer = (type: 'text' | 'shape' | 'image') => {
+    const newLayer = {
+      id: `${type}-${Date.now()}`,
+      name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      type,
+      visible: true,
+      locked: false,
+      opacity: 100,
+      blendMode: 'normal'
+    };
+    addLayer(newLayer);
+    selectLayer(newLayer.id);
+    toast.success(`Added ${type} layer`);
   };
 
-  const handleDuplicate = (id: string) => {
-    const layer = state.effectLayers.find(l => l.id === id);
+  const handleDuplicateLayer = (layerId: string) => {
+    const layer = state.layers.find(l => l.id === layerId);
     if (layer) {
-      // In a real implementation, this would add a copy
-      toast.success('Effect duplicated');
+      const duplicatedLayer = {
+        ...layer,
+        id: `${layer.id}-copy-${Date.now()}`,
+        name: `${layer.name} Copy`
+      };
+      addLayer(duplicatedLayer);
+      toast.success('Layer duplicated');
     }
   };
 
-  const renderObjectItem = (obj: SceneObject, depth: number = 0) => {
-    const Icon = getIcon(obj.type);
-    const hasChildren = obj.children && obj.children.length > 0;
-    const isExpanded = expandedItems.has(obj.id);
-    const isEditing = editingName === obj.id;
-
-    return (
-      <div key={obj.id}>
-        <div 
-          className={`flex items-center gap-2 px-2 py-1 hover:bg-crd-darker/50 rounded group ${
-            depth > 0 ? 'ml-4' : ''
-          }`}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        >
-          {/* Expand/Collapse */}
-          {hasChildren && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-4 w-4 p-0"
-              onClick={() => toggleExpanded(obj.id)}
-            >
-              {isExpanded ? (
-                <ChevronDown className="w-3 h-3" />
-              ) : (
-                <ChevronRight className="w-3 h-3" />
-              )}
-            </Button>
-          )}
-          {!hasChildren && <div className="w-4" />}
-
-          {/* Icon */}
-          <Icon className="w-4 h-4 text-crd-text-secondary" />
-
-          {/* Name */}
-          <div className="flex-1 min-w-0">
-            {isEditing ? (
-              <Input
-                value={obj.name}
-                onChange={(e) => {
-                  // Update name logic here
-                }}
-                onBlur={() => setEditingName(null)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') setEditingName(null);
-                  if (e.key === 'Escape') setEditingName(null);
-                }}
-                className="h-6 text-xs"
-                autoFocus
-              />
-            ) : (
-              <span 
-                className="text-sm text-crd-text truncate cursor-pointer"
-                onDoubleClick={() => setEditingName(obj.id)}
-              >
-                {obj.name}
-              </span>
-            )}
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Visibility Toggle */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-              onClick={() => handleVisibilityToggle(obj.id, !obj.visible)}
-            >
-              {obj.visible ? (
-                <Eye className="w-3 h-3" />
-              ) : (
-                <EyeOff className="w-3 h-3 text-crd-text-secondary" />
-              )}
-            </Button>
-
-            {/* Lock Toggle */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-            >
-              {obj.locked ? (
-                <Lock className="w-3 h-3 text-crd-text-secondary" />
-              ) : (
-                <Unlock className="w-3 h-3" />
-              )}
-            </Button>
-
-            {/* More Options */}
-            {obj.type === 'effect' && obj.id !== 'effects' && (
-              <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => handleDuplicate(obj.id)}
-                >
-                  <Copy className="w-3 h-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => handleDelete(obj.id)}
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Properties */}
-        {obj.properties && isExpanded && (
-          <div className="ml-8 mb-2">
-            <div className="text-xs text-crd-text-secondary bg-crd-darker/30 rounded p-2">
-              {Object.entries(obj.properties).map(([key, value]) => (
-                <div key={key} className="flex justify-between">
-                  <span className="capitalize">{key}:</span>
-                  <span>{typeof value === 'number' ? Math.round(value) : String(value)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Children */}
-        {hasChildren && isExpanded && obj.children && (
-          <div>
-            {obj.children.map(child => renderObjectItem(child, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
+  const handleDeleteLayer = (layerId: string) => {
+    removeLayer(layerId);
+    toast.success('Layer deleted');
   };
+
+  const sortedLayers = []; // Mock empty layers for now
 
   return (
-    <div className="w-80 bg-crd-dark border-l border-crd-border h-full overflow-hidden flex flex-col">
-      <div className="p-4 border-b border-crd-border">
-        <h2 className="text-crd-text text-lg font-semibold flex items-center gap-2">
-          <Layers className="w-5 h-5" />
-          Scene Hierarchy
-        </h2>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-2">
-        <div className="space-y-1">
-          {renderObjectItem(sceneHierarchy)}
+    <div className="h-full bg-crd-dark flex flex-col">
+      <div className="p-3 border-b border-crd-border">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            Scene Hierarchy
+          </h3>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                <Plus className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleAddLayer('text')}>
+                <Type className="w-4 h-4 mr-2" />
+                Add Text Layer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddLayer('shape')}>
+                <Square className="w-4 h-4 mr-2" />
+                Add Shape Layer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddLayer('image')}>
+                <Image className="w-4 h-4 mr-2" />
+                Add Image Layer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* Scene Stats */}
-      <div className="p-4 border-t border-crd-border bg-crd-darker/50">
-        <div className="text-xs text-crd-text-secondary space-y-1">
-          <div className="flex justify-between">
-            <span>Objects:</span>
-            <span>{1 + state.effectLayers.length + 2}</span>
+      <div className="flex-1 overflow-auto p-2">
+        {/* Card Layers Group */}
+        <div className="space-y-1">
+          <div 
+            className="flex items-center gap-1 p-1 cursor-pointer hover:bg-crd-darkest rounded-sm"
+            onClick={() => toggleGroupExpansion('card-layers')}
+          >
+            {expandedGroups.has('card-layers') ? (
+              <ChevronDown className="w-3 h-3" />
+            ) : (
+              <ChevronRight className="w-3 h-3" />
+            )}
+            <Layers className="w-3 h-3 text-crd-accent" />
+            <span className="text-xs font-medium">Card Layers</span>
+            <span className="text-xs text-crd-text-secondary ml-auto">
+              {sortedLayers.length}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span>Effects:</span>
-            <span>{state.effectLayers.length}</span>
+
+          {expandedGroups.has('card-layers') && (
+            <div className="ml-4 space-y-1">
+              {sortedLayers.map((layer) => {
+                const LayerIcon = getLayerIcon(layer.type);
+                const isSelected = false; // Mock selection state
+                
+                return (
+                  <Card
+                    key={layer.id}
+                    className={`p-2 cursor-pointer transition-colors ${
+                      isSelected 
+                        ? 'bg-crd-accent/20 border-crd-accent' 
+                        : 'bg-crd-darkest/50 border-crd-border hover:bg-crd-darkest'
+                    }`}
+                    onClick={() => selectLayer(layer.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <LayerIcon className="w-3 h-3 text-crd-accent" />
+                      <span className="text-xs flex-1 truncate">{layer.name}</span>
+                      
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLayerToggle(layer.id, 'visible');
+                          }}
+                        >
+                          {layer.visible ? (
+                            <Eye className="w-3 h-3" />
+                          ) : (
+                            <EyeOff className="w-3 h-3 opacity-50" />
+                          )}
+                        </Button>
+                        
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLayerToggle(layer.id, 'locked');
+                          }}
+                        >
+                          {layer.locked ? (
+                            <Lock className="w-3 h-3" />
+                          ) : (
+                            <Unlock className="w-3 h-3 opacity-50" />
+                          )}
+                        </Button>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-4 w-4 p-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="w-3 h-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleDuplicateLayer(layer.id)}>
+                              <Copy className="w-3 h-3 mr-2" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteLayer(layer.id)}
+                              className="text-red-400"
+                            >
+                              <Trash2 className="w-3 h-3 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+
+                    {/* Layer properties preview */}
+                    <div className="flex items-center gap-2 mt-1 text-xs text-crd-text-secondary">
+                      <span>Opacity: {layer.opacity}%</span>
+                      <span>•</span>
+                      <span className="capitalize">{layer.blendMode}</span>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Effect Layers Group */}
+        <div className="mt-4 space-y-1">
+          <div 
+            className="flex items-center gap-1 p-1 cursor-pointer hover:bg-crd-darkest rounded-sm"
+            onClick={() => toggleGroupExpansion('effect-layers')}
+          >
+            {expandedGroups.has('effect-layers') ? (
+              <ChevronDown className="w-3 h-3" />
+            ) : (
+              <ChevronRight className="w-3 h-3" />
+            )}
+            <Layers className="w-3 h-3 text-crd-green" />
+            <span className="text-xs font-medium">Effect Layers</span>
+            <span className="text-xs text-crd-text-secondary ml-auto">
+              {state.effectLayers.length}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span>Visible:</span>
-            <span>{state.effectLayers.filter(l => l.enabled).length + 3}</span>
-          </div>
+
+          {expandedGroups.has('effect-layers') && (
+            <div className="ml-4 space-y-1">
+              {state.effectLayers.length === 0 ? (
+                <div className="text-xs text-crd-text-secondary p-2">
+                  No effect layers yet
+                </div>
+              ) : (
+                state.effectLayers.map((effect) => (
+                  <Card
+                    key={effect.id}
+                    className="p-2 bg-crd-darkest/50 border-crd-border"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-3 h-3 text-crd-green" />
+                      <span className="text-xs flex-1 capitalize">{effect.type}</span>
+                      <span className="text-xs text-crd-text-secondary">
+                        {effect.intensity}%
+                      </span>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -3,91 +3,94 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
-import { Sparkles, Zap, Flame, Droplets, Star } from 'lucide-react';
+import { 
+  Sparkles, 
+  Waves, 
+  Zap, 
+  Flame, 
+  Snowflake, 
+  Circle 
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Effect {
   id: string;
   name: string;
-  type: 'glow' | 'particle' | 'holographic' | 'chrome' | 'distortion';
-  description: string;
+  type: 'holographic' | 'chrome' | 'glow' | 'particle' | 'distortion' | 'energy';
   icon: React.ComponentType<{ className?: string }>;
+  preview: string;
+  description: string;
   intensity: number;
   opacity: number;
-  parameters: Record<string, any>;
+  category: 'lighting' | 'particle' | 'distortion' | 'surface';
 }
 
 const EFFECTS: Effect[] = [
   {
-    id: 'glow',
-    name: 'Glow',
-    type: 'glow',
-    description: 'Soft outer glow effect',
-    icon: Sparkles,
-    intensity: 60,
-    opacity: 80,
-    parameters: { 
-      color: '#4ade80',
-      radius: 10,
-      strength: 2
-    }
-  },
-  {
-    id: 'electric',
-    name: 'Electric',
-    type: 'particle',
-    description: 'Electric particle system',
-    icon: Zap,
-    intensity: 70,
-    opacity: 90,
-    parameters: { 
-      particleCount: 50,
-      speed: 2,
-      color: '#3b82f6'
-    }
-  },
-  {
-    id: 'fire',
-    name: 'Fire',
-    type: 'particle',
-    description: 'Fire particle effect',
-    icon: Flame,
-    intensity: 80,
-    opacity: 85,
-    parameters: { 
-      particleCount: 100,
-      heat: 0.8,
-      color1: '#ff4500',
-      color2: '#ffd700'
-    }
-  },
-  {
-    id: 'hologram',
-    name: 'Hologram',
+    id: 'rainbow-hologram',
+    name: 'Rainbow Hologram',
     type: 'holographic',
-    description: 'Holographic shimmer',
-    icon: Star,
+    icon: Sparkles,
+    preview: 'radial-gradient(circle, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4)',
+    description: 'Shifting rainbow colors',
+    intensity: 80,
+    opacity: 60,
+    category: 'surface'
+  },
+  {
+    id: 'chrome-reflection',
+    name: 'Chrome Reflection',
+    type: 'chrome',
+    icon: Circle,
+    preview: 'linear-gradient(135deg, #c0c0c0, #a8a8a8, #f0f0f0)',
+    description: 'Mirror-like surface',
+    intensity: 90,
+    opacity: 100,
+    category: 'surface'
+  },
+  {
+    id: 'neon-glow',
+    name: 'Neon Glow',
+    type: 'glow',
+    icon: Zap,
+    preview: 'radial-gradient(circle, #00ff88, #ff6b4a, #4a90ff)',
+    description: 'Outer glow effect',
+    intensity: 70,
+    opacity: 80,
+    category: 'lighting'
+  },
+  {
+    id: 'floating-particles',
+    name: 'Floating Particles',
+    type: 'particle',
+    icon: Snowflake,
+    preview: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)',
+    description: 'Ambient particle system',
     intensity: 50,
     opacity: 70,
-    parameters: { 
-      shimmerSpeed: 1.5,
-      colorShift: true,
-      scanlines: true
-    }
+    category: 'particle'
   },
   {
-    id: 'liquid',
-    name: 'Liquid',
-    type: 'distortion',
-    description: 'Liquid distortion effect',
-    icon: Droplets,
-    intensity: 40,
-    opacity: 60,
-    parameters: { 
-      viscosity: 0.8,
-      flow: 1.0,
-      color: '#06b6d4'
-    }
+    id: 'energy-waves',
+    name: 'Energy Waves',
+    type: 'energy',
+    icon: Waves,
+    preview: 'linear-gradient(90deg, #ff6b4a, transparent, #4a90ff, transparent)',
+    description: 'Pulsing energy effect',
+    intensity: 60,
+    opacity: 50,
+    category: 'distortion'
+  },
+  {
+    id: 'fire-aura',
+    name: 'Fire Aura',
+    type: 'particle',
+    icon: Flame,
+    preview: 'radial-gradient(circle, #ff4500, #ff8c00, #ffd700)',
+    description: 'Fiery particle emission',
+    intensity: 85,
+    opacity: 75,
+    category: 'particle'
   }
 ];
 
@@ -96,15 +99,22 @@ export const EffectsLibrary: React.FC = () => {
 
   const applyEffect = (effect: Effect) => {
     addEffectLayer({
-      type: effect.type,
+      type: effect.type as any,
       enabled: true,
       intensity: effect.intensity,
-      opacity: effect.opacity,
-      blendMode: 'normal',
-      parameters: effect.parameters
+      opacity: effect.opacity
     });
-    
-    toast.success(`Applied ${effect.name} effect`);
+    toast.success(`Added ${effect.name} effect`);
+  };
+
+  const getCategoryColor = (category: Effect['category']) => {
+    switch (category) {
+      case 'lighting': return 'text-yellow-400 bg-yellow-400/10';
+      case 'particle': return 'text-green-400 bg-green-400/10';
+      case 'distortion': return 'text-purple-400 bg-purple-400/10';
+      case 'surface': return 'text-blue-400 bg-blue-400/10';
+      default: return 'text-gray-400 bg-gray-400/10';
+    }
   };
 
   return (
@@ -114,34 +124,43 @@ export const EffectsLibrary: React.FC = () => {
         <Badge variant="outline" className="text-xs">{EFFECTS.length}</Badge>
       </div>
       
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-3">
         {EFFECTS.map((effect) => {
           const Icon = effect.icon;
           
           return (
             <Card 
               key={effect.id}
-              className="p-3 bg-crd-darkest border-crd-border hover:border-crd-accent cursor-pointer transition-colors group"
+              className="aspect-square bg-crd-darkest border-crd-border hover:border-crd-accent cursor-pointer transition-colors group"
               onClick={() => applyEffect(effect)}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-sm bg-crd-accent/20 flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-crd-accent" />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">{effect.name}</div>
-                  <div className="text-xs text-crd-text-secondary truncate">
-                    {effect.description}
+              <div className="w-full h-full p-2 flex flex-col">
+                {/* Effect Preview */}
+                <div 
+                  className="flex-1 rounded-sm mb-2 relative overflow-hidden border border-crd-border"
+                  style={{ background: effect.preview }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="absolute top-1 left-1">
+                    <Icon className="w-3 h-3 text-white drop-shadow-lg" />
+                  </div>
+                  <div className="absolute top-1 right-1">
+                    <Badge 
+                      variant="outline" 
+                      className={`text-[9px] px-1 py-0 ${getCategoryColor(effect.category)} border-none`}
+                    >
+                      {effect.category}
+                    </Badge>
                   </div>
                 </div>
                 
-                <div className="flex flex-col items-end gap-1">
-                  <Badge variant="outline" className="text-[10px] px-1 py-0">
-                    {effect.intensity}%
-                  </Badge>
-                  <div className="text-xs text-crd-text-secondary">
-                    {effect.type}
+                {/* Effect Info */}
+                <div className="space-y-0.5">
+                  <div className="text-[10px] font-medium text-center truncate">
+                    {effect.name}
+                  </div>
+                  <div className="text-[9px] text-crd-text-secondary text-center truncate">
+                    {effect.description}
                   </div>
                 </div>
               </div>
@@ -151,7 +170,7 @@ export const EffectsLibrary: React.FC = () => {
       </div>
       
       <Button className="w-full" size="sm" variant="outline">
-        Create Custom Effect
+        Browse Effect Packs
       </Button>
     </div>
   );

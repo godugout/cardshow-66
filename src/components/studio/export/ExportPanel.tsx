@@ -1,142 +1,103 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
 import { 
   Download, 
   Image, 
   Video, 
-  FileText, 
+  Printer, 
+  Globe, 
+  Share2,
   Settings,
-  Play,
-  Pause,
-  RotateCcw
+  FileImage,
+  Film,
+  Package
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
 
-interface ExportSettings {
-  format: 'png' | 'jpg' | 'gif' | 'mp4' | 'webm' | 'obj' | 'glb';
-  quality: number;
-  width: number;
-  height: number;
-  duration: number; // for video/gif
-  frameRate: number;
-  transparent: boolean;
-  includeBackground: boolean;
+interface ExportFormat {
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+  formats: string[];
+  quality?: string[];
+  sizes?: string[];
 }
 
+const EXPORT_FORMATS: ExportFormat[] = [
+  {
+    id: 'image',
+    name: 'Static Image',
+    icon: FileImage,
+    description: 'High-quality still images',
+    formats: ['PNG', 'JPEG', 'WebP', 'SVG'],
+    quality: ['Draft', 'Standard', 'High', 'Ultra'],
+    sizes: ['Original', '1920x1080', '1080x1080', '1200x1600', 'Custom']
+  },
+  {
+    id: 'animation',
+    name: 'Animation',
+    icon: Film,
+    description: 'Animated sequences',
+    formats: ['MP4', 'WebM', 'GIF', 'APNG'],
+    quality: ['Draft', 'Standard', 'High', 'Ultra'],
+    sizes: ['720p', '1080p', '1440p', '4K']
+  },
+  {
+    id: 'print',
+    name: 'Print Ready',
+    icon: Package,
+    description: 'Physical printing formats',
+    formats: ['PDF', 'TIFF', 'PNG (300DPI)'],
+    quality: ['Standard', 'Premium', 'Professional'],
+    sizes: ['Poker Size', 'Bridge Size', 'Tarot Size', 'Custom']
+  }
+];
+
 export const ExportPanel: React.FC = () => {
-  const { state } = useAdvancedStudio();
-  const [exportSettings, setExportSettings] = useState<ExportSettings>({
-    format: 'png',
-    quality: 90,
-    width: 1920,
-    height: 1080,
-    duration: 3,
-    frameRate: 30,
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(EXPORT_FORMATS[0]);
+  const [exportSettings, setExportSettings] = useState({
+    format: 'PNG',
+    quality: 'High',
+    size: 'Original',
     transparent: false,
-    includeBackground: true
+    includeEffects: true,
+    includeAnimation: true,
+    frameRate: 60,
+    duration: 5
   });
-  
   const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-
-  const formatOptions = [
-    { value: 'png', label: 'PNG Image', icon: Image, description: 'High quality with transparency' },
-    { value: 'jpg', label: 'JPEG Image', icon: Image, description: 'Smaller file size' },
-    { value: 'gif', label: 'Animated GIF', icon: Video, description: 'Animation with small file size' },
-    { value: 'mp4', label: 'MP4 Video', icon: Video, description: 'High quality video' },
-    { value: 'webm', label: 'WebM Video', icon: Video, description: 'Web optimized video' },
-    { value: 'obj', label: '3D Model (OBJ)', icon: FileText, description: '3D model file' },
-    { value: 'glb', label: '3D Model (GLB)', icon: FileText, description: 'Compressed 3D model' }
-  ];
-
-  const resolutionPresets = [
-    { label: 'HD (1280x720)', width: 1280, height: 720 },
-    { label: 'Full HD (1920x1080)', width: 1920, height: 1080 },
-    { label: '4K (3840x2160)', width: 3840, height: 2160 },
-    { label: 'Instagram Square (1080x1080)', width: 1080, height: 1080 },
-    { label: 'Instagram Story (1080x1920)', width: 1080, height: 1920 },
-    { label: 'Twitter Card (1200x675)', width: 1200, height: 675 }
-  ];
-
-  const isVideoFormat = ['gif', 'mp4', 'webm'].includes(exportSettings.format);
-  const is3DFormat = ['obj', 'glb'].includes(exportSettings.format);
 
   const handleExport = async () => {
-    if (!state.selectedCard) {
-      toast.error('No card selected for export');
-      return;
-    }
-
     setIsExporting(true);
-    setExportProgress(0);
-
-    try {
-      // Simulate export progress
-      const progressInterval = setInterval(() => {
-        setExportProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      // Simulate export process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Create download link (mock implementation)
-      const fileName = `card-${state.selectedCard.id}.${exportSettings.format}`;
-      
-      toast.success(`Exported ${fileName} successfully!`);
-      
-      // In a real implementation, this would trigger the actual download
-      console.log('Export settings:', exportSettings);
-      console.log('Card data:', state.selectedCard);
-      
-    } catch (error) {
-      toast.error('Export failed. Please try again.');
-      console.error('Export error:', error);
-    } finally {
-      setIsExporting(false);
-      setExportProgress(0);
-    }
-  };
-
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    toast.success('Recording started');
     
-    // Auto-stop after duration
-    setTimeout(() => {
-      setIsRecording(false);
-      toast.success('Recording completed');
-    }, exportSettings.duration * 1000);
+    // Simulate export process
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setIsExporting(false);
+    toast.success(`${selectedFormat.name} export completed!`);
   };
 
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    toast.success('Recording stopped');
+  const handleQuickShare = (platform: string) => {
+    toast.success(`Sharing to ${platform}...`);
   };
 
-  const applyResolutionPreset = (preset: { width: number; height: number }) => {
-    setExportSettings(prev => ({
-      ...prev,
-      width: preset.width,
-      height: preset.height
-    }));
+  const getFileSizeEstimate = () => {
+    const baseSize = selectedFormat.id === 'animation' ? 5.2 : 2.1;
+    const qualityMultiplier = exportSettings.quality === 'Ultra' ? 2.5 : 
+                            exportSettings.quality === 'High' ? 1.5 : 1;
+    return (baseSize * qualityMultiplier).toFixed(1);
   };
 
   return (
-    <div className="w-80 bg-crd-dark border-l border-crd-border h-full overflow-y-auto">
+    <div className="w-80 bg-crd-dark border-l border-crd-border h-full overflow-hidden flex flex-col">
       <div className="p-4 border-b border-crd-border">
         <h2 className="text-crd-text text-lg font-semibold flex items-center gap-2">
           <Download className="w-5 h-5" />
@@ -144,221 +105,256 @@ export const ExportPanel: React.FC = () => {
         </h2>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Format Selection */}
-        <div>
-          <Label className="text-sm font-medium text-crd-text mb-3 block">Format</Label>
-          <div className="grid gap-2">
-            {formatOptions.map(option => (
-              <Card
-                key={option.value}
-                className={`p-3 cursor-pointer transition-colors ${
-                  exportSettings.format === option.value
-                    ? 'bg-crd-accent/20 border-crd-accent'
-                    : 'bg-crd-darker border-crd-border hover:bg-crd-darker/80'
-                }`}
-                onClick={() => setExportSettings(prev => ({ ...prev, format: option.value as any }))}
-              >
-                <div className="flex items-center gap-3">
-                  <option.icon className="w-4 h-4 text-crd-accent" />
-                  <div>
-                    <div className="text-sm font-medium text-crd-text">{option.label}</div>
-                    <div className="text-xs text-crd-text-secondary">{option.description}</div>
-                  </div>
+      <div className="flex-1 overflow-y-auto">
+        <Tabs defaultValue="export" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-crd-darker">
+            <TabsTrigger value="export" className="text-xs">
+              <Download className="w-3 h-3 mr-1" />
+              Export
+            </TabsTrigger>
+            <TabsTrigger value="share" className="text-xs">
+              <Share2 className="w-3 h-3 mr-1" />
+              Share
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="export" className="p-4 space-y-4">
+            {/* Format Selection */}
+            <div>
+              <Label className="text-sm font-medium text-crd-text mb-3 block">Export Format</Label>
+              <div className="space-y-2">
+                {EXPORT_FORMATS.map((format) => {
+                  const Icon = format.icon;
+                  return (
+                    <Card
+                      key={format.id}
+                      className={`p-3 cursor-pointer transition-colors ${
+                        selectedFormat.id === format.id 
+                          ? 'bg-crd-accent/20 border-crd-accent' 
+                          : 'bg-crd-darkest border-crd-border hover:border-crd-accent/50'
+                      }`}
+                      onClick={() => setSelectedFormat(format)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="w-5 h-5 text-crd-accent" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-crd-text">{format.name}</div>
+                          <div className="text-xs text-crd-text-secondary">{format.description}</div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Format Options */}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm text-crd-text">File Format</Label>
+                <Select 
+                  value={exportSettings.format} 
+                  onValueChange={(value) => setExportSettings(prev => ({ ...prev, format: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedFormat.formats.map(format => (
+                      <SelectItem key={format} value={format}>
+                        {format}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm text-crd-text">Quality</Label>
+                <Select 
+                  value={exportSettings.quality} 
+                  onValueChange={(value) => setExportSettings(prev => ({ ...prev, quality: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedFormat.quality?.map(quality => (
+                      <SelectItem key={quality} value={quality}>
+                        {quality}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm text-crd-text">Size</Label>
+                <Select 
+                  value={exportSettings.size} 
+                  onValueChange={(value) => setExportSettings(prev => ({ ...prev, size: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedFormat.sizes?.map(size => (
+                      <SelectItem key={size} value={size}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Advanced Options */}
+              <div className="space-y-3 border-t border-crd-border pt-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm text-crd-text">Transparent Background</Label>
+                  <Switch
+                    checked={exportSettings.transparent}
+                    onCheckedChange={(checked) => setExportSettings(prev => ({ ...prev, transparent: checked }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm text-crd-text">Include Effects</Label>
+                  <Switch
+                    checked={exportSettings.includeEffects}
+                    onCheckedChange={(checked) => setExportSettings(prev => ({ ...prev, includeEffects: checked }))}
+                  />
+                </div>
+
+                {selectedFormat.id === 'animation' && (
+                  <>
+                    <div>
+                      <Label className="text-sm text-crd-text">Frame Rate: {exportSettings.frameRate} FPS</Label>
+                      <Slider
+                        value={[exportSettings.frameRate]}
+                        onValueChange={([value]) => setExportSettings(prev => ({ ...prev, frameRate: value }))}
+                        max={120}
+                        min={24}
+                        step={6}
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm text-crd-text">Duration: {exportSettings.duration}s</Label>
+                      <Slider
+                        value={[exportSettings.duration]}
+                        onValueChange={([value]) => setExportSettings(prev => ({ ...prev, duration: value }))}
+                        max={30}
+                        min={1}
+                        step={1}
+                        className="mt-1"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* File Size Estimate */}
+              <Card className="p-3 bg-crd-darkest border-crd-border">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-crd-text-secondary">Estimated Size:</span>
+                  <Badge variant="outline">{getFileSizeEstimate()} MB</Badge>
                 </div>
               </Card>
-            ))}
-          </div>
-        </div>
 
-        {/* Resolution */}
-        {!is3DFormat && (
-          <div>
-            <Label className="text-sm font-medium text-crd-text mb-2 block">Resolution</Label>
-            <Select onValueChange={(value) => {
-              const preset = resolutionPresets.find(p => `${p.width}x${p.height}` === value);
-              if (preset) applyResolutionPreset(preset);
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder={`${exportSettings.width}x${exportSettings.height}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {resolutionPresets.map(preset => (
-                  <SelectItem key={`${preset.width}x${preset.height}`} value={`${preset.width}x${preset.height}`}>
-                    {preset.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <div>
-                <Label className="text-xs text-crd-text-secondary">Width</Label>
-                <input
-                  type="number"
-                  value={exportSettings.width}
-                  onChange={(e) => setExportSettings(prev => ({ ...prev, width: parseInt(e.target.value) || 1920 }))}
-                  className="w-full px-2 py-1 text-sm bg-crd-darker border border-crd-border rounded"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-crd-text-secondary">Height</Label>
-                <input
-                  type="number"
-                  value={exportSettings.height}
-                  onChange={(e) => setExportSettings(prev => ({ ...prev, height: parseInt(e.target.value) || 1080 }))}
-                  className="w-full px-2 py-1 text-sm bg-crd-darker border border-crd-border rounded"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quality */}
-        {!is3DFormat && (
-          <div>
-            <Label className="text-sm text-crd-text">Quality: {exportSettings.quality}%</Label>
-            <Slider
-              value={[exportSettings.quality]}
-              onValueChange={([value]) => setExportSettings(prev => ({ ...prev, quality: value }))}
-              max={100}
-              min={10}
-              step={10}
-              className="mt-2"
-            />
-          </div>
-        )}
-
-        {/* Video/GIF Settings */}
-        {isVideoFormat && (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm text-crd-text">Duration: {exportSettings.duration}s</Label>
-              <Slider
-                value={[exportSettings.duration]}
-                onValueChange={([value]) => setExportSettings(prev => ({ ...prev, duration: value }))}
-                max={30}
-                min={1}
-                step={1}
-                className="mt-2"
-              />
-            </div>
-            
-            <div>
-              <Label className="text-sm text-crd-text">Frame Rate: {exportSettings.frameRate} fps</Label>
-              <Slider
-                value={[exportSettings.frameRate]}
-                onValueChange={([value]) => setExportSettings(prev => ({ ...prev, frameRate: value }))}
-                max={60}
-                min={12}
-                step={6}
-                className="mt-2"
-              />
-            </div>
-
-            {/* Recording Controls */}
-            <Card className="p-3 bg-crd-darker border-crd-border">
-              <Label className="text-sm font-medium text-crd-text mb-2 block">Record Animation</Label>
-              <div className="flex gap-2">
-                {!isRecording ? (
-                  <Button
-                    size="sm"
-                    onClick={handleStartRecording}
-                    className="flex-1"
-                  >
-                    <Play className="w-4 h-4 mr-1" />
-                    Start Recording
-                  </Button>
+              {/* Export Button */}
+              <Button 
+                onClick={handleExport}
+                disabled={isExporting}
+                className="w-full"
+                size="lg"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    Exporting...
+                  </>
                 ) : (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={handleStopRecording}
-                    className="flex-1"
-                  >
-                    <Pause className="w-4 h-4 mr-1" />
-                    Stop Recording
-                  </Button>
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export {selectedFormat.name}
+                  </>
                 )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsRecording(false)}
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="share" className="p-4 space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-crd-text mb-3 block">Quick Share</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-1"
+                  onClick={() => handleQuickShare('Twitter')}
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <Globe className="w-5 h-5" />
+                  <span className="text-xs">Twitter</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-1"
+                  onClick={() => handleQuickShare('Instagram')}
+                >
+                  <Image className="w-5 h-5" />
+                  <span className="text-xs">Instagram</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-1"
+                  onClick={() => handleQuickShare('Discord')}
+                >
+                  <Share2 className="w-5 h-5" />
+                  <span className="text-xs">Discord</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col gap-1"
+                  onClick={() => handleQuickShare('Gallery')}
+                >
+                  <Printer className="w-5 h-5" />
+                  <span className="text-xs">Gallery</span>
                 </Button>
               </div>
-              {isRecording && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-red-500">Recording...</span>
-                  </div>
-                </div>
-              )}
-            </Card>
-          </div>
-        )}
-
-        {/* Options */}
-        {!is3DFormat && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-crd-text">Options</Label>
-            
-            {['png', 'gif', 'webm'].includes(exportSettings.format) && (
-              <div className="flex items-center justify-between">
-                <Label className="text-sm text-crd-text">Transparent Background</Label>
-                <Switch
-                  checked={exportSettings.transparent}
-                  onCheckedChange={(checked) => setExportSettings(prev => ({ ...prev, transparent: checked }))}
-                />
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between">
-              <Label className="text-sm text-crd-text">Include Environment</Label>
-              <Switch
-                checked={exportSettings.includeBackground}
-                onCheckedChange={(checked) => setExportSettings(prev => ({ ...prev, includeBackground: checked }))}
-              />
             </div>
-          </div>
-        )}
 
-        {/* Export Progress */}
-        {isExporting && (
-          <div className="space-y-2">
-            <Label className="text-sm text-crd-text">Exporting...</Label>
-            <Progress value={exportProgress} className="w-full" />
-            <p className="text-xs text-crd-text-secondary text-center">{exportProgress}% complete</p>
-          </div>
-        )}
+            <div>
+              <Label className="text-sm font-medium text-crd-text mb-3 block">Public Link</Label>
+              <Card className="p-3 bg-crd-darkest border-crd-border">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text" 
+                    value="https://cardshow.io/studio/share/abc123" 
+                    readOnly
+                    className="flex-1 bg-transparent text-sm text-crd-text-secondary border-none outline-none"
+                  />
+                  <Button size="sm" variant="outline">
+                    Copy
+                  </Button>
+                </div>
+              </Card>
+            </div>
 
-        {/* Export Button */}
-        <Button
-          onClick={handleExport}
-          disabled={isExporting || !state.selectedCard}
-          className="w-full"
-          size="lg"
-        >
-          {isExporting ? (
-            <>
-              <Settings className="w-4 h-4 mr-2 animate-spin" />
-              Exporting...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Export {exportSettings.format.toUpperCase()}
-            </>
-          )}
-        </Button>
-
-        {!state.selectedCard && (
-          <p className="text-xs text-crd-text-secondary text-center">
-            Select a card or apply a template to enable export
-          </p>
-        )}
+            <div>
+              <Label className="text-sm font-medium text-crd-text mb-3 block">Embed Code</Label>
+              <Card className="p-3 bg-crd-darkest border-crd-border">
+                <textarea 
+                  value='<iframe src="https://cardshow.io/embed/abc123" width="400" height="560"></iframe>'
+                  readOnly
+                  className="w-full h-20 bg-transparent text-xs text-crd-text-secondary border-none outline-none resize-none"
+                />
+                <Button size="sm" variant="outline" className="mt-2">
+                  Copy Embed Code
+                </Button>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
