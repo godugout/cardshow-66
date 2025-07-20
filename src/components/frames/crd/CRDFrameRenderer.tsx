@@ -55,10 +55,12 @@ export const CRDFrameRenderer: React.FC<CRDFrameProps> = ({
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-            <div className="text-white/60 text-xs text-center">
-              <div className="text-2xl mb-2">📷</div>
-              <div>Photo Area</div>
-            </div>
+            <img
+              src="/lovable-uploads/25bcae5b-064b-4e50-9465-4e579e4de296.png"
+              alt="CRD Logo"
+              className="w-2/3 h-auto object-contain opacity-80"
+              draggable={false}
+            />
           </div>
         )}
       </div>
