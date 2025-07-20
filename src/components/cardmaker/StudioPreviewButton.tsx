@@ -68,8 +68,22 @@ export const StudioPreviewButton: React.FC<StudioPreviewButtonProps> = ({
     template_id: selectedFrame || 'default',
     creator_id: 'preview-user',
     created_at: new Date().toISOString(),
-    creator_attribution: { display_name: 'Preview User', username: 'preview' },
-    publishing_options: { is_public: false },
+    creator_attribution: {
+      creator_name: 'Preview User',
+      creator_id: 'preview-user',
+      collaboration_type: 'solo' as const
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: false,
+      print_available: false,
+      pricing: {
+        currency: 'USD'
+      },
+      distribution: {
+        limited_edition: false
+      }
+    },
     edition_size: 1,
     design_metadata: {},
     visibility: 'public' as const,
@@ -191,12 +205,9 @@ export const StudioPreviewButton: React.FC<StudioPreviewButtonProps> = ({
                     <div className="w-full h-full bg-gradient-to-br from-background to-card">
                       <Enhanced3DCardViewer
                         card={cardProps}
-                        autoRotate={true}
-                        showControls={true}
-                        material={state.material}
-                        lighting={state.lighting}
-                        environment={state.environment}
+                        autoEnable={true}
                         effects={state.effectLayers}
+                        selectedFrame={selectedFrame}
                       />
                     </div>
                   </TabsContent>
