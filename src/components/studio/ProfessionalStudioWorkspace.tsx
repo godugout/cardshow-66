@@ -256,7 +256,7 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
           {!rightPanelCollapsed && (
             <>
               <PanelResizeHandle className="w-1 bg-crd-border hover:bg-crd-accent transition-colors" />
-              <Panel defaultSize={20} minSize={15} maxSize={35}>
+              <Panel defaultSize={30} minSize={25} maxSize={45}>
                 <div className="h-full bg-crd-dark border-l border-crd-border flex flex-col">
                   <Tabs value={activeRightTab} onValueChange={setActiveRightTab} className="flex-1">
                     <TabsList className="grid w-full grid-cols-2 bg-crd-darkest">
