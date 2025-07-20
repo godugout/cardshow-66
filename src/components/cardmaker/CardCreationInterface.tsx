@@ -16,6 +16,8 @@ import { FrameSelector } from './FrameSelector';
 import { EffectsPanel } from './EffectsPanel';
 import { PSDUploadZone } from './PSDUploadZone';
 import { PSDToFrameConverter } from './PSDToFrameConverter';
+import { MaterialLibrary } from '@/components/studio/assets/MaterialLibrary';
+import { EffectsLibrary } from '@/components/studio/assets/EffectsLibrary';
 import type { CardRarity } from '@/types/card';
 import type { PSDToCardData } from '@/utils/psdToCardConverter';
 import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
@@ -46,7 +48,7 @@ export const CardCreationInterface: React.FC = () => {
     initializeFromPSD
   } = useIntegratedCardEditor();
 
-  const [activePanel, setActivePanel] = useState<'psd' | 'image' | 'frame' | 'effects' | 'text'>('psd');
+  const [activePanel, setActivePanel] = useState<'psd' | 'image' | 'frame' | 'materials' | 'effects' | 'text'>('psd');
   const [tags, setTags] = useState<string>('');
   const [isFromPSD, setIsFromPSD] = useState(false);
   const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);
@@ -221,7 +223,7 @@ export const CardCreationInterface: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-5 gap-2 mb-4">
+            <div className="grid grid-cols-6 gap-2 mb-4">
               <Button
                 variant={activePanel === 'psd' ? 'default' : 'outline'}
                 size="sm"
@@ -248,6 +250,15 @@ export const CardCreationInterface: React.FC = () => {
               >
                 <Layers className="w-4 h-4" />
                 <span className="text-xs">Frame</span>
+              </Button>
+              <Button
+                variant={activePanel === 'materials' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActivePanel('materials')}
+                className="flex flex-col items-center gap-1 h-auto py-2"
+              >
+                <Palette className="w-4 h-4" />
+                <span className="text-xs">Materials</span>
               </Button>
               <Button
                 variant={activePanel === 'effects' ? 'default' : 'outline'}
@@ -292,12 +303,20 @@ export const CardCreationInterface: React.FC = () => {
               <FrameSelector selectedFrame={selectedFrame} onFrameSelect={selectFrame} />
             )}
 
+            {activePanel === 'materials' && (
+              <MaterialLibrary />
+            )}
+
             {activePanel === 'effects' && (
-              <EffectsPanel 
-                layers={layers}
-                onAddLayer={addLayer}
-                onUpdateLayer={updateLayer}
-              />
+              <div className="space-y-4">
+                <EffectsLibrary />
+                <Separator />
+                <EffectsPanel 
+                  layers={layers}
+                  onAddLayer={addLayer}
+                  onUpdateLayer={updateLayer}
+                />
+              </div>
             )}
 
             {activePanel === 'text' && (
