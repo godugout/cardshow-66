@@ -59,8 +59,20 @@ interface AdvancedStudioContextType {
 
 const AdvancedStudioContext = createContext<AdvancedStudioContextType | undefined>(undefined);
 
+const defaultCard = {
+  id: 'default-studio-card',
+  title: 'Welcome to Studio',
+  description: 'Your canvas awaits! Start customizing this card or create a new one.',
+  rarity: 'common',
+  tags: ['welcome', 'studio'],
+  image_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+  thumbnail_url: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+  design_metadata: { isDefault: true },
+  visibility: 'private'
+};
+
 const initialState: AdvancedStudioState = {
-  selectedCard: null,
+  selectedCard: defaultCard,
   viewMode: '3d',
   material: {
     preset: 'standard',
