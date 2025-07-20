@@ -130,7 +130,7 @@ export const ViewerScene: React.FC = () => {
           receiveShadow
           position={[0, 0, 0]}
         >
-          <planeGeometry args={[4, 5.6]} />
+          <boxGeometry args={[4, 5.6, 0.1]} />
           {state.material.preset === 'crystal' ? (
             <MeshDistortMaterial
               {...materialConfig}
