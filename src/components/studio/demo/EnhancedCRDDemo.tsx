@@ -7,6 +7,7 @@ import { Play, Pause, RotateCcw, Move, Sparkles, Zap, X } from 'lucide-react';
 import { CRDFactory } from '@/components/viewer/factories/CRDFactory';
 import type { CRD_DNA } from '@/types/crd-dna';
 import { useToast } from '@/hooks/use-toast';
+import { useAdvancedStudio } from '@/contexts/AdvancedStudioContext';
 
 interface DemoState {
   isRunning: boolean;
@@ -19,69 +20,63 @@ interface DemoState {
   phase: 'template' | 'material' | 'effects' | 'rarity';
 }
 
-interface TemplateConfig {
+interface DemoTemplate {
   name: string;
-  material: 'glass' | 'crystal' | 'metal' | 'energy';
   rarity: CRD_DNA['rarity'];
+  material: 'glass' | 'crystal' | 'metal' | 'energy';
   description: string;
-  duration: number;
+  duration: number; // ms to display
 }
 
-const templates: TemplateConfig[] = [
-  {
-    name: 'Standard Glass',
-    material: 'glass',
-    rarity: 'Common',
-    description: 'Clean translucent glass with embedded card image',
-    duration: 3000
-  },
+// Demo templates with optimal material/effect combinations
+const templates: DemoTemplate[] = [
   {
     name: 'Crystal Prism',
-    material: 'crystal',
     rarity: 'Rare',
-    description: 'Refractive crystal with prismatic effects and neon glow',
-    duration: 3000
-  },
-  {
-    name: 'Metal Core',
-    material: 'metal',
-    rarity: 'Epic',
-    description: 'Metallic slab with reflective surface and particle effects',
-    duration: 3000
-  },
-  {
-    name: 'Energy Field',
-    material: 'energy',
-    rarity: 'Legendary',
-    description: 'Pure energy containment with dynamic lighting and effects',
-    duration: 3000
-  },
-  {
-    name: 'Mythic Crystal',
     material: 'crystal',
-    rarity: 'Mythic',
-    description: 'Ultimate crystal matrix with all effects and maximum rarity',
+    description: 'Refractive crystal with prismatic effects and neon glow',
     duration: 4000
   },
   {
-    name: 'Legendary Metal',
-    material: 'metal',
+    name: 'Energy Field',
     rarity: 'Legendary',
-    description: 'Premium metallic finish with golden accents and luxury effects',
-    duration: 3000
-  },
-  {
-    name: 'Epic Energy',
     material: 'energy',
+    description: 'Pulsing energy matrix with particle effects',
+    duration: 4000
+  },
+  {
+    name: 'Mythic Crystal',
+    rarity: 'Mythic',
+    material: 'crystal',
+    description: 'Ultimate crystal formation with complex lighting',
+    duration: 4000
+  },
+  {
+    name: 'Chrome Metal',
     rarity: 'Epic',
-    description: 'Contained energy with electric particle swirls and neon rings',
+    material: 'metal',
+    description: 'Polished chrome with holographic reflections',
+    duration: 4000
+  },
+  {
+    name: 'Glass Showcase',
+    rarity: 'Uncommon',
+    material: 'glass',
+    description: 'Clear glass display with subtle effects',
     duration: 3000
   },
   {
-    name: 'Rare Glass',
-    material: 'glass',
-    rarity: 'Rare',
-    description: 'Enhanced glass with subtle effects and increased clarity',
+    name: 'Neon Energy',
+    rarity: 'Legendary',
+    material: 'energy',
+    description: 'Vibrant neon energy with dynamic lighting',
+    duration: 4000
+  },
+  {
+    name: 'Prismatic Metal',
+    rarity: 'Epic',
+    material: 'metal',
+    description: 'Iridescent metal with color shifting effects',
     duration: 3000
   }
 ];
@@ -93,6 +88,9 @@ export const EnhancedCRDDemo: React.FC = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const { toast } = useToast();
   
+  // Get studio context to control the main viewer
+  const { state, updateMaterial, updateAnimation, updateLighting } = useAdvancedStudio();
+
   // Demo image URL - using a more reliable placeholder
   const demoImageUrl = '/placeholder.svg';
   
@@ -109,6 +107,48 @@ export const EnhancedCRDDemo: React.FC = () => {
 
   const [currentTemplateIndex, setCurrentTemplateIndex] = useState(0);
 
+  // Apply template to main studio viewer
+  const applyTemplateToStudio = useCallback((template: DemoTemplate) => {
+    // Apply material settings based on template
+    const materialSettings = {
+      glass: { metalness: 10, roughness: 5, transparency: 30, emission: 5 },
+      crystal: { metalness: 20, roughness: 15, transparency: 25, emission: 15 },
+      metal: { metalness: 90, roughness: 20, transparency: 0, emission: 10 },
+      energy: { metalness: 50, roughness: 5, transparency: 40, emission: 60 }
+    };
+
+    const settings = materialSettings[template.material];
+    updateMaterial({
+      preset: 'holographic',
+      ...settings
+    });
+
+    // Apply lighting based on rarity
+    const lightingSettings = {
+      'Common': { intensity: 60, ambientLight: 50 },
+      'Uncommon': { intensity: 70, ambientLight: 60 },
+      'Rare': { intensity: 80, ambientLight: 70 },
+      'Epic': { intensity: 90, ambientLight: 80 },
+      'Legendary': { intensity: 95, ambientLight: 85 },
+      'Mythic': { intensity: 100, ambientLight: 90 }
+    };
+
+    const lighting = lightingSettings[template.rarity];
+    updateLighting({
+      preset: 'studio',
+      ...lighting,
+      shadowIntensity: 60
+    });
+
+    // Enable rotation animation
+    updateAnimation({
+      preset: 'rotate',
+      isPlaying: true,
+      speed: 30,
+      amplitude: 50
+    });
+  }, [updateMaterial, updateLighting, updateAnimation]);
+
   // Auto-cycle through templates
   useEffect(() => {
     if (!demoState.isRunning) return;
@@ -121,6 +161,9 @@ export const EnhancedCRDDemo: React.FC = () => {
           // Move to next template
           const nextIndex = (currentTemplateIndex + 1) % templates.length;
           const nextTemplate = templates[nextIndex];
+          
+          // Apply template to main studio
+          applyTemplateToStudio(nextTemplate);
           
           // Create new CRD with optimal settings for this template
           const newCRD = CRDFactory.createOptimalTemplate(
@@ -154,72 +197,59 @@ export const EnhancedCRDDemo: React.FC = () => {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [demoState.isRunning, currentTemplateIndex, demoImageUrl, toast]);
+  }, [demoState.isRunning, currentTemplateIndex, applyTemplateToStudio, toast, demoImageUrl]);
 
-  const handleStartDemo = () => {
+  const startDemo = () => {
     setDemoState(prev => ({ ...prev, isRunning: true }));
-    setIsVisible(true);
-    
-    // Create first template
-    const firstTemplate = templates[0];
-    const newCRD = CRDFactory.createOptimalTemplate(
-      demoImageUrl,
-      firstTemplate.rarity,
-      `Demo ${firstTemplate.name}`
-    );
-    
-    setDemoState(prev => ({
-      ...prev,
-      currentCRD: newCRD,
-      currentTemplate: firstTemplate.name,
-      currentMaterial: firstTemplate.material,
-      currentRarity: firstTemplate.rarity,
-      cycleProgress: 0
-    }));
-    
+    // Apply first template immediately
+    applyTemplateToStudio(templates[0]);
     toast({
-      title: 'CRD Demo Started',
-      description: 'Showcasing optimal material and effect combinations for each rarity level',
+      title: "CRD Demo Started",
+      description: "Watch the main viewer cycle through templates"
     });
   };
 
-  const handleStopDemo = () => {
-    setDemoState(prev => ({ ...prev, isRunning: false }));
+  const stopDemo = () => {
+    setDemoState(prev => ({ ...prev, isRunning: false, cycleProgress: 0 }));
+    // Reset to default state
+    updateAnimation({ isPlaying: false });
+    toast({
+      title: "CRD Demo Stopped",
+      description: "Demo cycle has been paused"
+    });
   };
 
-  const handleReset = () => {
+  const resetDemo = () => {
+    setCurrentTemplateIndex(0);
     setDemoState(prev => ({
       ...prev,
       isRunning: false,
-      cycleProgress: 0
-    }));
-    setCurrentTemplateIndex(0);
-    
-    const baseCRD = CRDFactory.createBaseCRD(demoImageUrl, 'Demo CRD');
-    setDemoState(prev => ({
-      ...prev,
-      currentCRD: baseCRD,
+      cycleProgress: 0,
       currentTemplate: templates[0].name,
       currentMaterial: templates[0].material,
       currentRarity: templates[0].rarity
     }));
   };
 
+  // Mouse handlers for dragging
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    });
+    if (e.target === e.currentTarget) {
+      setIsDragging(true);
+      const rect = e.currentTarget.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
   };
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    
-    setPosition({
-      x: Math.max(0, Math.min(window.innerWidth - 420, e.clientX - dragOffset.x)),
-      y: Math.max(0, Math.min(window.innerHeight - 500, e.clientY - dragOffset.y))
-    });
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
   }, [isDragging, dragOffset]);
 
   const handleMouseUp = useCallback(() => {
@@ -230,211 +260,153 @@ export const EnhancedCRDDemo: React.FC = () => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
     }
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const getRarityIcon = (rarity: CRD_DNA['rarity']) => {
-    switch (rarity) {
-      case 'Common': return '⚪';
-      case 'Uncommon': return '🟢';
-      case 'Rare': return '🔵';
-      case 'Epic': return '🟣';
-      case 'Legendary': return '🟡';
-      case 'Mythic': return '🔴';
-    }
-  };
-
-  const getMaterialIcon = (material: string) => {
-    switch (material) {
-      case 'glass': return '💎';
-      case 'crystal': return '💠';
-      case 'metal': return '⚡';
-      case 'energy': return <Zap className="w-4 h-4" />;
-      default: return '💎';
-    }
-  };
-
-  if (!isVisible) {
-    return (
-      <Button
-        onClick={handleStartDemo}
-        className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-        size="lg"
-      >
-        <Sparkles className="w-4 h-4 mr-2" />
-        Start CRD Demo
-      </Button>
-    );
-  }
+  if (!isVisible) return null;
 
   const currentTemplate = templates[currentTemplateIndex];
 
   return (
-    <Card 
-      className="fixed z-50 w-[420px] bg-black/90 backdrop-blur-sm border-gray-800 text-white shadow-2xl"
-      style={{ 
-        left: position.x, 
-        top: position.y,
-        cursor: isDragging ? 'grabbing' : 'default'
+    <div
+      className="fixed z-50 w-96 select-none"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        cursor: isDragging ? 'grabbing' : 'grab'
       }}
+      onMouseDown={handleMouseDown}
     >
-      <CardHeader 
-        className="pb-3 cursor-grab active:cursor-grabbing bg-gradient-to-r from-blue-900/50 to-purple-900/50"
-        onMouseDown={handleMouseDown}
-      >
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Move className="w-4 h-4" />
-            🎴 CRD 3D Demo
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsVisible(false)}
-            className="h-6 w-6 p-0 hover:bg-white/10"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Current Template Info */}
-        <div className="space-y-3">
+      <Card className="bg-background/95 backdrop-blur-md border-primary/20 shadow-2xl">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-white">Current Template</h4>
-            <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500">
-              {currentTemplateIndex + 1} / {templates.length}
-            </Badge>
-          </div>
-          
-          <div className="bg-gray-900/50 rounded-lg p-4 space-y-3 border border-gray-700">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">{getRarityIcon(demoState.currentRarity)}</span>
-              <span className="font-medium text-lg">{currentTemplate.name}</span>
-              <Badge variant="secondary" className={`
-                ${demoState.currentRarity === 'Mythic' ? 'bg-red-500/20 text-red-300' : ''}
-                ${demoState.currentRarity === 'Legendary' ? 'bg-yellow-500/20 text-yellow-300' : ''}
-                ${demoState.currentRarity === 'Epic' ? 'bg-purple-500/20 text-purple-300' : ''}
-                ${demoState.currentRarity === 'Rare' ? 'bg-blue-500/20 text-blue-300' : ''}
-                ${demoState.currentRarity === 'Uncommon' ? 'bg-green-500/20 text-green-300' : ''}
-                ${demoState.currentRarity === 'Common' ? 'bg-gray-500/20 text-gray-300' : ''}
-              `}>
-                {demoState.currentRarity}
+              <Sparkles className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">CRD 3D Demo</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              <Move className="h-4 w-4 text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsVisible(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Demo Controls */}
+          <div className="flex items-center gap-2">
+            {!demoState.isRunning ? (
+              <Button onClick={startDemo} size="sm" className="flex-1">
+                <Play className="h-4 w-4 mr-2" />
+                Start Demo
+              </Button>
+            ) : (
+              <Button onClick={stopDemo} variant="outline" size="sm" className="flex-1">
+                <Pause className="h-4 w-4 mr-2" />
+                Pause Demo
+              </Button>
+            )}
+            <Button onClick={resetDemo} variant="outline" size="sm">
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Current Template Info */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Current Template</h4>
+              <Badge variant="outline" className="text-xs">
+                {currentTemplateIndex + 1}/{templates.length}
               </Badge>
             </div>
-            <p className="text-sm text-gray-300">
-              {currentTemplate.description}
-            </p>
-          </div>
-        </div>
-
-        {/* CRD Properties */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <h5 className="text-sm font-medium flex items-center gap-2">
-              {getMaterialIcon(demoState.currentMaterial)}
-              Slab Material
-            </h5>
-            <Badge variant="secondary" className="w-full justify-center bg-gray-800 text-white">
-              {demoState.currentMaterial.charAt(0).toUpperCase() + demoState.currentMaterial.slice(1)}
-            </Badge>
-          </div>
-          
-          <div className="space-y-2">
-            <h5 className="text-sm font-medium flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Effects
-            </h5>
-            <div className="flex flex-wrap gap-1">
-              {demoState.currentCRD.effects.map((effect, index) => (
-                <Badge key={index} variant="outline" className="text-xs border-gray-600 text-gray-300">
-                  {effect.type}
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-medium">{currentTemplate.name}</span>
+                <Badge variant="secondary" className="text-xs">
+                  {demoState.currentRarity}
                 </Badge>
-              ))}
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                {currentTemplate.description}
+              </p>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Material:</span>
+                  <div className="font-medium capitalize">{demoState.currentMaterial}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Rarity:</span>
+                  <div className="font-medium">{demoState.currentRarity}</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* CRD DNA Properties */}
-        <div className="bg-gray-900/30 rounded-lg p-3 border border-gray-700">
-          <h6 className="text-sm font-medium mb-2 text-blue-300">CRD DNA Properties</h6>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-400">Translucency:</span>
-              <span className="text-white">{Math.round(demoState.currentCRD.translucency * 100)}%</span>
+          {/* Progress */}
+          {demoState.isRunning && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Template Progress</span>
+                <span>{Math.round(demoState.cycleProgress)}%</span>
+              </div>
+              <Progress value={demoState.cycleProgress} className="h-2" />
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Slab Depth:</span>
-              <span className="text-white">{demoState.currentCRD.slabDepth.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Embed Depth:</span>
-              <span className="text-white">{demoState.currentCRD.embeddedDepth.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Image Clarity:</span>
-              <span className="text-white">{Math.round(demoState.currentCRD.embeddedImage.clarity * 100)}%</span>
+          )}
+
+          {/* CRD DNA Properties */}
+          <div className="space-y-2">
+            <h5 className="text-sm font-medium">CRD DNA Properties</h5>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-muted-foreground">Translucency:</span>
+                <div className="font-medium">{Math.round(demoState.currentCRD.translucency * 100)}%</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Slab Depth:</span>
+                <div className="font-medium">{demoState.currentCRD.slabDepth?.toFixed(2)}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Embed Depth:</span>
+                <div className="font-medium">{demoState.currentCRD.embeddedImage.position.z.toFixed(2)}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Image Clarity:</span>
+                <div className="font-medium">{Math.round((demoState.currentCRD.embeddedImage.clarity || 0.95) * 100)}%</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span>Template Progress</span>
-            <span>{Math.round(demoState.cycleProgress)}%</span>
+          {/* Template Progress */}
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground mb-1">Template Progress</div>
+            <div className="text-lg font-bold text-primary">
+              {Math.round((currentTemplateIndex / templates.length) * 100)}%
+            </div>
           </div>
-          <Progress value={demoState.cycleProgress} className="h-2 bg-gray-800" />
-        </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant={demoState.isRunning ? "secondary" : "default"}
-            size="sm"
-            onClick={demoState.isRunning ? handleStopDemo : () => setDemoState(prev => ({ ...prev, isRunning: true }))}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-          >
-            {demoState.isRunning ? (
-              <>
-                <Pause className="w-4 h-4 mr-1" />
-                Pause
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-1" />
-                Play
-              </>
-            )}
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="border-gray-600 hover:bg-gray-800"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* CRD Token Value */}
-        <div className="text-center p-2 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 rounded border border-yellow-700/50">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-2xl">🪙</span>
-            <span className="font-bold text-lg text-yellow-300">
-              {demoState.currentCRD.crdTokenValue} CRD
-            </span>
+          {/* CRD Token Value */}
+          <div className="text-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <div className="text-xs text-muted-foreground mb-1">Estimated Token Value</div>
+            <div className="text-xl font-bold text-primary flex items-center justify-center gap-1">
+              🪙 {demoState.currentCRD.crdTokenValue} CRD
+            </div>
           </div>
-          <p className="text-xs text-yellow-200/80">Estimated Token Value</p>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
