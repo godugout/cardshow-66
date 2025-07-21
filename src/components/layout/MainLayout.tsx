@@ -1,22 +1,47 @@
 
 import React from 'react';
-import { UniversalNavbar } from '@/components/ui/design-system';
+import { UnifiedNavigation } from './UnifiedNavigation';
+import { useSubdomainRouting } from '@/hooks/useSubdomainRouting';
+import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
   children: React.ReactNode;
   showNavbar?: boolean;
+  className?: string;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
-  showNavbar = true 
+  showNavbar = true,
+  className 
 }) => {
+  const { currentSubdomain } = useSubdomainRouting();
+  
   return (
-    <div className="min-h-screen bg-[#0a0a0b]">
-      {showNavbar && <UniversalNavbar />}
-      <main className="flex-1">
+    <div className={cn(
+      "min-h-screen font-ui",
+      "bg-crd-black text-crd-text",
+      className
+    )}>
+      {showNavbar && <UnifiedNavigation />}
+      <main className={cn(
+        "flex-1",
+        showNavbar && "pt-0" // Navigation is sticky, no extra padding needed
+      )}>
         {children}
       </main>
+      
+      {/* Dynamic CSS custom property for current subdomain */}
+      <style>{`
+        :root {
+          --current-primary: ${
+            currentSubdomain.primaryColor === 'orange' ? '#FF6D00' :
+            currentSubdomain.primaryColor === 'blue' ? '#2D9CDB' :
+            currentSubdomain.primaryColor === 'yellow' ? '#FFD700' :
+            '#00C851'
+          };
+        }
+      `}</style>
     </div>
   );
 };

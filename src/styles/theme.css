@@ -1,38 +1,43 @@
 
-/* Cardshow Interface Theme - Updated from actual screenshots */
+/* CARDSHOW UNIFIED PLATFORM THEME - PHASE 1 FOUNDATION */
 :root {
-  /* Primary Interface Colors */
-  --primary-bg: #0a0a0b;      /* Main app background */
-  --secondary-bg: #131316;    /* Card backgrounds */
-  --panel-bg: #1a1f2e;       /* Side panels and modals */
-  --hover-bg: #242428;        /* Hover states */
+  /* Core Brand Colors - Exact Specifications */
+  --crd-black: #1a1a1a;        /* Primary background - premium dark */
+  --crd-surface: #2d2d2d;      /* Card surfaces and containers */
+  --crd-surface-light: #3d3d3d; /* Elevated surfaces and hover states */
   
-  /* Accent Colors - From interface */
-  --accent-green: #4ade80;    /* Primary green - success, prices */
-  --accent-blue: #4A90FF;     /* Primary blue - links, focus */
-  --accent-orange: #FF6B4A;   /* Primary orange - highlights */
-  --accent-purple: #9757D7;   /* Premium purple */
-  --accent-red: #ef4444;      /* Error, auctions */
-  --accent-amber: #f59e0b;    /* Warnings, bids */
+  /* Feature-Specific Brand Colors */
+  --crd-green: #00C851;        /* Collections, success states, growth */
+  --crd-orange: #FF6D00;       /* Cards, creation tools, creativity */
+  --crd-blue: #2D9CDB;         /* Marketplace, transactions, trust */
+  --crd-yellow: #FFD700;       /* CRD tokens, premium features, rewards */
   
-  /* Text Colors - From actual UI */
-  --text-primary: #ffffff;    /* White headings */
-  --text-secondary: #e2e8f0;  /* Light gray body text */
-  --text-tertiary: #94a3b8;   /* Medium gray metadata */
-  --text-muted: #64748b;      /* Muted text */
-  --text-accent: #4ade80;     /* Green accent text */
+  /* Interactive States */
+  --crd-hover: #404040;        /* Hover state for interactive elements */
+  --crd-active: #4d4d4d;       /* Active/pressed state */
+  --crd-focus: #0066cc;        /* Focus rings and accessibility */
   
-  /* Border Colors - From interface */
-  --border-primary: #334155;   /* Subtle borders */
-  --border-secondary: #475569; /* Medium borders */
-  --border-accent: rgba(74, 222, 128, 0.5); /* Green accent borders */
-  --border-focus: rgba(74, 144, 255, 0.5);  /* Blue focus borders */
+  /* Text Colors - High Contrast System */
+  --crd-text: #ffffff;         /* Primary text - high contrast */
+  --crd-text-dim: #a0a0a0;     /* Secondary text and descriptions */
+  --crd-text-muted: #707070;   /* Disabled and tertiary text */
   
-  /* Gradients - From UI elements */
-  --gradient-primary: linear-gradient(135deg, #4A90FF 0%, #9757D7 100%);
-  --gradient-card: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-  --gradient-premium: linear-gradient(135deg, #9757D7 0%, #ec4899 50%, #f59e0b 100%);
-  --gradient-success: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  /* Border Colors - Consistent Hierarchy */
+  --crd-border: #404040;       /* Borders and dividers */
+  --crd-border-light: #606060; /* Lighter borders for emphasis */
+  
+  /* Semantic Colors */
+  --crd-success: #00C851;      /* Success messages and confirmations */
+  --crd-warning: #FFA726;      /* Warnings and caution states */
+  --crd-error: #F44336;        /* Error states and destructive actions */
+  --crd-info: #2D9CDB;         /* Information and neutral states */
+  
+  /* Professional Gradients */
+  --gradient-collections: linear-gradient(135deg, var(--crd-green), #22c55e);
+  --gradient-cards: linear-gradient(135deg, var(--crd-orange), #ff8a00);
+  --gradient-marketplace: linear-gradient(135deg, var(--crd-blue), #1e88e5);
+  --gradient-tokens: linear-gradient(135deg, var(--crd-yellow), #ffc107);
+  --gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
 }
 
 /* Navigation Styles - From screenshots */

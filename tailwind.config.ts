@@ -52,21 +52,32 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // CRD Brand Colors - New Design System
-        'crd-orange': 'hsl(var(--crd-orange))',
-        'crd-green': 'hsl(var(--crd-green))',
-        'crd-blue': 'hsl(var(--crd-blue))',
+        // CARDSHOW UNIFIED BRAND COLORS - EXACT SPECIFICATIONS
+        'crd-black': '#1a1a1a',        // Primary background - premium dark
+        'crd-surface': '#2d2d2d',      // Card surfaces and containers  
+        'crd-surface-light': '#3d3d3d', // Elevated surfaces and hover states
+        'crd-text': '#ffffff',         // Primary text - high contrast
+        'crd-text-dim': '#a0a0a0',     // Secondary text and descriptions
+        'crd-text-muted': '#707070',   // Disabled and tertiary text
         
-        // Legacy CRD colors (will be phased out)
-        'crd-orange-legacy': '#EA6E48',
-        'crd-blue-legacy': '#3772FF',
-        'crd-purple': '#9757D7',
-        'crd-white': '#FCFCFD',
-        'crd-lightGray': '#777E90',
-        'crd-mediumGray': '#353945',
-        'crd-darkGray': '#23262F',
-        'crd-dark': '#1A1A1A',
-        'crd-darkest': '#121212',
+        // Feature-Specific Brand Colors
+        'crd-green': '#00C851',        // Collections, success states, growth
+        'crd-orange': '#FF6D00',       // Cards, creation tools, creativity
+        'crd-blue': '#2D9CDB',         // Marketplace, transactions, trust
+        'crd-yellow': '#FFD700',       // CRD tokens, premium features, rewards
+        
+        // Interactive States
+        'crd-hover': '#404040',        // Hover state for interactive elements
+        'crd-active': '#4d4d4d',       // Active/pressed state
+        'crd-focus': '#0066cc',        // Focus rings and accessibility
+        'crd-border': '#404040',       // Borders and dividers
+        'crd-border-light': '#606060', // Lighter borders for emphasis
+        
+        // Semantic Colors
+        'crd-success': '#00C851',      // Success messages and confirmations
+        'crd-warning': '#FFA726',      // Warnings and caution states
+        'crd-error': '#F44336',        // Error states and destructive actions
+        'crd-info': '#2D9CDB',         // Information and neutral states
         
         // Editor colors
         'editor-dark': '#1a1a1a',
@@ -95,8 +106,11 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        'orbitron': ['Orbitron', 'monospace'],
-        'dancing': ['Dancing Script', 'cursive'],
+        // CARDSHOW TYPOGRAPHY SYSTEM
+        'ui': ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        'mono': ['Roboto Mono', 'Consolas', 'monospace'],
+        'display': ['Orbitron', 'monospace'], // For card names and branded elements
+        'script': ['Dancing Script', 'cursive'], // For decorative elements
       },
     },
   },
