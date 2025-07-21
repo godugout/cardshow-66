@@ -93,8 +93,8 @@ export const EnhancedCRDDemo: React.FC = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const { toast } = useToast();
   
-  // Demo image URL
-  const demoImageUrl = '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+  // Demo image URL - using a more reliable placeholder
+  const demoImageUrl = '/placeholder.svg';
   
   const [demoState, setDemoState] = useState<DemoState>({
     isRunning: false,

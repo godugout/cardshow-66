@@ -20,8 +20,16 @@ export const TranslucentCRDSlab: React.FC<TranslucentCRDSlabProps> = ({
   const slabGroupRef = useRef<THREE.Group>(null);
   const embeddedImageRef = useRef<THREE.Mesh>(null);
   
-  // Load the card image texture
-  const cardTexture = useLoader(TextureLoader, imageUrl);
+  // Load the card image texture with error handling
+  let cardTexture: THREE.Texture;
+  try {
+    cardTexture = useLoader(TextureLoader, imageUrl);
+  } catch (error) {
+    console.warn('Failed to load texture:', imageUrl, error);
+    // Create a fallback texture
+    cardTexture = new THREE.Texture();
+    cardTexture.needsUpdate = true;
+  }
   
   // Configure card texture
   useMemo(() => {
@@ -67,15 +75,32 @@ export const TranslucentCRDSlab: React.FC<TranslucentCRDSlabProps> = ({
     return material;
   }, [crdData.slabMaterial, crdData.translucency, slabDimensions.depth]);
 
-  // Create embedded image material
+  // Create embedded image material with fallback
   const imageMaterial = useMemo(() => {
-    return new THREE.MeshBasicMaterial({
-      map: cardTexture,
+    const material = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: crdData.embeddedImage.clarity || 0.95,
       side: THREE.DoubleSide
     });
-  }, [cardTexture, crdData.embeddedImage.clarity]);
+    
+    // If texture loaded successfully, use it, otherwise use a solid color
+    if (cardTexture && cardTexture.image && cardTexture.image.complete) {
+      material.map = cardTexture;
+    } else {
+      // Use a gradient-like fallback color based on rarity
+      const rarityColors = {
+        'Common': '#8B8B8B',
+        'Uncommon': '#2ECC71',
+        'Rare': '#3498DB',
+        'Epic': '#9B59B6',
+        'Legendary': '#F39C12',
+        'Mythic': '#E74C3C'
+      };
+      material.color = new THREE.Color(rarityColors[crdData.rarity] || '#8B8B8B');
+    }
+    
+    return material;
+  }, [cardTexture, crdData.embeddedImage.clarity, crdData.rarity]);
 
   // Animation frame
   useFrame((state) => {
