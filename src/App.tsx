@@ -41,6 +41,7 @@ import CrdMkr from './pages/CrdMkr';
 import Profile from './pages/Profile';
 import DebugDetection from './pages/DebugDetection';
 import CRDDesignGuide from './pages/CRDDesignGuide';
+import { CRDMKRFrameBuilder } from './pages/CRDMKRFrameBuilder';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -301,6 +302,14 @@ function App() {
                     <MainLayout>
                       <CrdMkr />
                     </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/crdmkr/frame-builder" 
+                  element={
+                    <ProtectedRoute>
+                      <CRDMKRFrameBuilder />
+                    </ProtectedRoute>
                   } 
                 />
                 

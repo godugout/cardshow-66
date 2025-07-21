@@ -12,8 +12,8 @@ const Index = () => {
     {
       icon: <Palette className="w-8 h-8" />,
       title: 'CRDMKR Frame Builder',
-      description: 'Professional PSD-powered frame creation with layer-based editing',
-      href: '/crdmkr',
+      description: 'Professional PSD-powered frame creation with layer-based editing and real-time preview',
+      href: '/crdmkr/frame-builder',
       badge: 'Professional',
       subdomain: 'crdmkr.cardshow.app',
       color: 'crd-orange',
@@ -122,7 +122,7 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link to="/crdmkr">
+              <Link to="/crdmkr/frame-builder">
                 <CRDButton variant="orange" size="lg" icon={<Palette className="w-5 h-5" />}>
                   Start with CRDMKR
                 </CRDButton>

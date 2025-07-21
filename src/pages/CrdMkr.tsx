@@ -5,10 +5,9 @@ import { CardCreationInterface } from '@/components/cardmaker/CardCreationInterf
 import { CreatorOnboardingFlow } from '@/components/creator/CreatorOnboardingFlow';
 import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { AdvancedStudioProvider } from '@/contexts/AdvancedStudioContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Sparkles, ArrowRight, User } from 'lucide-react';
+import { CRDButton } from '@/components/ui/design-system/atoms/CRDButton';
+import { CRDCard } from '@/components/ui/design-system/atoms/CRDCard';
+import { Plus, Sparkles, ArrowRight, User, Palette } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function CrdMkr() {
@@ -50,75 +49,106 @@ export default function CrdMkr() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-4xl font-bold text-foreground mb-2">
-                  Card Maker Studio
+                <h1 className="text-4xl font-bold text-crd-text mb-2 font-display">
+                  CRDMKR Studio
                 </h1>
-                <p className="text-muted-foreground">
-                  Create stunning digital trading cards with professional-grade tools
+                <p className="text-crd-text-dim">
+                  Professional PSD-to-Frame conversion and card creation tools
                 </p>
               </div>
               <Link to="/profile">
-                <Button variant="outline">
+                <CRDButton variant="ghost">
                   <User className="w-4 h-4 mr-2" />
                   My Profile
-                </Button>
+                </CRDButton>
+              </Link>
+            </div>
+
+            {/* Creator Tools Quick Access */}
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <Link to="/crdmkr/frame-builder">
+                <CRDCard hover="lift" className="p-6 border-crd-orange/20 hover:border-crd-orange">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-crd-orange to-crd-yellow rounded-xl flex items-center justify-center">
+                      <Palette className="w-6 h-6 text-crd-black" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-crd-text mb-1">Frame Builder</h3>
+                      <p className="text-sm text-crd-text-dim">Convert PSD files into professional frame templates</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-crd-orange" />
+                  </div>
+                </CRDCard>
+              </Link>
+              
+              <Link to="/create">
+                <CRDCard hover="lift" className="p-6 border-crd-green/20 hover:border-crd-green">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-crd-green to-crd-blue rounded-xl flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-crd-black" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-crd-text mb-1">Card Creator</h3>
+                      <p className="text-sm text-crd-text-dim">Create cards using frames and templates</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-crd-green" />
+                  </div>
+                </CRDCard>
               </Link>
             </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-crd-green">0</div>
-                  <div className="text-sm text-muted-foreground">Cards Created</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-crd-blue">Level 1</div>
-                  <div className="text-sm text-muted-foreground">Creator Level</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-crd-orange">100</div>
-                  <div className="text-sm text-muted-foreground">Credits</div>
-                </CardContent>
-              </Card>
+              <CRDCard padding="sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-crd-green font-display">0</div>
+                  <div className="text-sm text-crd-text-dim">Cards Created</div>
+                </div>
+              </CRDCard>
+              <CRDCard padding="sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-crd-blue font-display">Level 1</div>
+                  <div className="text-sm text-crd-text-dim">Creator Level</div>
+                </div>
+              </CRDCard>
+              <CRDCard padding="sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-crd-orange font-display">100</div>
+                  <div className="text-sm text-crd-text-dim">Credits</div>
+                </div>
+              </CRDCard>
             </div>
 
             {isNewCreator && (
-              <Card className="border-crd-green/20 bg-crd-green/5">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-crd-green/20 rounded-full">
-                      <Sparkles className="w-6 h-6 text-crd-green" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">Welcome to CRD Maker!</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Get personalized templates and tools by completing a quick setup
-                      </p>
-                    </div>
-                    <Button onClick={handleStartCreating} className="bg-crd-green hover:bg-crd-green/90">
-                      Get Started
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+              <CRDCard className="border-crd-green/20 bg-crd-green/5 p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-crd-green/20 rounded-full">
+                    <Sparkles className="w-6 h-6 text-crd-green" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-crd-text mb-1">Welcome to CRDMKR!</h3>
+                    <p className="text-sm text-crd-text-dim">
+                      Get personalized templates and tools by completing a quick setup
+                    </p>
+                  </div>
+                  <CRDButton onClick={handleStartCreating} variant="success">
+                    Get Started
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </CRDButton>
+                </div>
+              </CRDCard>
             )}
           </div>
 
           {/* Main Creation Interface */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-foreground">Create New Card</h2>
+              <h2 className="text-2xl font-semibold text-crd-text font-display">Create New Card</h2>
               {hasCompletedOnboarding && (
-                <Button variant="outline" size="sm" onClick={() => setShowOnboarding(true)}>
+                <CRDButton variant="ghost" size="sm" onClick={() => setShowOnboarding(true)}>
                   <Sparkles className="w-4 h-4 mr-2" />
                   Personalize Tools
-                </Button>
+                </CRDButton>
               )}
             </div>
             
