@@ -1,27 +1,21 @@
 // CRDMKR Professional Frame Builder - Main Interface
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { CRDButton } from '@/components/ui/design-system/atoms/CRDButton';
-import { CRDCard } from '@/components/ui/design-system/atoms/CRDCard';
 import { PlatformHeader } from '@/components/ui/design-system/organisms/PlatformHeader';
+import { PSDProcessingEngine } from '@/components/crdmkr/PSDProcessingEngine';
+import { LayerTreeInterface } from '@/components/crdmkr/LayerTreeInterface';
 import { 
-  Upload, 
-  Layers, 
-  Settings, 
   Save, 
   Download, 
-  Eye, 
-  EyeOff,
-  Move,
   Palette,
-  Type,
-  Image as ImageIcon,
-  FolderOpen,
   ChevronRight,
-  ChevronDown,
-  MoreHorizontal
+  Settings,
+  Grid,
+  Maximize2,
+  RotateCcw,
+  Share2
 } from 'lucide-react';
 import { useSubdomainRouting } from '@/hooks/useSubdomainRouting';
-import { unifiedPSDService } from '@/services/psdProcessor/unifiedPsdService';
 import { EnhancedProcessedPSD, EnhancedProcessedPSDLayer } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -51,23 +45,12 @@ interface EditableRegion {
   defaultContent?: string;
 }
 
-interface LayerTreeNode {
-  layer: EnhancedProcessedPSDLayer;
-  children: LayerTreeNode[];
-  isExpanded: boolean;
-  isSelected: boolean;
-  isVisible: boolean;
-}
-
 export const CRDMKRFrameBuilder: React.FC = () => {
   const { currentSubdomain } = useSubdomainRouting();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Core state
   const [project, setProject] = useState<CRDFrameProject | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
-  const [layerTree, setLayerTree] = useState<LayerTreeNode[]>([]);
   
   // UI state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -79,86 +62,51 @@ export const CRDMKRFrameBuilder: React.FC = () => {
   const TEAM_CODES = ['BOS', 'MTL', 'USA', 'AI1', 'LAX'];
   const STYLE_CODES = ['S', 'B', 'UNI', 'SK', 'CL70s'];
 
-  const handleFileUpload = useCallback(async (files: FileList) => {
-    if (!files.length) return;
-    
-    const file = files[0];
-    if (!file.type.includes('image') && !file.name.toLowerCase().endsWith('.psd')) {
-      toast.error('Please upload a PSD file');
-      return;
-    }
+  const handlePSDProcessed = useCallback((processedPSD: EnhancedProcessedPSD, fileName: string) => {
+    // Generate file name following CS_FRM_[TEAMCODE]_[STYLECODE] convention
+    const teamCode = TEAM_CODES[0]; // Default to first, user can change
+    const styleCode = STYLE_CODES[0]; // Default to first, user can change
+    const frameName = `CS_FRM_${teamCode}_${styleCode}`;
 
-    setIsProcessing(true);
-    
-    try {
-      const processedPSD = await unifiedPSDService.processPSDFile(file, {
-        extractImages: true,
-        generateThumbnails: true,
-        maxLayerSize: 2048
-      });
+    const newProject: CRDFrameProject = {
+      id: `frame_${Date.now()}`,
+      name: frameName,
+      teamCode,
+      styleCode,
+      processedPSD,
+      metadata: {
+        description: `Frame template generated from ${fileName}`,
+        category: 'custom',
+        isPublic: false,
+        tags: ['psd-import', 'frame-template']
+      },
+      editableRegions: [],
+      lastModified: new Date()
+    };
 
-      // Generate file name following CS_FRM_[TEAMCODE]_[STYLECODE] convention
-      const teamCode = TEAM_CODES[0]; // Default to first, user can change
-      const styleCode = STYLE_CODES[0]; // Default to first, user can change
-      const fileName = `CS_FRM_${teamCode}_${styleCode}`;
-
-      const newProject: CRDFrameProject = {
-        id: `frame_${Date.now()}`,
-        name: fileName,
-        teamCode,
-        styleCode,
-        processedPSD,
-        metadata: {
-          description: `Frame template generated from ${file.name}`,
-          category: 'custom',
-          isPublic: false,
-          tags: ['psd-import', 'frame-template']
-        },
-        editableRegions: [],
-        lastModified: new Date()
-      };
-
-      setProject(newProject);
-      
-      // Build layer tree with hierarchy
-      const tree = buildLayerTree(processedPSD.layers as EnhancedProcessedPSDLayer[]);
-      setLayerTree(tree);
-      
-      toast.success('PSD processed successfully!');
-      
-    } catch (error) {
-      console.error('PSD processing failed:', error);
-      toast.error('Failed to process PSD file');
-    } finally {
-      setIsProcessing(false);
-    }
-  }, []);
-
-  const buildLayerTree = (layers: EnhancedProcessedPSDLayer[]): LayerTreeNode[] => {
-    return layers.map(layer => ({
-      layer,
-      children: [], // TODO: Build actual hierarchy from group relationships
-      isExpanded: true,
-      isSelected: false,
-      isVisible: layer.isVisible
-    }));
-  };
+    setProject(newProject);
+    toast.success('Frame project created successfully!');
+  }, [TEAM_CODES, STYLE_CODES]);
 
   const handleLayerVisibilityToggle = useCallback((layerId: string) => {
-    setLayerTree(prev => prev.map(node => {
-      if (node.layer.id === layerId) {
-        return { ...node, isVisible: !node.isVisible };
+    if (!project?.processedPSD) return;
+    
+    // Update the layer visibility in the processed PSD
+    const updatedLayers = project.processedPSD.layers.map(layer => 
+      layer.id === layerId ? { ...layer, isVisible: !layer.isVisible } : layer
+    );
+    
+    setProject(prev => prev ? {
+      ...prev,
+      processedPSD: {
+        ...prev.processedPSD!,
+        layers: updatedLayers
       }
-      return node;
-    }));
-  }, []);
+    } : null);
+  }, [project]);
 
   const handleLayerSelect = useCallback((layerId: string) => {
     setSelectedLayerId(layerId);
-    setLayerTree(prev => prev.map(node => ({
-      ...node,
-      isSelected: node.layer.id === layerId
-    })));
   }, []);
 
   const generateFrameName = () => {
@@ -166,72 +114,21 @@ export const CRDMKRFrameBuilder: React.FC = () => {
     return `CS_FRM_${project.teamCode}_${project.styleCode}.png`;
   };
 
-  const LayerTreeItem: React.FC<{ 
-    node: LayerTreeNode; 
-    depth: number; 
-  }> = ({ node, depth }) => {
-    const { layer } = node;
-    const isSelected = selectedLayerId === layer.id;
-    
-    return (
-      <div className="select-none">
-        <div 
-          className={cn(
-            "flex items-center py-1.5 px-2 rounded cursor-pointer transition-colors",
-            "hover:bg-crd-surface-light",
-            isSelected && "bg-crd-orange/20 border-l-2 border-crd-orange",
-            !node.isVisible && "opacity-50"
-          )}
-          style={{ paddingLeft: `${8 + depth * 16}px` }}
-          onClick={() => handleLayerSelect(layer.id)}
-        >
-          {/* Layer type icon */}
-          <div className="mr-2 flex-shrink-0">
-            {layer.semanticType === 'text' && <Type className="w-4 h-4 text-crd-yellow" />}
-            {layer.semanticType === 'image' && <ImageIcon className="w-4 h-4 text-crd-blue" />}
-            {layer.semanticType === 'background' && <Palette className="w-4 h-4 text-crd-green" />}
-            {!['text', 'image', 'background'].includes(layer.semanticType || '') && 
-              <Layers className="w-4 h-4 text-crd-text-muted" />}
-          </div>
-          
-          {/* Layer thumbnail */}
-          {layer.thumbnailUrl && (
-            <div className="mr-2 flex-shrink-0">
-              <img 
-                src={layer.thumbnailUrl} 
-                alt={layer.name}
-                className="w-6 h-6 rounded border border-crd-border object-cover"
-                onError={(e) => e.currentTarget.style.display = 'none'}
-              />
-            </div>
-          )}
-          
-          {/* Layer name */}
-          <span className={cn(
-            "flex-1 text-sm truncate font-medium",
-            isSelected ? "text-crd-text" : "text-crd-text-dim"
-          )}>
-            {layer.name}
-          </span>
-          
-          {/* Layer visibility toggle */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLayerVisibilityToggle(layer.id);
-            }}
-            className="ml-2 p-1 hover:bg-crd-hover rounded"
-          >
-            {node.isVisible ? 
-              <Eye className="w-4 h-4 text-crd-text-dim" /> : 
-              <EyeOff className="w-4 h-4 text-crd-text-muted" />
-            }
-          </button>
-        </div>
-      </div>
-    );
-  };
+  const handleSaveProject = useCallback(() => {
+    if (!project) return;
+    // TODO: Implement project saving
+    toast.success('Project saved successfully!');
+  }, [project]);
 
+  const handleExportFrame = useCallback(() => {
+    if (!project) return;
+    // TODO: Implement frame export
+    toast.success('Frame exported successfully!');
+  }, [project]);
+
+  const selectedLayer = project?.processedPSD?.layers.find(layer => layer.id === selectedLayerId);
+
+  // Initial state - no project loaded
   if (!project) {
     return (
       <div className="min-h-screen bg-crd-black">
@@ -245,7 +142,7 @@ export const CRDMKRFrameBuilder: React.FC = () => {
             <div className="w-24 h-24 bg-gradient-to-br from-crd-orange to-crd-yellow rounded-2xl mx-auto mb-6 flex items-center justify-center">
               <Palette className="w-12 h-12 text-crd-black" />
             </div>
-            <h2 className="text-3xl font-bold text-crd-text mb-4 font-display">
+            <h2 className="text-3xl font-bold text-crd-text mb-4">
               Import Your PSD Template
             </h2>
             <p className="text-lg text-crd-text-dim max-w-2xl mx-auto">
@@ -254,40 +151,12 @@ export const CRDMKRFrameBuilder: React.FC = () => {
             </p>
           </div>
 
-          <CRDCard className="p-12 text-center border-2 border-dashed border-crd-border hover:border-crd-orange transition-colors">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".psd,image/*"
-              onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
-              className="hidden"
-            />
-            
-            <Upload className="w-16 h-16 text-crd-text-muted mx-auto mb-6" />
-            
-            <h3 className="text-xl font-semibold text-crd-text mb-4">
-              {isProcessing ? 'Processing PSD...' : 'Drop your PSD file here'}
-            </h3>
-            
-            <p className="text-crd-text-dim mb-8">
-              Supports complex PSDs with layers, groups, and text elements. Max file size: 50MB
-            </p>
-            
-            <CRDButton 
-              variant="orange" 
-              size="lg"
-              onClick={() => fileInputRef.current?.click()}
-              loading={isProcessing}
-              disabled={isProcessing}
-            >
-              {isProcessing ? 'Processing...' : 'Choose PSD File'}
-            </CRDButton>
-          </CRDCard>
+          <PSDProcessingEngine onPSDProcessed={handlePSDProcessed} />
 
           <div className="grid md:grid-cols-3 gap-6 mt-12">
             <div className="text-center">
               <div className="w-12 h-12 bg-crd-surface rounded-lg mx-auto mb-4 flex items-center justify-center">
-                <Layers className="w-6 h-6 text-crd-orange" />
+                <Grid className="w-6 h-6 text-crd-orange" />
               </div>
               <h4 className="font-semibold text-crd-text mb-2">Layer Analysis</h4>
               <p className="text-sm text-crd-text-dim">AI-powered layer detection and categorization</p>
@@ -314,6 +183,7 @@ export const CRDMKRFrameBuilder: React.FC = () => {
     );
   }
 
+  // Main editor interface
   return (
     <div className="min-h-screen bg-crd-black flex flex-col">
       {/* Professional Header */}
@@ -322,7 +192,7 @@ export const CRDMKRFrameBuilder: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Palette className="w-6 h-6 text-crd-orange" />
-              <span className="font-bold text-lg text-crd-text font-display">CRDMKR</span>
+              <span className="font-bold text-lg text-crd-text">CRDMKR</span>
             </div>
             <div className="text-sm text-crd-text-dim">
               {generateFrameName()}
@@ -330,12 +200,12 @@ export const CRDMKRFrameBuilder: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-3">
-            <CRDButton variant="ghost" size="sm">
-              <Save className="w-4 h-4" />
+            <CRDButton variant="ghost" size="sm" onClick={handleSaveProject}>
+              <Save className="w-4 h-4 mr-2" />
               Save
             </CRDButton>
-            <CRDButton variant="blue" size="sm">
-              <Download className="w-4 h-4" />
+            <CRDButton variant="blue" size="sm" onClick={handleExportFrame}>
+              <Download className="w-4 h-4 mr-2" />
               Export Frame
             </CRDButton>
           </div>
@@ -349,39 +219,31 @@ export const CRDMKRFrameBuilder: React.FC = () => {
           "bg-crd-surface border-r border-crd-border transition-all duration-300",
           sidebarCollapsed ? "w-12" : "w-80"
         )}>
-          <div className="p-4 border-b border-crd-border">
-            <div className="flex items-center justify-between">
-              <h3 className={cn(
-                "font-semibold text-crd-text transition-opacity",
-                sidebarCollapsed && "opacity-0"
-              )}>
-                Layers
-              </h3>
-              <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="p-1 hover:bg-crd-hover rounded"
-              >
-                <ChevronRight className={cn(
-                  "w-4 h-4 text-crd-text-dim transition-transform",
-                  !sidebarCollapsed && "rotate-180"
-                )} />
-              </button>
-            </div>
-          </div>
-          
-          {!sidebarCollapsed && (
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-2">
-                {layerTree.map((node, index) => (
-                  <LayerTreeItem key={node.layer.id} node={node} depth={0} />
-                ))}
-              </div>
-            </div>
+          {!sidebarCollapsed && project?.processedPSD && (
+            <LayerTreeInterface
+              layers={project.processedPSD.layers as EnhancedProcessedPSDLayer[]}
+              selectedLayerId={selectedLayerId}
+              onLayerSelect={handleLayerSelect}
+              onLayerVisibilityToggle={handleLayerVisibilityToggle}
+              className="h-full"
+            />
           )}
+          
+          {/* Collapse button */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="absolute top-4 right-2 p-1 hover:bg-crd-hover rounded z-10"
+          >
+            <ChevronRight className={cn(
+              "w-4 h-4 text-crd-text-dim transition-transform",
+              !sidebarCollapsed && "rotate-180"
+            )} />
+          </button>
         </div>
 
         {/* Center Panel - Canvas Preview */}
         <div className="flex-1 flex flex-col">
+          {/* Canvas Toolbar */}
           <div className="p-4 border-b border-crd-border bg-crd-surface/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -391,31 +253,41 @@ export const CRDMKRFrameBuilder: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setPreviewZoom(Math.max(0.1, previewZoom - 0.1))}
-                    className="px-2 py-1 text-xs bg-crd-hover rounded hover:bg-crd-active"
+                    className="px-2 py-1 text-xs bg-crd-hover rounded hover:bg-crd-active text-crd-text"
                   >
                     -
                   </button>
-                  <span className="text-sm min-w-[4rem] text-center">
+                  <span className="text-sm min-w-[4rem] text-center text-crd-text">
                     {Math.round(previewZoom * 100)}%
                   </span>
                   <button
                     onClick={() => setPreviewZoom(Math.min(3, previewZoom + 0.1))}
-                    className="px-2 py-1 text-xs bg-crd-hover rounded hover:bg-crd-active"
+                    className="px-2 py-1 text-xs bg-crd-hover rounded hover:bg-crd-active text-crd-text"
                   >
                     +
                   </button>
                 </div>
               </div>
+              
+              <div className="flex items-center space-x-2">
+                <CRDButton variant="ghost" size="sm">
+                  <Maximize2 className="w-4 h-4" />
+                </CRDButton>
+                <CRDButton variant="ghost" size="sm">
+                  <RotateCcw className="w-4 h-4" />
+                </CRDButton>
+              </div>
             </div>
           </div>
           
-          <div className="flex-1 relative overflow-auto bg-checkered">
-            <div className="absolute inset-0 flex items-center justify-center">
+          {/* Canvas Area */}
+          <div className="flex-1 relative overflow-auto bg-gray-900">
+            <div className="absolute inset-0 flex items-center justify-center p-8">
               {project.processedPSD?.extractedImages.flattenedImageUrl && (
                 <img
                   src={project.processedPSD.extractedImages.flattenedImageUrl}
                   alt="PSD Preview"
-                  className="max-w-none border border-crd-border shadow-lg"
+                  className="max-w-none border border-crd-border shadow-2xl rounded-lg"
                   style={{
                     transform: `scale(${previewZoom}) translate(${previewOffset.x}px, ${previewOffset.y}px)`
                   }}
@@ -450,19 +322,95 @@ export const CRDMKRFrameBuilder: React.FC = () => {
             </div>
           </div>
           
-          {!propertiesPanelCollapsed && selectedLayerId && (
-            <div className="p-4 space-y-4">
-              {/* Layer properties will go here */}
+          {!propertiesPanelCollapsed && (
+            <div className="p-4 space-y-6">
+              {selectedLayer ? (
+                <>
+                  {/* Selected Layer Properties */}
+                  <div>
+                    <h4 className="text-sm font-medium text-crd-text mb-3">Layer Details</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
+                          value={selectedLayer.name}
+                          readOnly
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Type
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
+                          value={selectedLayer.semanticType || selectedLayer.type}
+                          readOnly
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Dimensions
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
+                          value={`${selectedLayer.bounds.right - selectedLayer.bounds.left} × ${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <Settings className="w-12 h-12 text-crd-text-muted mx-auto mb-3" />
+                  <p className="text-sm text-crd-text-dim">
+                    Select a layer to edit its properties
+                  </p>
+                </div>
+              )}
+
+              {/* Frame Settings */}
               <div>
-                <label className="block text-sm font-medium text-crd-text mb-2">
-                  Layer Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
-                  value={layerTree.find(n => n.layer.id === selectedLayerId)?.layer.name || ''}
-                  readOnly
-                />
+                <h4 className="text-sm font-medium text-crd-text mb-3">Frame Settings</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                      Team Code
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
+                      value={project.teamCode}
+                      onChange={(e) => setProject(prev => prev ? {...prev, teamCode: e.target.value} : null)}
+                    >
+                      {TEAM_CODES.map(code => (
+                        <option key={code} value={code}>{code}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                      Style Code
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
+                      value={project.styleCode}
+                      onChange={(e) => setProject(prev => prev ? {...prev, styleCode: e.target.value} : null)}
+                    >
+                      {STYLE_CODES.map(code => (
+                        <option key={code} value={code}>{code}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           )}
