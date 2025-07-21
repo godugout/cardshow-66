@@ -43,6 +43,7 @@ import DebugDetection from './pages/DebugDetection';
 import CRDDesignGuide from './pages/CRDDesignGuide';
 import { CRDMKRFrameBuilder } from './pages/CRDMKRFrameBuilder';
 import { Card3DStudio } from './pages/Card3DStudio';
+import { EnhancedMarketplace } from './pages/EnhancedMarketplace';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -185,14 +186,22 @@ function App() {
                     </MainLayout>
                   } 
                 />
-                <Route 
-                  path="/marketplace" 
-                  element={
-                    <MainLayout>
-                      <MarketplacePage />
-                    </MainLayout>
-                  } 
-                />
+                 <Route 
+                   path="/marketplace" 
+                   element={
+                     <MainLayout>
+                       <EnhancedMarketplace />
+                     </MainLayout>
+                   } 
+                 />
+                 <Route 
+                   path="/marketplace/classic" 
+                   element={
+                     <MainLayout>
+                       <MarketplacePage />
+                     </MainLayout>
+                   } 
+                 />
                 
                 {/* Password Reset Route */}
                 <Route path="/auth/forgot-password" element={<MainLayout showNavbar={false}><ForgotPassword /></MainLayout>} />
