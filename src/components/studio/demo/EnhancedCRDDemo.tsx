@@ -87,9 +87,9 @@ const templates: TemplateConfig[] = [
 ];
 
 export const EnhancedCRDDemo: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: window.innerWidth - 420, y: window.innerHeight - 500 });
+  const [position, setPosition] = useState({ x: window.innerWidth - 440, y: 100 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const { toast } = useToast();
   
