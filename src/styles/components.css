@@ -13,7 +13,7 @@
   }
   
   .crd-header {
-    @apply text-4xl font-bold text-crd-white mb-8;
+    @apply text-4xl font-bold text-crd-text mb-8;
   }
   
   .crd-accent {
@@ -26,16 +26,16 @@
   }
   
   .crd-filter-button {
-    @apply bg-transparent text-crd-lightGray border-crd-mediumGray px-3 py-2 hover:text-crd-white transition-all;
+    @apply bg-transparent text-crd-text-dim border-crd-border px-3 py-2 hover:text-crd-text transition-all;
   }
   
   .crd-filter-button-active {
-    @apply bg-crd-blue text-crd-white;
+    @apply bg-crd-blue text-crd-text;
   }
 
   /* View Mode Toggles */
   .crd-view-toggle {
-    @apply bg-crd-dark border-crd-mediumGray transition-all p-2 rounded;
+    @apply bg-crd-surface border-crd-border transition-all p-2 rounded;
   }
   
   .crd-view-toggle-active {
@@ -43,20 +43,20 @@
   }
   
   .crd-view-toggle-inactive {
-    @apply text-crd-lightGray;
+    @apply text-crd-text-dim;
   }
   
   /* Tags and Badges */
   .crd-tag {
-    @apply bg-crd-mediumGray text-crd-lightGray text-xs py-1 px-3 rounded-full;
+    @apply bg-crd-surface text-crd-text-dim text-xs py-1 px-3 rounded-full;
   }
   
   .crd-price-tag {
-    @apply bg-crd-darkGray/80 text-crd-green text-sm font-semibold py-1 px-3 rounded-full;
+    @apply bg-crd-surface/80 text-crd-green text-sm font-semibold py-1 px-3 rounded-full;
   }
   
   .crd-bid-tag {
-    @apply bg-crd-darkGray/80 text-crd-orange text-sm py-1 px-3 rounded-full;
+    @apply bg-crd-surface/80 text-crd-orange text-sm py-1 px-3 rounded-full;
   }
 
   /* Focus ring utilities for CRD design system */
