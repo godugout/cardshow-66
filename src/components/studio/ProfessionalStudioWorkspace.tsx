@@ -40,7 +40,7 @@ import { EffectsLibrary } from './assets/EffectsLibrary';
 import { SceneHierarchy } from './hierarchy/SceneHierarchy';
 import { ExportPanel } from './export/ExportPanel';
 import { StudioPropertiesPanel } from './properties/StudioPropertiesPanel';
-import { DemoModePanel } from './demo/DemoModePanel';
+import { EnhancedCRDDemo } from './demo/EnhancedCRDDemo';
 import { useStudioState } from '@/hooks/studio/useStudioState';
 
 export type StudioMode = 'beginner' | 'pro' | 'director';
@@ -317,7 +317,7 @@ export const ProfessionalStudioWorkspace: React.FC<ProfessionalStudioWorkspacePr
       )}
 
       {/* Demo Mode Panel */}
-      <DemoModePanel />
+      <EnhancedCRDDemo />
     </div>
   );
 };
