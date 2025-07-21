@@ -9,7 +9,8 @@ export interface SubdomainConfig {
   title: string;
   description: string;
   theme: 'main' | 'crdmkr' | 'studio3d';
-  primaryColor: 'orange' | 'blue' | 'green';
+  primaryColor: 'orange' | 'blue' | 'green' | 'yellow';
+  name: string;
   features: string[];
 }
 
@@ -23,6 +24,7 @@ export const SUBDOMAIN_CONFIG: Record<string, SubdomainConfig> = {
     description: 'Create, collect, and trade 3D digital cards with immersive experiences',
     theme: 'main',
     primaryColor: 'blue',
+    name: 'Main Platform',
     features: ['marketplace', 'collections', 'social', 'trading']
   },
   'crdmkr': {
@@ -33,6 +35,7 @@ export const SUBDOMAIN_CONFIG: Record<string, SubdomainConfig> = {
     description: 'Import PSD files and create professional card frame templates',
     theme: 'crdmkr',
     primaryColor: 'orange',
+    name: 'CRDMKR',
     features: ['psd-import', 'layer-editing', 'frame-templates', 'preview']
   },
   '3dstudio': {
@@ -43,6 +46,7 @@ export const SUBDOMAIN_CONFIG: Record<string, SubdomainConfig> = {
     description: 'Create stunning 3D effects and export high-quality card renders',
     theme: 'studio3d',
     primaryColor: 'green',
+    name: '3D Studio',
     features: ['3d-rendering', 'effects', 'materials', 'export']
   }
 };

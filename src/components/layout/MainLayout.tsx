@@ -37,8 +37,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           --current-primary: ${
             currentSubdomain.primaryColor === 'orange' ? '#FF6D00' :
             currentSubdomain.primaryColor === 'blue' ? '#2D9CDB' :
-            currentSubdomain.primaryColor === 'yellow' ? '#FFD700' :
-            '#00C851'
+            currentSubdomain.primaryColor === 'green' ? '#00C851' :
+            '#FFD700'
           };
         }
       `}</style>
