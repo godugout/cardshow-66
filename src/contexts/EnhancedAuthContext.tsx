@@ -1,7 +1,9 @@
+// Enhanced Authentication Context with Cross-Subdomain Session Persistence
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useSubdomainRouting } from '@/hooks/useSubdomainRouting';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -34,15 +36,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { persistSessionAcrossSubdomains, getSessionFromSubdomain } = useSubdomainRouting();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Enhanced auth state management with cross-subdomain persistence
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Persist session across subdomains
+        if (session) {
+          persistSessionAcrossSubdomains({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_at: session.expires_at,
+            user: session.user
+          });
+        } else {
+          // Clear cross-subdomain session
+          localStorage.removeItem('cardshow_session');
+          if (!import.meta.env.DEV) {
+            document.cookie = 'cardshow_session=; domain=.cardshow.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          }
+        }
         
         // Create profile for new users
         if (event === 'SIGNED_IN' && session?.user) {
@@ -53,15 +71,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Check for existing session (including cross-subdomain)
+    const initializeAuth = async () => {
+      // First check Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setSession(session);
+        setUser(session.user);
+      } else {
+        // Check for cross-subdomain session
+        const crossSubdomainSession = getSessionFromSubdomain();
+        if (crossSubdomainSession) {
+          // Restore session from cross-subdomain data
+          try {
+            const { data } = await supabase.auth.setSession({
+              access_token: crossSubdomainSession.access_token,
+              refresh_token: crossSubdomainSession.refresh_token
+            });
+            
+            if (data.session) {
+              setSession(data.session);
+              setUser(data.session.user);
+            }
+          } catch (error) {
+            console.error('Error restoring cross-subdomain session:', error);
+          }
+        }
+      }
+      
       setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [persistSessionAcrossSubdomains, getSessionFromSubdomain]);
 
   const createUserProfile = async (user: User) => {
     try {
@@ -104,16 +149,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: error.message,
-      });
+      toast.error(`Sign up failed: ${error.message}`);
     } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a confirmation link to complete your registration.",
-      });
+      toast.success('Check your email for confirmation link');
     }
 
     return { error };
@@ -126,11 +164,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign in failed",
-        description: error.message,
-      });
+      toast.error(`Sign in failed: ${error.message}`);
+    } else {
+      toast.success('Signed in successfully');
     }
 
     return { error };
@@ -147,11 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Google sign in failed",
-        description: error.message,
-      });
+      toast.error(`Google sign in failed: ${error.message}`);
     }
 
     return { error };
@@ -168,11 +200,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Discord sign in failed",
-        description: error.message,
-      });
+      toast.error(`Discord sign in failed: ${error.message}`);
     }
 
     return { error };
@@ -189,16 +217,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Magic link failed",
-        description: error.message,
-      });
+      toast.error(`Magic link failed: ${error.message}`);
     } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a magic link to sign in.",
-      });
+      toast.success('Check your email for sign in link');
     }
 
     return { error };
@@ -207,16 +228,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Sign out failed",
-        description: error.message,
-      });
+      toast.error(`Sign out failed: ${error.message}`);
     } else {
-      toast({
-        title: "Signed out successfully",
-        description: "You have been signed out of your account.",
-      });
+      toast.success('Signed out successfully');
     }
   };
 
@@ -228,16 +242,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Password reset failed",
-        description: error.message,
-      });
+      toast.error(`Password reset failed: ${error.message}`);
     } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a password reset link.",
-      });
+      toast.success('Check your email for reset link');
     }
 
     return { error };
