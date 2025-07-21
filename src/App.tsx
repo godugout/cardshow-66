@@ -42,6 +42,7 @@ import Profile from './pages/Profile';
 import DebugDetection from './pages/DebugDetection';
 import CRDDesignGuide from './pages/CRDDesignGuide';
 import { CRDMKRFrameBuilder } from './pages/CRDMKRFrameBuilder';
+import { Card3DStudio } from './pages/Card3DStudio';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -309,6 +310,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <CRDMKRFrameBuilder />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/3dstudio" 
+                  element={
+                    <ProtectedRoute>
+                      <Card3DStudio />
                     </ProtectedRoute>
                   } 
                 />
