@@ -44,6 +44,9 @@ import CRDDesignGuide from './pages/CRDDesignGuide';
 import { CRDMKRFrameBuilder } from './pages/CRDMKRFrameBuilder';
 import { Card3DStudio } from './pages/Card3DStudio';
 import { EnhancedMarketplace } from './pages/EnhancedMarketplace';
+import { TestingSuite } from './components/testing/TestingSuite';
+import { DeploymentChecklist } from './components/deployment/DeploymentChecklist';
+import { ProductionMonitor } from './components/monitoring/ProductionMonitor';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -328,6 +331,26 @@ function App() {
                     <ProtectedRoute>
                       <Card3DStudio />
                     </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Testing & Deployment Routes */}
+                <Route 
+                  path="/testing" 
+                  element={
+                    <TestingSuite />
+                  } 
+                />
+                <Route 
+                  path="/deployment" 
+                  element={
+                    <DeploymentChecklist />
+                  } 
+                />
+                <Route 
+                  path="/monitor" 
+                  element={
+                    <ProductionMonitor />
                   } 
                 />
                 
