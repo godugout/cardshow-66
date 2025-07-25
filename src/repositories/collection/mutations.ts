@@ -14,9 +14,8 @@ export const createCollection = async (params: CreateCollectionParams): Promise<
     .insert({
       title: params.title,
       description: params.description,
-      owner_id: params.owner_id,
-      visibility: params.visibility || 'private',
-      app_id: appId
+      user_id: params.owner_id,
+      is_public: params.visibility === 'public'
     })
     .select()
     .single();
@@ -24,7 +23,21 @@ export const createCollection = async (params: CreateCollectionParams): Promise<
   if (error) throw new Error(`Failed to create collection: ${error.message}`);
   if (!data) throw new Error('No data returned after creating collection');
 
-  return data as Collection;
+  return {
+    ...data,
+    owner_id: data.user_id,
+    visibility: data.is_public ? 'public' : 'private',
+    cover_image_url: null,
+    views_count: 0,
+    likes_count: 0,
+    shares_count: 0,
+    completion_rate: 0,
+    is_template: false,
+    tags: [],
+    last_activity_at: data.updated_at,
+    design_metadata: {},
+    allow_comments: true
+  } as Collection;
 };
 
 export const updateCollection = async (params: UpdateCollectionParams): Promise<Collection> => {
@@ -32,7 +45,7 @@ export const updateCollection = async (params: UpdateCollectionParams): Promise<
   
   if (params.title !== undefined) updates.title = params.title;
   if (params.description !== undefined) updates.description = params.description;
-  if (params.visibility !== undefined) updates.visibility = params.visibility;
+  if (params.visibility !== undefined) updates.is_public = params.visibility === 'public';
 
   const { data, error } = await supabase
     .from('collections')
@@ -44,13 +57,27 @@ export const updateCollection = async (params: UpdateCollectionParams): Promise<
   if (error) throw new Error(`Failed to update collection: ${error.message}`);
   if (!data) throw new Error(`Collection not found: ${params.id}`);
 
-  return data as Collection;
+  return {
+    ...data,
+    owner_id: data.user_id,
+    visibility: data.is_public ? 'public' : 'private',
+    cover_image_url: null,
+    views_count: 0,
+    likes_count: 0,
+    shares_count: 0,
+    completion_rate: 0,
+    is_template: false,
+    tags: [],
+    last_activity_at: data.updated_at,
+    design_metadata: {},
+    allow_comments: true
+  } as Collection;
 };
 
 export const updateCollectionCards = async (collectionId: string, cardIds: string[]): Promise<void> => {
   // First, remove all existing items
   const { error: deleteError } = await supabase
-    .from('collection_cards')
+    .from('collection_items')
     .delete()
     .eq('collection_id', collectionId);
     
@@ -65,8 +92,12 @@ export const updateCollectionCards = async (collectionId: string, cardIds: strin
     }));
     
     const { error: insertError } = await supabase
-      .from('collection_cards')
-      .insert(collectionItems);
+      .from('collection_items')
+      .insert(collectionItems.map(item => ({
+        collection_id: item.collection_id,
+        card_id: item.card_id,
+        position: item.display_order
+      })));
       
     if (insertError) throw new Error(`Failed to add cards to collection: ${insertError.message}`);
   }
@@ -79,7 +110,7 @@ export const deleteCollection = async (id: string): Promise<void> => {
 
   // Delete all collection items first
   const { error: itemsError } = await supabase
-    .from('collection_cards')
+    .from('collection_items')
     .delete()
     .eq('collection_id', id);
     

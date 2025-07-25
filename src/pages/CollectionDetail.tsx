@@ -47,7 +47,21 @@ const CollectionDetail = () => {
         .single();
       
       if (error) throw error;
-      return data as Collection;
+      return {
+        ...data,
+        owner_id: data.user_id,
+        visibility: data.is_public ? 'public' : 'private',
+        cover_image_url: null,
+        views_count: 0,
+        likes_count: 0,
+        shares_count: 0,
+        completion_rate: 0,
+        is_template: false,
+        tags: [],
+        last_activity_at: data.updated_at,
+        design_metadata: {},
+        allow_comments: true
+      } as Collection;
     },
     enabled: !!id
   });
@@ -56,18 +70,18 @@ const CollectionDetail = () => {
     queryKey: ['collection-cards', id],
     queryFn: async (): Promise<Card[]> => {
       // Get cards that are in this collection
-      const { data: collectionCards, error: collectionError } = await supabase
-        .from('collection_cards')
+      const { data: collectionItems, error: collectionError } = await supabase
+        .from('collection_items')
         .select('card_id')
         .eq('collection_id', id);
       
       if (collectionError) throw collectionError;
       
-      if (!collectionCards || collectionCards.length === 0) {
+      if (!collectionItems || collectionItems.length === 0) {
         return [];
       }
 
-      const cardIds = collectionCards.map(cc => cc.card_id);
+      const cardIds = collectionItems.map(cc => cc.card_id);
       
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
@@ -80,8 +94,7 @@ const CollectionDetail = () => {
           rarity,
           price,
           tags,
-          creator_id,
-          visibility,
+          user_id,
           is_public
         `)
         .in('id', cardIds);
@@ -94,11 +107,11 @@ const CollectionDetail = () => {
           let creator_name = 'Unknown Creator';
           let creator_verified = false;
           
-          if (card.creator_id) {
+          if (card.user_id) {
             const { data: profileData } = await supabase
-              .from('crd_profiles')
+              .from('profiles')
               .select('display_name, creator_verified')
-              .eq('id', card.creator_id)
+              .eq('user_id', card.user_id)
               .single();
             
             if (profileData) {
@@ -109,12 +122,13 @@ const CollectionDetail = () => {
           
           return {
             ...card,
+            creator_id: card.user_id,
             creator_name,
             creator_verified,
-            price: card.price ? card.price.toString() : undefined,
+            price: card.price || 0,
             tags: card.tags || [],
-            rarity: (card.rarity as CardRarity) || 'common', // Fixed type casting
-            visibility: card.visibility || (card.is_public ? 'public' : 'private'),
+            rarity: (card.rarity as any) || 'common',
+            visibility: card.is_public ? 'public' : 'private',
             edition_size: 1,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

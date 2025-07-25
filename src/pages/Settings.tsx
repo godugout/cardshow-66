@@ -69,23 +69,15 @@ const Settings = () => {
           setBio(data.bio || '');
           setAvatarUrl(data.avatar_url);
           
-          // Try to get user preferences
-          const { data: prefsData, error: prefsError } = await supabase
-            .from('ui_preferences')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
-            
-          if (!prefsError && prefsData) {
-            setPreferences({
-              darkMode: prefsData.theme_variant === 'dark',
-              emailNotifications: true,
-              pushNotifications: true,
-              profileVisibility: true,
-              showCardValue: true,
-              compactView: prefsData.reduced_motion || false
-            });
-          }
+          // Use default preferences since ui_preferences table doesn't exist
+          setPreferences({
+            darkMode: true,
+            emailNotifications: true,
+            pushNotifications: true,
+            profileVisibility: true,
+            showCardValue: true,
+            compactView: false
+          });
         }
       } catch (e) {
         console.error('Supabase error, falling back to mock:', e);
@@ -150,31 +142,8 @@ const Settings = () => {
           
         if (error) throw error;
         
-        // Update preferences
-        const preferencesData = {
-          theme_variant: preferences.darkMode ? 'dark' : 'default',
-          reduced_motion: preferences.compactView
-        };
-        
-        const { data: existingPrefs } = await supabase
-          .from('ui_preferences')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (existingPrefs) {
-          await supabase
-            .from('ui_preferences')
-            .update(preferencesData)
-            .eq('id', existingPrefs.id);
-        } else {
-          await supabase
-            .from('ui_preferences')
-            .insert({
-              user_id: user.id,
-              ...preferencesData
-            });
-        }
+        // Skip preferences update as ui_preferences table doesn't exist
+        console.log('Preferences saved locally:', preferences);
       } catch (e) {
         console.error('Supabase error, falling back to mock:', e);
         

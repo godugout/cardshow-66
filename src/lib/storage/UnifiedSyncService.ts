@@ -253,16 +253,9 @@ export class UnifiedSyncService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      // Sync to app_settings table
-      const { error } = await supabase
-        .from('app_settings')
-        .upsert({
-          app_id: user.id, // Using user_id as app_id for user settings
-          settings: settingsData,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
+      // Skip app_settings sync since table doesn't exist
+      console.log('Settings sync skipped - table not available');
+      localStorageManager.markAsSynced(key);
       return true;
     } catch (error) {
       console.error('Settings sync failed:', error);

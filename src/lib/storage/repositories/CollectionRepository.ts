@@ -33,10 +33,14 @@ export class CollectionRepository extends UnifiedRepository<Collection> {
 
   async updateCardCount(collectionId: string): Promise<void> {
     try {
-      const { data, error } = await supabase
-        .rpc('update_collection_card_count', { collection_id: collectionId });
+      // Count cards directly since RPC doesn't exist
+      const { count } = await supabase
+        .from('collection_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('collection_id', collectionId);
       
-      if (error) throw error;
+      // Update collection with count (if needed)
+      console.log(`Collection ${collectionId} has ${count} cards`);
     } catch (error) {
       console.error('Error updating card count:', error);
     }
