@@ -4,6 +4,7 @@ import { useCRDData } from '@/services/crdDataService';
 import { CRDButton } from '@/components/ui/design-system/atoms/CRDButton';
 import { CRDCard } from '@/components/ui/design-system/atoms/CRDCard';
 import { CRDInput } from '@/components/ui/design-system/atoms/CRDInput';
+import { AIAnalysisSummary } from '@/components/ai/AIAnalysisSummary';
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -15,6 +16,7 @@ import {
   FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StableCardCreatorProps {
   onCardSaved?: (card: any) => void;
@@ -241,6 +243,26 @@ export const StableCardCreator: React.FC<StableCardCreatorProps> = ({ onCardSave
               </div>
             </CRDCard>
           )}
+
+          {/* AI Analysis Section */}
+          {imagePreview && (
+            <AIAnalysisSummary
+              imageFile={image}
+              imageUrl={imagePreview}
+              onAcceptTitle={(title) => setTitle(title)}
+              onAcceptDescription={(description) => setDescription(description)}
+              onAcceptCategory={(category) => setCategory(category)}
+              onAcceptTags={(tags) => setTags(tags)}
+              onAcceptRarity={(rarity) => setRarity(rarity as any)}
+              onAcceptAll={(analysis) => {
+                if (analysis.title) setTitle(analysis.title);
+                if (analysis.description) setDescription(analysis.description);
+                if (analysis.category) setCategory(analysis.category);
+                if (analysis.tags) setTags(Array.isArray(analysis.tags) ? analysis.tags.join(', ') : analysis.tags);
+                if (analysis.rarity) setRarity(analysis.rarity);
+              }}
+            />
+          )}
         </div>
 
         {/* Right Column - Card Details */}
@@ -374,6 +396,3 @@ export const StableCardCreator: React.FC<StableCardCreatorProps> = ({ onCardSave
     </div>
   );
 };
-
-// Add missing import
-import { supabase } from '@/integrations/supabase/client';

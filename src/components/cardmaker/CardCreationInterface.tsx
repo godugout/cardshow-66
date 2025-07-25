@@ -13,6 +13,7 @@ import { Upload, Save, Eye, Sparkles, Image, Type, Layers, Palette, FileImage } 
 import { StudioPreviewButton } from './StudioPreviewButton';
 import { EnhancedCardPreview } from './EnhancedCardPreview';
 import { ImageUploader } from './ImageUploader';
+import { AIAnalysisSummary } from '@/components/ai/AIAnalysisSummary';
 import { FrameSelector } from './FrameSelector';
 import { EffectsPanel } from './EffectsPanel';
 import { PSDUploadZone } from './PSDUploadZone';
@@ -50,13 +51,14 @@ export const CardCreationInterface: React.FC = () => {
     initializeFromPSD
   } = useIntegratedCardEditor();
 
-  const [activePanel, setActivePanel] = useState<'psd' | 'image' | 'frame' | 'materials' | 'effects' | 'text'>('psd');
+  const [activePanel, setActivePanel] = useState<'psd' | 'image' | 'frame' | 'materials' | 'effects' | 'text' | 'ai'>('psd');
   const [tags, setTags] = useState<string>('');
   const [isFromPSD, setIsFromPSD] = useState(false);
   const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);
   const [showPSDConverter, setShowPSDConverter] = useState(false);
   const [textElements, setTextElements] = useState<any[]>([]);
   const [selectedTextElement, setSelectedTextElement] = useState<string>('');
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
 
   // Handle PSD data initialization
   useEffect(() => {
@@ -76,6 +78,13 @@ export const CardCreationInterface: React.FC = () => {
     const tagArray = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     updateField('tags', tagArray);
   }, [updateField]);
+
+  const handleImageUploadWithAI = useCallback(async (file: File) => {
+    await handleImageUpload(file);
+    setUploadedImageFile(file);
+    // Switch to AI panel for automatic analysis
+    setActivePanel('ai');
+  }, [handleImageUpload]);
 
   const handleSave = useCallback(async () => {
     await saveCard(false);
@@ -243,64 +252,78 @@ export const CardCreationInterface: React.FC = () => {
               <Layers className="w-5 h-5" />
               Design Tools
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-6 gap-2 mb-4">
-              <Button
-                variant={activePanel === 'psd' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActivePanel('psd')}
-                className="flex flex-col items-center gap-1 h-auto py-2"
-              >
-                <FileImage className="w-4 h-4" />
-                <span className="text-xs">PSD</span>
-              </Button>
-              <Button
-                variant={activePanel === 'image' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActivePanel('image')}
-                className="flex flex-col items-center gap-1 h-auto py-2"
-              >
-                <Image className="w-4 h-4" />
-                <span className="text-xs">Image</span>
-              </Button>
-              <Button
-                variant={activePanel === 'frame' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActivePanel('frame')}
-                className="flex flex-col items-center gap-1 h-auto py-2"
-              >
-                <Layers className="w-4 h-4" />
-                <span className="text-xs">Frame</span>
-              </Button>
-              <Button
-                variant={activePanel === 'materials' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActivePanel('materials')}
-                className="flex flex-col items-center gap-1 h-auto py-2"
-              >
-                <Palette className="w-4 h-4" />
-                <span className="text-xs">Materials</span>
-              </Button>
-              <Button
-                variant={activePanel === 'effects' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActivePanel('effects')}
-                className="flex flex-col items-center gap-1 h-auto py-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span className="text-xs">Effects</span>
-              </Button>
-              <Button
-                variant={activePanel === 'text' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActivePanel('text')}
-                className="flex flex-col items-center gap-1 h-auto py-2"
-              >
-                <Type className="w-4 h-4" />
-                <span className="text-xs">Text</span>
-              </Button>
-            </div>
+           </CardHeader>
+           <CardContent>
+             <div className="grid grid-cols-6 gap-2 mb-4">
+               <Button
+                 variant={activePanel === 'psd' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('psd')}
+                 className="flex flex-col items-center gap-1 h-auto py-2"
+               >
+                 <FileImage className="w-4 h-4" />
+                 <span className="text-xs">PSD</span>
+               </Button>
+               <Button
+                 variant={activePanel === 'image' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('image')}
+                 className="flex flex-col items-center gap-1 h-auto py-2"
+               >
+                 <Image className="w-4 h-4" />
+                 <span className="text-xs">Image</span>
+               </Button>
+               <Button
+                 variant={activePanel === 'frame' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('frame')}
+                 className="flex flex-col items-center gap-1 h-auto py-2"
+               >
+                 <Layers className="w-4 h-4" />
+                 <span className="text-xs">Frame</span>
+               </Button>
+               <Button
+                 variant={activePanel === 'materials' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('materials')}
+                 className="flex flex-col items-center gap-1 h-auto py-2"
+               >
+                 <Palette className="w-4 h-4" />
+                 <span className="text-xs">Materials</span>
+               </Button>
+               <Button
+                 variant={activePanel === 'effects' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('effects')}
+                 className="flex flex-col items-center gap-1 h-auto py-2"
+               >
+                 <Sparkles className="w-4 h-4" />
+                 <span className="text-xs">Effects</span>
+               </Button>
+               <Button
+                 variant={activePanel === 'text' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('text')}
+                 className="flex flex-col items-center gap-1 h-auto py-2"
+               >
+                 <Type className="w-4 h-4" />
+                 <span className="text-xs">Text</span>
+               </Button>
+             </div>
+             
+             {/* AI Panel - Separate row for better visibility */}
+             <div className="mb-4">
+               <Button
+                 variant={activePanel === 'ai' ? 'default' : 'outline'}
+                 size="sm"
+                 onClick={() => setActivePanel('ai')}
+                 className="w-full flex items-center justify-center gap-2 h-auto py-3"
+                 disabled={!cardData.image_url}
+               >
+                 <Sparkles className="w-4 h-4" />
+                 <span>AI-Powered Analysis {cardData.image_url ? '✨' : '(Upload image first)'}</span>
+               </Button>
+             </div>
 
             <Separator className="my-4" />
 
@@ -317,9 +340,9 @@ export const CardCreationInterface: React.FC = () => {
               )
             )}
 
-            {activePanel === 'image' && (
-              <ImageUploader onImageUpload={handleImageUpload} currentImage={cardData.image_url} />
-            )}
+             {activePanel === 'image' && (
+               <ImageUploader onImageUpload={handleImageUploadWithAI} currentImage={cardData.image_url} />
+             )}
 
             {activePanel === 'frame' && (
               <FrameSelector selectedFrame={selectedFrame} onFrameSelect={selectFrame} />
@@ -350,8 +373,54 @@ export const CardCreationInterface: React.FC = () => {
                 onDeleteElement={handleDeleteTextElement}
                 onSelectElement={setSelectedTextElement}
               />
-            )}
-          </CardContent>
+             )}
+
+             {activePanel === 'ai' && (
+               <AIAnalysisSummary
+                 imageUrl={cardData.image_url}
+                 imageFile={uploadedImageFile}
+                 onAcceptTitle={(title) => updateField('title', title)}
+                 onAcceptDescription={(description) => updateField('description', description)}
+                 onAcceptCategory={(category) => {
+                   // Add category as a tag if not already present
+                   const currentTags = cardData.tags || [];
+                   if (!currentTags.includes(category)) {
+                     const newTags = [...currentTags, category];
+                     updateField('tags', newTags);
+                     setTags(newTags.join(', '));
+                   }
+                 }}
+                 onAcceptTags={(tags) => {
+                   setTags(tags);
+                   const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+                   updateField('tags', tagArray);
+                 }}
+                 onAcceptRarity={(rarity) => updateField('rarity', rarity as CardRarity)}
+                 onAcceptAll={(analysis) => {
+                   if (analysis.title) updateField('title', analysis.title);
+                   if (analysis.description) updateField('description', analysis.description);
+                   if (analysis.rarity) updateField('rarity', analysis.rarity);
+                   
+                   // Handle tags and category
+                   let allTags = [...(cardData.tags || [])];
+                   if (analysis.category && !allTags.includes(analysis.category)) {
+                     allTags.push(analysis.category);
+                   }
+                   if (analysis.tags) {
+                     const aiTags = Array.isArray(analysis.tags) ? analysis.tags : [analysis.tags];
+                     aiTags.forEach(tag => {
+                       if (!allTags.includes(tag)) {
+                         allTags.push(tag);
+                       }
+                     });
+                   }
+                   
+                   updateField('tags', allTags);
+                   setTags(allTags.join(', '));
+                 }}
+               />
+             )}
+           </CardContent>
         </Card>
 
         {/* Actions */}
