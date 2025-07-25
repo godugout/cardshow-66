@@ -51,22 +51,31 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
     console.log('MediaUploadZone: Upload path:', filePath);
 
     try {
+      console.log('MediaUploadZone: Starting upload to bucket:', bucket, 'with path:', filePath);
+      
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(filePath, file);
 
       if (error) {
-        console.error('MediaUploadZone: Upload error:', error);
+        console.error('MediaUploadZone: Upload error details:', {
+          error: error,
+          errorMessage: error.message,
+          bucket,
+          filePath,
+          fileSize: file.size,
+          fileType: file.type
+        });
         throw error;
       }
 
-      console.log('MediaUploadZone: Upload successful:', data);
+      console.log('MediaUploadZone: Upload successful to bucket:', bucket, 'data:', data);
 
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
-      console.log('MediaUploadZone: Public URL:', publicUrl);
+      console.log('MediaUploadZone: Generated public URL:', publicUrl);
 
       return {
         path: data.path,
