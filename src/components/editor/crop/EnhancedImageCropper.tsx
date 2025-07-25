@@ -114,23 +114,32 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
 
     setFabricLoadingTimeout(immediateTimeout);
 
-    // Use standard HTML Image for more control
+    // Use proven Fabric.js v6 pattern for reliable image loading
     const img = new Image();
     img.crossOrigin = 'anonymous';
     
     img.onload = () => {
       console.log('✅ HTML Image loaded, creating Fabric image...');
       
-      // Create Fabric image from the loaded HTML image
-      FabricImage.fromObject({
-        src: validatedImageUrl,
+      // Use the reliable fromURL method instead of fromObject
+      FabricImage.fromURL(validatedImageUrl, {
         crossOrigin: 'anonymous'
       }).then((fabricImg) => {
         console.log('✅ Fabric image created successfully');
         setupImageAndCrop(fabricImg);
       }).catch((error) => {
         console.error('❌ Fabric image creation failed:', error);
-        handleLoadingFailure();
+        // Fallback: try direct image element approach
+        console.log('🔄 Trying fallback image creation...');
+        try {
+          const fabricImg = new FabricImage(img, {
+            crossOrigin: 'anonymous'
+          });
+          setupImageAndCrop(fabricImg);
+        } catch (fallbackError) {
+          console.error('❌ Fallback also failed:', fallbackError);
+          handleLoadingFailure();
+        }
       });
     };
 
@@ -471,34 +480,47 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       </div>
 
       {isReady && (
-        compact ? (
-          <CompactCropControls
-            cropState={cropState}
-            onReset={resetCrop}
-            onCenter={handleCenterCrop}
-            onFit={handleFitCrop}
-            canUndo={canUndo}
-            canRedo={canRedo}
-            onUndo={undo}
-            onRedo={redo}
-            onRotationChange={updateCropRotation}
-          />
-        ) : (
-          <CropControls
-            cropState={cropState}
-            onPositionChange={updateCropPosition}
-            onSizeChange={updateCropSize}
-            onRotationChange={updateCropRotation}
-            onReset={resetCrop}
-            onCenter={handleCenterCrop}
-            onFit={handleFitCrop}
-            canUndo={canUndo}
-            canRedo={canRedo}
-            onUndo={undo}
-            onRedo={redo}
-            aspectRatio={aspectRatio}
-          />
-        )
+        <>
+          {compact ? (
+            <CompactCropControls
+              cropState={cropState}
+              onReset={resetCrop}
+              onCenter={handleCenterCrop}
+              onFit={handleFitCrop}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={undo}
+              onRedo={redo}
+              onRotationChange={updateCropRotation}
+            />
+          ) : (
+            <CropControls
+              cropState={cropState}
+              onPositionChange={updateCropPosition}
+              onSizeChange={updateCropSize}
+              onRotationChange={updateCropRotation}
+              onReset={resetCrop}
+              onCenter={handleCenterCrop}
+              onFit={handleFitCrop}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={undo}
+              onRedo={redo}
+              aspectRatio={aspectRatio}
+            />
+          )}
+          
+          {/* Apply Crop Button */}
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={handleApplyCrop}
+              size="lg"
+              className="bg-crd-green hover:bg-crd-green/90 text-white px-8 py-3 font-semibold"
+            >
+              Apply Crop & Continue
+            </Button>
+          </div>
+        </>
       )}
 
       <div className="flex justify-center gap-4">
