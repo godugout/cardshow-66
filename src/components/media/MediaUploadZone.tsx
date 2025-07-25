@@ -33,7 +33,13 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
   const [uploading, setUploading] = useState(false);
 
   const uploadFile = useCallback(async (file: File) => {
+    console.log('MediaUploadZone: Starting upload for file:', file.name);
+    console.log('MediaUploadZone: User:', user);
+    console.log('MediaUploadZone: Bucket:', bucket);
+    console.log('MediaUploadZone: Folder:', folder);
+    
     if (!user) {
+      console.error('MediaUploadZone: No user found');
       toast.error('Please sign in to upload files');
       return null;
     }
@@ -41,31 +47,42 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = folder ? `${user.id}/${folder}/${fileName}` : `${user.id}/${fileName}`;
+    
+    console.log('MediaUploadZone: Upload path:', filePath);
 
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, file);
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
 
-    if (error) {
-      console.error('Upload error:', error);
+      if (error) {
+        console.error('MediaUploadZone: Upload error:', error);
+        throw error;
+      }
+
+      console.log('MediaUploadZone: Upload successful:', data);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      console.log('MediaUploadZone: Public URL:', publicUrl);
+
+      return {
+        path: data.path,
+        publicUrl,
+        metadata: {
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
+          publicUrl,
+          ...metadata
+        }
+      };
+    } catch (error) {
+      console.error('MediaUploadZone: Upload failed:', error);
       throw error;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath);
-
-    return {
-      path: data.path,
-      publicUrl,
-      metadata: {
-        originalName: file.name,
-        size: file.size,
-        type: file.type,
-        publicUrl,
-        ...metadata
-      }
-    };
   }, [user, bucket, folder, metadata]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
