@@ -4,6 +4,8 @@ import { CRDButton } from '@/components/ui/design-system/atoms/CRDButton';
 import { PlatformHeader } from '@/components/ui/design-system/organisms/PlatformHeader';
 import { PSDProcessingEngine } from '@/components/crdmkr/PSDProcessingEngine';
 import { LayerTreeInterface } from '@/components/crdmkr/LayerTreeInterface';
+import { AdvancedCanvasPreview } from '@/components/crdmkr/AdvancedCanvasPreview';
+import { advancedLayerProcessor, AdvancedPSDData, AdvancedLayerData } from '@/services/psdProcessor/advancedLayerProcessor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Save, 
@@ -19,7 +21,6 @@ import {
   Edit
 } from 'lucide-react';
 import { useSubdomainRouting } from '@/hooks/useSubdomainRouting';
-import { EnhancedProcessedPSD, EnhancedProcessedPSDLayer } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -28,7 +29,7 @@ interface CRDFrameProject {
   name: string;
   teamCode: string;
   styleCode: string;
-  processedPSD: EnhancedProcessedPSD | null;
+  processedPSD: AdvancedPSDData | null;
   metadata: {
     description: string;
     category: 'sports' | 'entertainment' | 'art' | 'business' | 'custom';
@@ -66,39 +67,38 @@ export const CRDMKRFrameBuilder: React.FC = () => {
   const TEAM_CODES = ['BOS', 'MTL', 'USA', 'AI1', 'LAX'];
   const STYLE_CODES = ['S', 'B', 'UNI', 'SK', 'CL70s'];
 
-  const handlePSDProcessed = useCallback((processedPSD: EnhancedProcessedPSD, fileName: string) => {
-    // Generate file name following CS_FRM_[TEAMCODE]_[STYLECODE] convention
-    const teamCode = TEAM_CODES[0]; // Default to first, user can change
-    const styleCode = STYLE_CODES[0]; // Default to first, user can change
-    const frameName = `CS_FRM_${teamCode}_${styleCode}`;
+  const handlePSDProcessed = useCallback(async (file: File, fileName: string) => {
+    try {
+      // Use advanced processor
+      const processedPSD = await advancedLayerProcessor.processPSDFile(file);
+      
+      // Generate file name following CS_FRM_[TEAMCODE]_[STYLECODE] convention
+      const teamCode = TEAM_CODES[0]; // Default to first, user can change
+      const styleCode = STYLE_CODES[0]; // Default to first, user can change
+      const frameName = `CS_FRM_${teamCode}_${styleCode}`;
 
-    // Initialize layer visibility - ensure all layers have isVisible property
-    const layersWithVisibility = processedPSD.layers.map(layer => ({
-      ...layer,
-      isVisible: layer.isVisible !== undefined ? layer.isVisible : true
-    }));
+      const newProject: CRDFrameProject = {
+        id: `frame_${Date.now()}`,
+        name: frameName,
+        teamCode,
+        styleCode,
+        processedPSD,
+        metadata: {
+          description: `Frame template generated from ${fileName}`,
+          category: 'custom',
+          isPublic: false,
+          tags: ['psd-import', 'frame-template']
+        },
+        editableRegions: [],
+        lastModified: new Date()
+      };
 
-    const newProject: CRDFrameProject = {
-      id: `frame_${Date.now()}`,
-      name: frameName,
-      teamCode,
-      styleCode,
-      processedPSD: {
-        ...processedPSD,
-        layers: layersWithVisibility
-      },
-      metadata: {
-        description: `Frame template generated from ${fileName}`,
-        category: 'custom',
-        isPublic: false,
-        tags: ['psd-import', 'frame-template']
-      },
-      editableRegions: [],
-      lastModified: new Date()
-    };
-
-    setProject(newProject);
-    toast.success('Frame project created successfully!');
+      setProject(newProject);
+      toast.success('Frame project created successfully!');
+    } catch (error) {
+      console.error('PSD processing failed:', error);
+      toast.error('Failed to process PSD file. Please check the console for details.');
+    }
   }, [TEAM_CODES, STYLE_CODES]);
 
   const handleLayerVisibilityToggle = useCallback((layerId: string) => {
@@ -107,7 +107,7 @@ export const CRDMKRFrameBuilder: React.FC = () => {
     // Update the layer visibility in the processed PSD
     const updatedLayers = project.processedPSD.layers.map(layer => {
       if (layer.id === layerId) {
-        const newVisibility = layer.isVisible !== undefined ? !layer.isVisible : false;
+        const newVisibility = !layer.isVisible;
         console.log(`Toggling layer ${layer.name} from ${layer.isVisible} to ${newVisibility}`);
         return { ...layer, isVisible: newVisibility };
       }
@@ -308,7 +308,7 @@ export const CRDMKRFrameBuilder: React.FC = () => {
               
               <TabsContent value="layers" className="flex-1 overflow-hidden">
                 <LayerTreeInterface
-                  layers={project.processedPSD.layers as EnhancedProcessedPSDLayer[]}
+                  layers={project.processedPSD.layers as any[]}
                   selectedLayerId={selectedLayerId}
                   onLayerSelect={handleLayerSelect}
                   onLayerVisibilityToggle={handleLayerVisibilityToggle}
@@ -430,7 +430,7 @@ export const CRDMKRFrameBuilder: React.FC = () => {
                           <input
                             type="text"
                             className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
-                            value={selectedLayer.semanticType || selectedLayer.type}
+                            value={selectedLayer.type}
                             readOnly
                           />
                         </div>
@@ -522,47 +522,16 @@ export const CRDMKRFrameBuilder: React.FC = () => {
           {/* Canvas Area */}
           <div className="flex-1 relative overflow-auto bg-gray-900">
             <div className="absolute inset-0 flex items-center justify-center p-8">
-              {project.processedPSD?.extractedImages.flattenedImageUrl && (
-                <div className="relative">
-                  <img
-                    src={project.processedPSD.extractedImages.flattenedImageUrl}
-                    alt="PSD Preview"
-                    className="max-w-none border border-crd-border shadow-2xl rounded-lg"
-                    style={{
-                      transform: `scale(${previewZoom}) translate(${previewOffset.x}px, ${previewOffset.y}px)`,
-                      opacity: previewLayers.length === project.processedPSD.layers.length ? 1 : 0.3
-                    }}
-                  />
-                  
-                  {/* Render visible layers on top */}
-                  {previewLayers.length < project.processedPSD.layers.length && (
-                    <div 
-                      className="absolute inset-0"
-                      style={{
-                        transform: `scale(${previewZoom}) translate(${previewOffset.x}px, ${previewOffset.y}px)`
-                      }}
-                    >
-                      {previewLayers.map(layer => {
-                        const enhancedLayer = layer as EnhancedProcessedPSDLayer;
-                        return enhancedLayer.thumbnailUrl && (
-                          <img
-                            key={enhancedLayer.id}
-                            src={enhancedLayer.thumbnailUrl}
-                            alt={enhancedLayer.name}
-                            className="absolute"
-                            style={{
-                              left: enhancedLayer.bounds.left,
-                              top: enhancedLayer.bounds.top,
-                              width: enhancedLayer.bounds.right - enhancedLayer.bounds.left,
-                              height: enhancedLayer.bounds.bottom - enhancedLayer.bounds.top,
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
+              <AdvancedCanvasPreview
+                width={project.processedPSD.width}
+                height={project.processedPSD.height}
+                layers={project.processedPSD.layers}
+                selectedLayerId={selectedLayerId}
+                onLayerSelect={handleLayerSelect}
+                zoom={previewZoom}
+                offset={previewOffset}
+                className="max-w-full max-h-full"
+              />
             </div>
           </div>
         </div>

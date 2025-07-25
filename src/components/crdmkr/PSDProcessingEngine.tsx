@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface PSDProcessingEngineProps {
-  onPSDProcessed: (processedPSD: EnhancedProcessedPSD, fileName: string) => void;
+  onPSDProcessed: (file: File, fileName: string) => Promise<void>;
   maxFileSize?: number; // in MB
   className?: string;
 }
@@ -79,12 +79,8 @@ export const PSDProcessingEngine: React.FC<PSDProcessingEngineProps> = ({
         }));
       }, 500);
 
-      // Process the PSD file
-      const processedPSD = await unifiedPSDService.processPSDFile(file, {
-        extractImages: true,
-        generateThumbnails: true,
-        maxLayerSize: 2048
-      });
+      // Process the PSD file - call the callback with the file
+      await onPSDProcessed(file, file.name);
 
       clearInterval(progressInterval);
 
@@ -95,9 +91,6 @@ export const PSDProcessingEngine: React.FC<PSDProcessingEngineProps> = ({
         message: 'Processing complete!',
         timeElapsed: Date.now() - startTime
       });
-
-      // Call the callback with processed data
-      onPSDProcessed(processedPSD, file.name);
       
       toast.success(`PSD processed successfully in ${((Date.now() - startTime) / 1000).toFixed(1)}s`);
 

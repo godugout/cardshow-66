@@ -30,7 +30,7 @@ interface LayerTreeNode {
 }
 
 interface LayerTreeInterfaceProps {
-  layers: EnhancedProcessedPSDLayer[];
+  layers: any[];
   selectedLayerId: string | null;
   onLayerSelect: (layerId: string) => void;
   onLayerVisibilityToggle: (layerId: string) => void;
@@ -96,7 +96,7 @@ export const LayerTreeInterface: React.FC<LayerTreeInterfaceProps> = ({
       }
       
       // Layer type filter
-      if (filters.layerType !== 'all' && layer.semanticType !== filters.layerType) {
+      if (filters.layerType !== 'all' && layer.type !== filters.layerType) {
         return false;
       }
       
@@ -129,8 +129,8 @@ export const LayerTreeInterface: React.FC<LayerTreeInterfaceProps> = ({
     onLayerLockToggle?.(layerId);
   }, [onLayerLockToggle]);
 
-  const getLayerIcon = (semanticType: string | undefined) => {
-    switch (semanticType) {
+  const getLayerIcon = (layerType: string | undefined) => {
+    switch (layerType) {
       case 'text': return <Type className="w-4 h-4 text-crd-yellow" />;
       case 'image': return <ImageIcon className="w-4 h-4 text-crd-blue" />;
       case 'background': return <Palette className="w-4 h-4 text-crd-green" />;
@@ -173,7 +173,7 @@ export const LayerTreeInterface: React.FC<LayerTreeInterfaceProps> = ({
           
           {/* Layer Type Icon */}
           <div className="mr-3 flex-shrink-0">
-            {getLayerIcon(layer.semanticType)}
+            {getLayerIcon(layer.type)}
           </div>
           
           {/* Layer Thumbnail */}
@@ -197,7 +197,7 @@ export const LayerTreeInterface: React.FC<LayerTreeInterfaceProps> = ({
               {layer.name}
             </div>
             <div className="text-xs text-crd-text-muted truncate">
-              {layer.semanticType} • {layer.bounds.right - layer.bounds.left}×{layer.bounds.bottom - layer.bounds.top}
+              {layer.type} • {layer.bounds.right - layer.bounds.left}×{layer.bounds.bottom - layer.bounds.top}
             </div>
           </div>
           
