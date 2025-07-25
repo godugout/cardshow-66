@@ -99,6 +99,7 @@ export const PSDAnalyzeStep = ({ file, onAnalysisComplete }: PSDAnalyzeStepProps
   }
 
   const { metadata, layers, extractedImages } = analysisResults;
+  const layerImages = extractedImages?.layerImages || [];
 
   return (
     <div className="flex-1 p-6 space-y-6 overflow-auto">
@@ -125,7 +126,7 @@ export const PSDAnalyzeStep = ({ file, onAnalysisComplete }: PSDAnalyzeStepProps
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Extracted Images</p>
-            <p className="font-medium">{extractedImages.length}</p>
+            <p className="font-medium">{layerImages.length}</p>
           </div>
         </CardContent>
       </Card>
@@ -172,19 +173,19 @@ export const PSDAnalyzeStep = ({ file, onAnalysisComplete }: PSDAnalyzeStepProps
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {extractedImages.slice(0, 8).map((image: any, index: number) => (
+            {layerImages.slice(0, 8).map((image: any, index: number) => (
               <div key={index} className="aspect-square border rounded-lg overflow-hidden bg-checkered">
                 <img
-                  src={image.dataUrl}
-                  alt={`Layer ${index + 1}`}
+                  src={image.imageUrl}
+                  alt={`Layer ${index + 1}: ${image.name}`}
                   className="w-full h-full object-cover"
                 />
               </div>
             ))}
-            {extractedImages.length > 8 && (
+            {layerImages.length > 8 && (
               <div className="aspect-square border rounded-lg bg-muted flex items-center justify-center">
                 <p className="text-sm text-muted-foreground">
-                  +{extractedImages.length - 8} more
+                  +{layerImages.length - 8} more
                 </p>
               </div>
             )}
