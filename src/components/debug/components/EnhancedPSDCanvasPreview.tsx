@@ -143,15 +143,18 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
             }}
           >
             {/* Background/Flattened Image */}
-            {showBackground && (
+            {showBackground && processedPSD.extractedImages?.flattenedImageUrl && (
               <div
                 className="absolute inset-0 bg-cover bg-center rounded-lg"
                 style={{
-                  backgroundImage: processedPSD.extractedImages.flattenedImageUrl 
-                    ? `url(${processedPSD.extractedImages.flattenedImageUrl})`
-                    : 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)'
+                  backgroundImage: `url(${processedPSD.extractedImages.flattenedImageUrl})`
                 }}
               />
+            )}
+            
+            {/* Fallback background when no flattened image */}
+            {!processedPSD.extractedImages?.flattenedImageUrl && (
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg" />
             )}
 
             {/* Layer Overlays */}
@@ -180,8 +183,8 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
                 pointerEvents: 'auto' as const // Ensure layers are clickable
               };
 
-              // Check if this is an enhanced layer with imageUrl
-              const enhancedLayer = layer as any;
+              // Get layer image URL - handle both old and new formats
+              const layerImageUrl = (layer as any).imageUrl?.value || (layer as any).imageUrl;
 
               return (
                 <div
@@ -192,9 +195,9 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
                   title={`${layer.name} (${layerWidth}×${layerHeight})`}
                 >
                   {/* Layer Image */}
-                  {enhancedLayer.imageUrl && (
+                  {layerImageUrl && (
                     <img
-                      src={enhancedLayer.imageUrl}
+                      src={layerImageUrl}
                       alt={layer.name}
                       className="w-full h-full object-cover rounded"
                       draggable={false}
@@ -205,6 +208,13 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
                         objectPosition: 'center'
                       }}
                     />
+                  )}
+                  
+                  {/* Visual indicator for layers without images */}
+                  {!layerImageUrl && (
+                    <div className="w-full h-full border-2 border-dashed border-slate-400 bg-slate-100/20 flex items-center justify-center text-xs text-slate-600">
+                      {layer.type?.toUpperCase() || 'LAYER'}
+                    </div>
                   )}
                   
                   {/* Layer Label */}

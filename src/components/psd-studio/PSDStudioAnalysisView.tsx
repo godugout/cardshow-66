@@ -28,6 +28,7 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
+  const [showBackground, setShowBackground] = useState<boolean>(true);
   const [isCreatingCard, setIsCreatingCard] = useState(false);
 
   // Calculate optimal zoom when component mounts or viewport changes
@@ -229,6 +230,8 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
                         selectedLayerId={selectedLayerId || ''}
                         hiddenLayers={hiddenLayers}
                         onLayerSelect={setSelectedLayerId}
+                        showBackground={showBackground}
+                        onToggleBackground={() => setShowBackground(!showBackground)}
                         initialZoom={canvasZoom}
                       />
                     </div>
@@ -363,6 +366,8 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
                         selectedLayerId={selectedLayerId || ''}
                         hiddenLayers={hiddenLayers}
                         onLayerSelect={setSelectedLayerId}
+                        showBackground={showBackground}
+                        onToggleBackground={() => setShowBackground(!showBackground)}
                         initialZoom={canvasZoom}
                       />
                     </div>
