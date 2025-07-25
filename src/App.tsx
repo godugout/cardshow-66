@@ -19,7 +19,7 @@ import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
 import { UltraStreamlinedFlow } from './components/creation/flows/UltraStreamlinedFlow';
-import StudioPage from "@/pages/studio";
+import StudioPage from "@/pages/studio/index";
 import Collections from './pages/Collections';
 
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
