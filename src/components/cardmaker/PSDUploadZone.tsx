@@ -58,16 +58,27 @@ export const PSDUploadZone: React.FC<PSDUploadZoneProps> = ({ onPSDProcessed }) 
   }, [onPSDProcessed]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log('=== PSD Upload Zone Debug ===');
+    console.log('onDrop triggered with files:', acceptedFiles);
+    console.log('acceptedFiles length:', acceptedFiles.length);
+    console.log('openOverlay available:', !!openOverlay);
+    
     const file = acceptedFiles[0];
     if (file) {
+      console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
+      console.log('Opening PSD workflow overlay...');
+      
       // Open the PSD workflow overlay instead of processing inline
       openOverlay('psd-workflow', {
         file,
         onFrameCreated: (frameData: any) => {
+          console.log('Frame created from PSD workflow:', frameData);
           onPSDProcessed(frameData);
           toast.success('Frame created successfully!');
         }
       });
+    } else {
+      console.log('No file found in acceptedFiles');
     }
   }, [openOverlay, onPSDProcessed]);
 
