@@ -28,7 +28,7 @@ export const PSDBuildStep = ({
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Map Layers to Elements</h3>
           <LayerMappingGrid
-            layers={psdData.extractedImages}
+            layers={psdData.layers}
             mappings={layerMappings}
             onMappingChange={onMappingsChange}
           />
@@ -43,11 +43,11 @@ export const PSDBuildStep = ({
             layers={Object.entries(layerMappings)
               .filter(([_, mapping]: [string, any]) => mapping.enabled)
               .map(([layerIndex, mapping]: [string, any]) => {
-                const layer = psdData.extractedImages[parseInt(layerIndex)];
+                const layer = psdData.layers[parseInt(layerIndex)];
                 return {
                   id: layerIndex,
-                  imageUrl: layer?.dataUrl,
-                  thumbnailUrl: layer?.dataUrl,
+                  imageUrl: layer?.imageUrl || layer?.thumbnailUrl,
+                  thumbnailUrl: layer?.thumbnailUrl || layer?.imageUrl,
                   bounds: layer?.bounds,
                   elementType: mapping.elementType,
                   enabled: mapping.enabled,
