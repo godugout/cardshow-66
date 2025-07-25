@@ -1,134 +1,96 @@
-
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 
-export const SidebarSection = React.forwardRef<
+export const SidebarContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => (
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    data-sidebar="section"
-    className={cn("py-2", className)}
-    {...props}
-  >
-    {children}
-  </div>
-))
-SidebarSection.displayName = "SidebarSection"
-
-export const SidebarSectionTitle = React.forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    data-sidebar="section-title"
+    data-sidebar="content"
     className={cn(
-      "mb-2 px-4 text-xs font-medium uppercase tracking-wider text-sidebar-foreground/50",
+      "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
       className
     )}
     {...props}
   />
 ))
-SidebarSectionTitle.displayName = "SidebarSectionTitle"
+SidebarContent.displayName = "SidebarContent"
 
-export const SidebarSectionContent = React.forwardRef<
+export const SidebarGroup = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} data-sidebar="section-content" className={cn("", className)} {...props} />
-))
-SidebarSectionContent.displayName = "SidebarSectionContent"
-
-export const SidebarAccordion = React.forwardRef<
-  React.ElementRef<typeof Accordion>,
-  React.ComponentPropsWithoutRef<typeof Accordion>
->(({ className, ...props }, ref) => (
-  <Accordion
+  React.ComponentProps<"div"> & {
+    collapsible?: "offcanvas" | "icon" | "none"
+  }
+>(({ className, collapsible, ...props }, ref) => (
+  <div
     ref={ref}
-    data-sidebar="accordion"
-    className={cn("", className)}
+    data-sidebar="group"
+    data-collapsible={collapsible}
+    className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
     {...props}
   />
 ))
-SidebarAccordion.displayName = "SidebarAccordion"
+SidebarGroup.displayName = "SidebarGroup"
 
-export const SidebarAccordionItem = React.forwardRef<
-  React.ElementRef<typeof AccordionItem>,
-  React.ComponentPropsWithoutRef<typeof AccordionItem>
+export const SidebarGroupLabel = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div"> & {
+    asChild?: boolean
+  }
+>(({ className, asChild = false, ...props }, ref) => {
+  const Comp = asChild ? React.Fragment : "div"
+
+  return (
+    <Comp
+      ref={ref}
+      data-sidebar="group-label"
+      className={cn(
+        "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opa] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
+        className
+      )}
+      {...props}
+    />
+  )
+})
+SidebarGroupLabel.displayName = "SidebarGroupLabel"
+
+export const SidebarGroupContent = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
 >(({ className, ...props }, ref) => (
-  <AccordionItem
+  <div
     ref={ref}
-    data-sidebar="accordion-item"
-    className={cn("border-none", className)}
+    data-sidebar="group-content"
+    className={cn("w-full text-sm", className)}
     {...props}
   />
 ))
-SidebarAccordionItem.displayName = "SidebarAccordionItem"
+SidebarGroupContent.displayName = "SidebarGroupContent"
 
-export const SidebarAccordionTrigger = React.forwardRef<
-  React.ElementRef<typeof AccordionTrigger>,
-  React.ComponentPropsWithoutRef<typeof AccordionTrigger>
+export const SidebarHeader = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
 >(({ className, ...props }, ref) => (
-  <AccordionTrigger
+  <div
     ref={ref}
-    data-sidebar="accordion-trigger"
-    className={cn(
-      "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center rounded-md p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0 [&>svg]:transition-transform",
-      className
-    )}
+    data-sidebar="header"
+    className={cn("flex flex-col gap-2 p-2", className)}
     {...props}
   />
 ))
-SidebarAccordionTrigger.displayName = "SidebarAccordionTrigger"
+SidebarHeader.displayName = "SidebarHeader"
 
-export const SidebarAccordionContent = React.forwardRef<
-  React.ElementRef<typeof AccordionContent>,
-  React.ComponentPropsWithoutRef<typeof AccordionContent>
+export const SidebarFooter = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
 >(({ className, ...props }, ref) => (
-  <AccordionContent
+  <div
     ref={ref}
-    data-sidebar="accordion-content"
-    className={cn("pl-4 pt-1", className)}
+    data-sidebar="footer"
+    className={cn("flex flex-col gap-2 p-2", className)}
     {...props}
   />
 ))
-SidebarAccordionContent.displayName = "SidebarAccordionContent"
-
-// Fix for the SidebarDrawer component - don't forward the ref directly
-export const SidebarDrawer = (props: React.ComponentProps<typeof Drawer>) => (
-  <Drawer
-    data-sidebar="drawer" 
-    {...props} 
-  />
-)
-SidebarDrawer.displayName = "SidebarDrawer"
-
-export const SidebarDrawerTrigger = React.forwardRef<
-  React.ElementRef<typeof DrawerTrigger>,
-  React.ComponentPropsWithoutRef<typeof DrawerTrigger>
->(({ className, ...props }, ref) => (
-  <DrawerTrigger
-    ref={ref}
-    data-sidebar="drawer-trigger"
-    className={cn("", className)}
-    {...props}
-  />
-))
-SidebarDrawerTrigger.displayName = "SidebarDrawerTrigger"
-
-export const SidebarDrawerContent = React.forwardRef<
-  React.ElementRef<typeof DrawerContent>,
-  React.ComponentPropsWithoutRef<typeof DrawerContent>
->(({ className, ...props }, ref) => (
-  <DrawerContent
-    ref={ref}
-    data-sidebar="drawer-content"
-    className={cn("", className)}
-    {...props}
-  />
-))
-SidebarDrawerContent.displayName = "SidebarDrawerContent"
+SidebarFooter.displayName = "SidebarFooter"

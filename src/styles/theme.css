@@ -38,6 +38,16 @@
   --gradient-marketplace: linear-gradient(135deg, var(--crd-blue), #1e88e5);
   --gradient-tokens: linear-gradient(135deg, var(--crd-yellow), #ffc107);
   --gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+  
+  /* Sidebar Variables */
+  --sidebar: var(--crd-surface);
+  --sidebar-foreground: var(--crd-text);
+  --sidebar-primary: var(--crd-green);
+  --sidebar-primary-foreground: var(--crd-black);
+  --sidebar-accent: var(--crd-hover);
+  --sidebar-accent-foreground: var(--crd-text);
+  --sidebar-border: var(--crd-border);
+  --sidebar-ring: var(--crd-focus);
 }
 
 /* Navigation Styles - From screenshots */
