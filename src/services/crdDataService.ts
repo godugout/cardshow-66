@@ -124,19 +124,26 @@ class CRDDataService {
 
   private async initializeAuth() {
     try {
+      console.log('CRDDataService: Initializing auth...');
+      
       // Set up auth state listener
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log('CRDDataService: Auth state changed:', event, !!session);
           this.setState({ session, user: session?.user ?? null });
           
           if (event === 'SIGNED_IN' && session?.user) {
+            console.log('CRDDataService: User signed in, loading profile and data...');
             await this.loadUserProfile(session.user);
             await this.loadUserData();
           } else if (event === 'SIGNED_OUT') {
+            console.log('CRDDataService: User signed out, clearing data...');
             this.clearUserData();
           }
           
+          // Only set loading to false after all auth-related operations are complete
           if (!this.authInitialized) {
+            console.log('CRDDataService: Auth initialization complete');
             this.setState({ loading: false });
             this.authInitialized = true;
           }
@@ -144,13 +151,19 @@ class CRDDataService {
       );
 
       // Check for existing session
+      console.log('CRDDataService: Checking for existing session...');
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        console.log('CRDDataService: Found existing session, loading user data...');
         this.setState({ session, user: session.user });
         await this.loadUserProfile(session.user);
         await this.loadUserData();
+      } else {
+        console.log('CRDDataService: No existing session found');
       }
       
+      // Mark auth as initialized and stop loading
+      console.log('CRDDataService: Setting loading to false');
       this.setState({ loading: false });
       this.authInitialized = true;
 
