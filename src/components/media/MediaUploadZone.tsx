@@ -86,23 +86,36 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
   }, [user, bucket, folder, metadata]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    console.log('MediaUploadZone: onDrop called with files:', acceptedFiles);
     if (acceptedFiles.length === 0) return;
 
     setUploading(true);
     
     try {
+      console.log('MediaUploadZone: Starting upload process...');
       const uploadPromises = acceptedFiles.slice(0, maxFiles).map(uploadFile);
+      
+      console.log('MediaUploadZone: Waiting for upload promises...');
       const results = await Promise.all(uploadPromises);
+      
+      console.log('MediaUploadZone: Upload results:', results);
       const successfulUploads = results.filter(Boolean);
       
+      console.log('MediaUploadZone: Successful uploads:', successfulUploads);
+      
       if (successfulUploads.length > 0) {
+        console.log('MediaUploadZone: Calling onUploadComplete with:', successfulUploads);
         onUploadComplete(successfulUploads);
         toast.success(`${successfulUploads.length} file(s) uploaded successfully`);
+      } else {
+        console.error('MediaUploadZone: No successful uploads');
+        toast.error('Upload failed - no files were uploaded successfully');
       }
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('MediaUploadZone: Upload failed with error:', error);
       toast.error('Upload failed: ' + (error as Error).message);
     } finally {
+      console.log('MediaUploadZone: Setting uploading to false');
       setUploading(false);
     }
   }, [maxFiles, uploadFile, onUploadComplete]);
