@@ -290,26 +290,51 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
 
     try {
       const img = imageRef.current;
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const imgRect = img.getBoundingClientRect();
+      const container = containerRef.current;
       
-      // Calculate how the image is positioned within the container
-      const scaleX = img.naturalWidth / imgRect.width;
-      const scaleY = img.naturalHeight / imgRect.height;
+      // Get container dimensions (500px high, varies width)
+      const containerWidth = container.offsetWidth;
+      const containerHeight = container.offsetHeight;
       
-      // Calculate the actual crop coordinates relative to the original image
-      const imgLeft = imgRect.left - containerRect.left;
-      const imgTop = imgRect.top - containerRect.top;
+      // Calculate how the image fits within the container (object-contain)
+      const imageAspect = img.naturalWidth / img.naturalHeight;
+      const containerAspect = containerWidth / containerHeight;
       
-      // Crop coordinates relative to image
-      const cropRelativeX = Math.max(0, crop.x - imgLeft);
-      const cropRelativeY = Math.max(0, crop.y - imgTop);
+      let displayedImageWidth, displayedImageHeight;
+      let imageOffsetX, imageOffsetY;
+      
+      if (imageAspect > containerAspect) {
+        // Image is wider - fits to container width
+        displayedImageWidth = containerWidth;
+        displayedImageHeight = containerWidth / imageAspect;
+        imageOffsetX = 0;
+        imageOffsetY = (containerHeight - displayedImageHeight) / 2;
+      } else {
+        // Image is taller - fits to container height
+        displayedImageHeight = containerHeight;
+        displayedImageWidth = containerHeight * imageAspect;
+        imageOffsetX = (containerWidth - displayedImageWidth) / 2;
+        imageOffsetY = 0;
+      }
+      
+      // Calculate crop box relative to the actual displayed image
+      const cropRelativeX = crop.x - imageOffsetX;
+      const cropRelativeY = crop.y - imageOffsetY;
+      
+      // Ensure crop is within image bounds
+      const clampedCropX = Math.max(0, Math.min(cropRelativeX, displayedImageWidth - crop.width));
+      const clampedCropY = Math.max(0, Math.min(cropRelativeY, displayedImageHeight - crop.height));
+      const clampedCropWidth = Math.min(crop.width, displayedImageWidth - clampedCropX);
+      const clampedCropHeight = Math.min(crop.height, displayedImageHeight - clampedCropY);
       
       // Scale to original image coordinates
-      const sourceX = cropRelativeX * scaleX;
-      const sourceY = cropRelativeY * scaleY;
-      const sourceWidth = crop.width * scaleX;
-      const sourceHeight = crop.height * scaleY;
+      const scaleX = img.naturalWidth / displayedImageWidth;
+      const scaleY = img.naturalHeight / displayedImageHeight;
+      
+      const sourceX = clampedCropX * scaleX;
+      const sourceY = clampedCropY * scaleY;
+      const sourceWidth = clampedCropWidth * scaleX;
+      const sourceHeight = clampedCropHeight * scaleY;
 
       // Create canvas with exact card dimensions (maintaining 2.5:3.5 ratio)
       const canvas = document.createElement('canvas');
@@ -317,18 +342,22 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
       if (!ctx) throw new Error('Could not get canvas context');
 
       // Set standard card dimensions (scale up for quality)
-      const cardWidth = 500; // Standard card width
-      const cardHeight = Math.round(cardWidth / cardAspectRatio); // Exact 2.5:3.5 ratio
+      const cardWidth = 500;
+      const cardHeight = Math.round(cardWidth / cardAspectRatio); // 700px for 2.5:3.5 ratio
       
       canvas.width = cardWidth;
       canvas.height = cardHeight;
 
-      console.log('🎯 Crop Details:', {
+      console.log('🎯 ACCURATE Crop Details:', {
+        containerSize: { width: containerWidth, height: containerHeight },
+        displayedImage: { width: displayedImageWidth, height: displayedImageHeight, offsetX: imageOffsetX, offsetY: imageOffsetY },
         cropBox: { x: crop.x, y: crop.y, width: crop.width, height: crop.height },
-        aspectRatio: crop.width / crop.height,
-        expectedRatio: cardAspectRatio,
+        cropRelative: { x: cropRelativeX, y: cropRelativeY },
+        clampedCrop: { x: clampedCropX, y: clampedCropY, width: clampedCropWidth, height: clampedCropHeight },
         sourceCoords: { x: sourceX, y: sourceY, width: sourceWidth, height: sourceHeight },
-        canvasSize: { width: cardWidth, height: cardHeight }
+        aspectRatio: clampedCropWidth / clampedCropHeight,
+        expectedRatio: cardAspectRatio,
+        finalSize: { width: cardWidth, height: cardHeight }
       });
 
       // Handle rotation if needed
@@ -338,7 +367,7 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
         ctx.translate(-cardWidth / 2, -cardHeight / 2);
       }
 
-      // Draw the cropped portion to exact card dimensions
+      // Draw the exact cropped portion to card dimensions
       ctx.drawImage(
         img,
         sourceX, sourceY, sourceWidth, sourceHeight,
@@ -349,9 +378,15 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
-          console.log('✅ Crop complete! Final dimensions:', cardWidth, 'x', cardHeight, 'Aspect:', cardWidth/cardHeight);
+          const actualRatio = cardWidth / cardHeight;
+          console.log('✅ ACCURATE Crop complete!', {
+            finalDimensions: `${cardWidth}x${cardHeight}`,
+            aspectRatio: actualRatio.toFixed(4),
+            targetRatio: cardAspectRatio.toFixed(4),
+            match: Math.abs(actualRatio - cardAspectRatio) < 0.001
+          });
           onCropComplete(url);
-          toast.success(`Perfect! Cropped to exact 2.5×3.5 card ratio (${cardWidth}×${cardHeight})`);
+          toast.success(`Perfect! Cropped exactly what's in the green box (${cardWidth}×${cardHeight})`);
         } else {
           toast.error('Failed to create cropped image');
         }
