@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validateImageFile, verifyFileHeader, generateSecureFilePath } from './security/fileValidation';
 
 export interface ImageUploadResult {
   url: string;
@@ -14,20 +15,34 @@ export const uploadCardImage = async (
   cardId?: string
 ): Promise<ImageUploadResult | null> => {
   try {
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload a valid image file');
+    // Comprehensive file validation
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error || 'Invalid file');
       return null;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      toast.error('Image size must be less than 10MB');
+    // Verify file header (magic number check)
+    const isValidHeader = await verifyFileHeader(file);
+    if (!isValidHeader) {
+      toast.error('File type does not match content');
       return null;
     }
 
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}/${cardId || Date.now()}.${fileExt}`;
+    // Server-side validation using database function
+    const { data: isValidUpload } = await supabase.rpc('validate_file_upload', {
+      file_name: file.name,
+      file_size: file.size,
+      mime_type: file.type
+    });
+
+    if (!isValidUpload) {
+      toast.error('File validation failed');
+      return null;
+    }
+
+    // Generate secure filename and path
+    const fileName = generateSecureFilePath(userId, validation.sanitizedName!, 'cards');
 
     // Upload to Supabase storage
     const { data, error } = await supabase.storage
