@@ -1,23 +1,23 @@
+import { supabase } from '@/integrations/supabase/client';
 
-import { supabase } from '../supabase-client';
-import type { MediaItem } from '@/types/media';
-
-export const getMediaByMemoryId = async (memoryId: string): Promise<MediaItem[]> => {
+// Simplified media fetching for existing media_assets table
+export const getMediaByMemoryId = async (memoryId: string): Promise<any[]> => {
   try {
     const { data, error } = await supabase
-      .from('media')
+      .from('media_assets')
       .select('*')
-      .eq('memoryId', memoryId)
-      .order('createdAt', { ascending: false });
+      .eq('asset_reference_id', memoryId)
+      .order('created_at', { ascending: false });
       
     if (error) {
-      throw new Error(`Error fetching media: ${error.message}`);
+      console.error('Error fetching media:', error.message);
+      return [];
     }
     
-    return data as MediaItem[];
+    return data || [];
     
   } catch (error) {
     console.error('Error in getMediaByMemoryId:', error);
-    throw error;
+    return [];
   }
 };

@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '../supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { extractImageMetadata, extractVideoMetadata, getMediaType } from './metadataExtractor';
 import { generateThumbnail } from './thumbnailGenerator';
 import { detectFaces } from './faceDetector';
