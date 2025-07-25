@@ -5,6 +5,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { StableSignIn } from "./pages/auth/StableSignIn";
+import { StableProtectedRoute } from "./components/common/StableProtectedRoute";
+import { StableCardCreator } from "./components/core/StableCardCreator";
+import { StableCollectionsView } from "./components/core/StableCollectionsView";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { GlobalErrorBoundary } from "@/components/layout/GlobalErrorBoundary";
@@ -67,10 +71,14 @@ function App() {
               <div className="min-h-screen">
                 <Toaster />
                 <Routes>
-                {/* Auth routes - no navbar */}
+                 {/* Auth routes - no navbar */}
                 <Route 
                   path="/auth/signin" 
                   element={<SignIn />} 
+                />
+                <Route 
+                  path="/auth/stable-signin" 
+                  element={<StableSignIn />} 
                 />
                 <Route 
                   path="/auth/enhanced-signin" 
@@ -125,14 +133,26 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
-                <Route 
-                  path="/collections" 
-                  element={
-                    <MainLayout>
-                      <Collections />
-                    </MainLayout>
-                  } 
-                />
+                 <Route 
+                   path="/collections" 
+                   element={
+                     <StableProtectedRoute>
+                       <MainLayout>
+                         <StableCollectionsView />
+                       </MainLayout>
+                     </StableProtectedRoute>
+                   } 
+                 />
+                 <Route 
+                   path="/stable-create" 
+                   element={
+                     <StableProtectedRoute>
+                       <MainLayout>
+                         <StableCardCreator />
+                       </MainLayout>
+                     </StableProtectedRoute>
+                   } 
+                 />
                 <Route 
                   path="/creator-dashboard" 
                   element={
