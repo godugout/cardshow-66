@@ -72,12 +72,21 @@ export const CRDMKRFrameBuilder: React.FC = () => {
     const styleCode = STYLE_CODES[0]; // Default to first, user can change
     const frameName = `CS_FRM_${teamCode}_${styleCode}`;
 
+    // Initialize layer visibility - ensure all layers have isVisible property
+    const layersWithVisibility = processedPSD.layers.map(layer => ({
+      ...layer,
+      isVisible: layer.isVisible !== undefined ? layer.isVisible : true
+    }));
+
     const newProject: CRDFrameProject = {
       id: `frame_${Date.now()}`,
       name: frameName,
       teamCode,
       styleCode,
-      processedPSD,
+      processedPSD: {
+        ...processedPSD,
+        layers: layersWithVisibility
+      },
       metadata: {
         description: `Frame template generated from ${fileName}`,
         category: 'custom',
@@ -96,16 +105,22 @@ export const CRDMKRFrameBuilder: React.FC = () => {
     if (!project?.processedPSD) return;
     
     // Update the layer visibility in the processed PSD
-    const updatedLayers = project.processedPSD.layers.map(layer => 
-      layer.id === layerId ? { ...layer, isVisible: !layer.isVisible } : layer
-    );
+    const updatedLayers = project.processedPSD.layers.map(layer => {
+      if (layer.id === layerId) {
+        const newVisibility = layer.isVisible !== undefined ? !layer.isVisible : false;
+        console.log(`Toggling layer ${layer.name} from ${layer.isVisible} to ${newVisibility}`);
+        return { ...layer, isVisible: newVisibility };
+      }
+      return layer;
+    });
     
     setProject(prev => prev ? {
       ...prev,
       processedPSD: {
         ...prev.processedPSD!,
         layers: updatedLayers
-      }
+      },
+      lastModified: new Date()
     } : null);
   }, [project]);
 
