@@ -18,7 +18,7 @@ const AdminDashboardPage = () => {
     return <Navigate to="/" replace />;
   }
 
-  return <AdminDashboard isEnterprise={true} />;
+  return <AdminDashboard />;
 };
 
 export default AdminDashboardPage;
