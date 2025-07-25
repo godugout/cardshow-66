@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { Collection, CreateCollectionParams, UpdateCollectionParams } from './types';
 import { getCollectionById } from './queries';
 // Removed getAppId import - not available

@@ -45,8 +45,7 @@ export const useCards = () => {
             price,
             tags,
             created_at,
-            creator_id,
-            design_metadata,
+            user_id,
             is_public
           `)
           .eq('is_public', true) // Only public cards for gallery
@@ -65,11 +64,11 @@ export const useCards = () => {
             let creator_name = 'Unknown Creator';
             let creator_verified = false;
             
-            if (card.creator_id) {
+            if (card.user_id) {
               const { data: profileData } = await supabase
-                .from('crd_profiles')
+                .from('profiles')
                 .select('display_name, creator_verified')
-                .eq('id', card.creator_id)
+                .eq('user_id', card.user_id)
                 .single();
               
               if (profileData) {
@@ -80,11 +79,11 @@ export const useCards = () => {
             
             return {
               ...card,
-              creator_id: card.creator_id || '',
+              creator_id: card.user_id || '',
               creator_name,
               creator_verified,
               tags: card.tags || [],
-              design_metadata: card.design_metadata || {}
+              design_metadata: {}
             };
           })
         );

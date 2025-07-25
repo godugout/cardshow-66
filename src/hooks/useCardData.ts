@@ -49,7 +49,7 @@ export const useCardData = (cardId?: string) => {
             tags,
             created_at,
             updated_at,
-            creator_id
+            user_id
           `)
           .eq('id', cardId)
           .single();
@@ -66,11 +66,11 @@ export const useCardData = (cardId?: string) => {
         let creator_name = 'Unknown Creator';
         let creator_verified = false;
         
-        if (data.creator_id) {
+        if (data.user_id) {
           const { data: profileData } = await supabase
-            .from('crd_profiles')
+            .from('profiles')
             .select('display_name, creator_verified')
-            .eq('id', data.creator_id)
+            .eq('user_id', data.user_id)
             .single();
           
           if (profileData) {
@@ -81,8 +81,10 @@ export const useCardData = (cardId?: string) => {
         
         const cardData: CardData = {
           ...data,
+          creator_id: data.user_id,
           creator_name,
-          creator_verified
+          creator_verified,
+          rarity: data.rarity as CardRarity
         };
         
         setCard(cardData);
@@ -130,7 +132,7 @@ export const useMultipleCards = (cardIds?: string[]) => {
             tags,
             created_at,
             updated_at,
-            creator_id
+            user_id
           `)
           .in('id', cardIds);
         
@@ -143,11 +145,11 @@ export const useMultipleCards = (cardIds?: string[]) => {
             let creator_name = 'Unknown Creator';
             let creator_verified = false;
             
-            if (card.creator_id) {
+            if (card.user_id) {
               const { data: profileData } = await supabase
-                .from('crd_profiles')
+                .from('profiles')
                 .select('display_name, creator_verified')
-                .eq('id', card.creator_id)
+                .eq('user_id', card.user_id)
                 .single();
               
               if (profileData) {
@@ -158,8 +160,10 @@ export const useMultipleCards = (cardIds?: string[]) => {
             
             return {
               ...card,
+              creator_id: card.user_id,
               creator_name,
-              creator_verified
+              creator_verified,
+              rarity: card.rarity as CardRarity
             };
           })
         );

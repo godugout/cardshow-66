@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { FramedImage } from '@/components/cards/types/bulkUploadTypes';
 import { toast } from 'sonner';
 

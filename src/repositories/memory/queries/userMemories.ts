@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 // Removed getAppId import - not available
 import type { MemoryListOptions, PaginatedMemories } from '../types';
 import { calculateOffset } from '../core';

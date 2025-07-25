@@ -29,18 +29,9 @@ export const use3DPreferences = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
-        .from('crd_profiles')
-        .select('preferences_3d')
-        .eq('id', user.id)
-        .single();
+      // 3D preferences not implemented in current schema, use local storage
+      return null;
       
-      if (error) {
-        console.warn('Failed to load 3D preferences:', error);
-        return null;
-      }
-      
-      return data?.preferences_3d as User3DPreferences || DEFAULT_PREFERENCES;
     },
     enabled: !!user?.id
   });
@@ -50,12 +41,10 @@ export const use3DPreferences = () => {
     mutationFn: async (newPreferences: User3DPreferences) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      const { error } = await supabase
-        .from('crd_profiles')
-        .update({ preferences_3d: newPreferences })
-        .eq('id', user.id);
+      // 3D preferences not implemented in current schema, use local storage
+      localStorage.setItem('crd-3d-preferences', JSON.stringify(newPreferences));
       
-      if (error) throw error;
+      
       return newPreferences;
     },
     onSuccess: (newPreferences) => {

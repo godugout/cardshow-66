@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { Comment } from '@/types/social';
 
 export interface AddCommentParams {

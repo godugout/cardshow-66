@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Edit } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ interface Collection {
   title: string;
   description?: string;
   created_at: string;
-  owner_id: string;
+  user_id: string;
   card_count?: number;
 }
 
@@ -47,7 +47,7 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
     queryFn: async (): Promise<Card[]> => {
       // Get cards that are in this collection
       const { data: collectionCards, error: collectionError } = await supabase
-        .from('collection_cards')
+        .from('collection_items')
         .select('card_id')
         .eq('collection_id', collectionId);
       
@@ -70,16 +70,10 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
           rarity,
           price,
           tags,
-          creator_id,
+          user_id,
           is_public,
-          edition_size,
           created_at,
-          updated_at,
-          verification_status,
-          print_metadata,
-          creator_attribution,
-          publishing_options,
-          design_metadata
+          updated_at
         `)
         .in('id', cardIds);
       
@@ -91,11 +85,11 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
           let creator_name = 'Unknown Creator';
           let creator_verified = false;
           
-          if (card.creator_id) {
+          if (card.user_id) {
             const { data: profileData } = await supabase
-              .from('crd_profiles')
+              .from('profiles')
               .select('display_name, creator_verified')
-              .eq('id', card.creator_id)
+              .eq('user_id', card.user_id)
               .single();
             
             if (profileData) {
@@ -106,23 +100,24 @@ const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBac
           
           return {
             ...card,
+            creator_id: card.user_id,
             creator_name,
             creator_verified,
             price: card.price || 0,
             tags: card.tags || [],
             visibility: card.is_public ? 'public' : 'private',
-            edition_size: card.edition_size || 1,
+            edition_size: 1,
             created_at: card.created_at || new Date().toISOString(),
             updated_at: card.updated_at || new Date().toISOString(),
-            verification_status: (card.verification_status as 'pending' | 'verified' | 'rejected') || 'pending',
-            creator_attribution: (card.creator_attribution && typeof card.creator_attribution === 'object') ? card.creator_attribution as any : {},
-            print_metadata: (card.print_metadata && typeof card.print_metadata === 'object') ? card.print_metadata as Record<string, any> : {},
-            publishing_options: (card.publishing_options && typeof card.publishing_options === 'object') ? card.publishing_options as any : {
+            verification_status: 'pending' as const,
+            creator_attribution: {},
+            print_metadata: {},
+            publishing_options: {
               marketplace_listing: false,
               crd_catalog_inclusion: true,
               print_available: false
             },
-            design_metadata: (card.design_metadata && typeof card.design_metadata === 'object') ? card.design_metadata as Record<string, any> : {},
+            design_metadata: {},
             collection_id: null,
             team_id: null,
             user_id: null,

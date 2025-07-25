@@ -11,13 +11,10 @@ export const useTeams = () => {
   } = useQuery({
     queryKey: ['teams'],
     queryFn: async (): Promise<Team[]> => {
-      const { data, error } = await supabase
-        .from('teams')
-        .select('*')
-        .order('name');
+      // Teams table doesn't exist in current schema, return empty array
+      console.warn('Teams table not implemented in current schema');
+      return [];
         
-      if (error) throw error;
-      return data || [];
     }
   });
 

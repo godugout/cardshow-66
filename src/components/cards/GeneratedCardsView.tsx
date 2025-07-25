@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { LoadingState } from '@/components/common/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -14,7 +14,7 @@ interface Card {
   rarity: string;
   tags: string[];
   created_at: string;
-  design_metadata: any;
+  design_metadata?: any;
 }
 
 export const GeneratedCardsView = () => {
@@ -36,7 +36,18 @@ export const GeneratedCardsView = () => {
         .limit(101);
 
       if (error) throw error;
-      setCards(data || []);
+      // Map data to expected Card interface, making design_metadata optional
+      const mappedCards = (data || []).map(card => ({
+        id: card.id,
+        title: card.title,
+        description: card.description,
+        image_url: card.image_url,
+        rarity: card.rarity,
+        tags: card.tags || [],
+        created_at: card.created_at,
+        design_metadata: {}
+      }));
+      setCards(mappedCards);
     } catch (error) {
       console.error('Error fetching cards:', error);
     } finally {

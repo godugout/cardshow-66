@@ -1,6 +1,6 @@
 
 import { UnifiedRepository } from '../UnifiedRepository';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Collection {
   id: string;
