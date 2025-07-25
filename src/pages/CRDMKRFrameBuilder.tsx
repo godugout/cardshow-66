@@ -1,9 +1,10 @@
 // CRDMKR Professional Frame Builder - Main Interface
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { CRDButton } from '@/components/ui/design-system/atoms/CRDButton';
 import { PlatformHeader } from '@/components/ui/design-system/organisms/PlatformHeader';
 import { PSDProcessingEngine } from '@/components/crdmkr/PSDProcessingEngine';
 import { LayerTreeInterface } from '@/components/crdmkr/LayerTreeInterface';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Save, 
   Download, 
@@ -13,7 +14,9 @@ import {
   Grid,
   Maximize2,
   RotateCcw,
-  Share2
+  Share2,
+  Layers,
+  Edit
 } from 'lucide-react';
 import { useSubdomainRouting } from '@/hooks/useSubdomainRouting';
 import { EnhancedProcessedPSD, EnhancedProcessedPSDLayer } from '@/services/psdProcessor/enhancedPsdProcessingService';
@@ -54,9 +57,10 @@ export const CRDMKRFrameBuilder: React.FC = () => {
   
   // UI state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [propertiesPanelCollapsed, setPropertiesPanelCollapsed] = useState(false);
   const [previewZoom, setPreviewZoom] = useState(1);
   const [previewOffset, setPreviewOffset] = useState({ x: 0, y: 0 });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
 
   // Team and style codes for naming convention
   const TEAM_CODES = ['BOS', 'MTL', 'USA', 'AI1', 'LAX'];
@@ -128,6 +132,33 @@ export const CRDMKRFrameBuilder: React.FC = () => {
 
   const selectedLayer = project?.processedPSD?.layers.find(layer => layer.id === selectedLayerId);
 
+  // Generate preview with visible layers only
+  const previewLayers = useMemo(() => {
+    if (!project?.processedPSD) return [];
+    return project.processedPSD.layers.filter(layer => layer.isVisible);
+  }, [project?.processedPSD?.layers]);
+
+  // Handle name editing
+  const startEditingName = () => {
+    if (project) {
+      setEditedName(project.name);
+      setIsEditingName(true);
+    }
+  };
+
+  const saveEditedName = () => {
+    if (project && editedName.trim()) {
+      setProject(prev => prev ? { ...prev, name: editedName.trim() } : null);
+      setIsEditingName(false);
+      toast.success('Frame name updated');
+    }
+  };
+
+  const cancelEditingName = () => {
+    setIsEditingName(false);
+    setEditedName('');
+  };
+
   // Initial state - no project loaded
   if (!project) {
     return (
@@ -194,8 +225,36 @@ export const CRDMKRFrameBuilder: React.FC = () => {
               <Palette className="w-6 h-6 text-crd-orange" />
               <span className="font-bold text-lg text-crd-text">CRDMKR</span>
             </div>
-            <div className="text-sm text-crd-text-dim">
-              {generateFrameName()}
+            
+            {/* Inline Editable Frame Name */}
+            <div className="flex items-center space-x-2">
+              {isEditingName ? (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveEditedName();
+                      if (e.key === 'Escape') cancelEditingName();
+                    }}
+                    onBlur={saveEditedName}
+                    className="px-2 py-1 bg-crd-black border border-crd-border rounded text-sm text-crd-text focus:outline-none focus:ring-2 focus:ring-crd-orange"
+                    autoFocus
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={startEditingName}
+                  className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-crd-hover group"
+                >
+                  <span className="text-sm text-crd-text font-medium">{project.name}</span>
+                  <Edit className="w-3 h-3 text-crd-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              )}
+              <span className="text-xs text-crd-text-muted">
+                {generateFrameName()}
+              </span>
             </div>
           </div>
           
@@ -212,21 +271,172 @@ export const CRDMKRFrameBuilder: React.FC = () => {
         </div>
       </header>
 
-      {/* Three-Panel Layout */}
+      {/* Two-Panel Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Layer Tree */}
+        {/* Left Panel - Tabbed Sidebar */}
         <div className={cn(
           "bg-crd-surface border-r border-crd-border transition-all duration-300",
           sidebarCollapsed ? "w-12" : "w-80"
         )}>
           {!sidebarCollapsed && project?.processedPSD && (
-            <LayerTreeInterface
-              layers={project.processedPSD.layers as EnhancedProcessedPSDLayer[]}
-              selectedLayerId={selectedLayerId}
-              onLayerSelect={handleLayerSelect}
-              onLayerVisibilityToggle={handleLayerVisibilityToggle}
-              className="h-full"
-            />
+            <Tabs defaultValue="layers" className="h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-2 bg-crd-black/50 border-b border-crd-border">
+                <TabsTrigger value="layers" className="flex items-center gap-2">
+                  <Layers className="w-4 h-4" />
+                  Layers
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="layers" className="flex-1 overflow-hidden">
+                <LayerTreeInterface
+                  layers={project.processedPSD.layers as EnhancedProcessedPSDLayer[]}
+                  selectedLayerId={selectedLayerId}
+                  onLayerSelect={handleLayerSelect}
+                  onLayerVisibilityToggle={handleLayerVisibilityToggle}
+                  className="h-full"
+                />
+              </TabsContent>
+              
+              <TabsContent value="settings" className="flex-1 overflow-auto">
+                <div className="p-4 space-y-6">
+                  {/* Frame Settings */}
+                  <div>
+                    <h4 className="text-sm font-medium text-crd-text mb-3">Frame Settings</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Team Code
+                        </label>
+                        <select 
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
+                          value={project.teamCode}
+                          onChange={(e) => setProject(prev => prev ? {...prev, teamCode: e.target.value} : null)}
+                        >
+                          {TEAM_CODES.map(code => (
+                            <option key={code} value={code}>{code}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Style Code
+                        </label>
+                        <select 
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
+                          value={project.styleCode}
+                          onChange={(e) => setProject(prev => prev ? {...prev, styleCode: e.target.value} : null)}
+                        >
+                          {STYLE_CODES.map(code => (
+                            <option key={code} value={code}>{code}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Category
+                        </label>
+                        <select 
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
+                          value={project.metadata.category}
+                          onChange={(e) => setProject(prev => prev ? {
+                            ...prev, 
+                            metadata: { ...prev.metadata, category: e.target.value as any }
+                          } : null)}
+                        >
+                          <option value="sports">Sports</option>
+                          <option value="entertainment">Entertainment</option>
+                          <option value="art">Art</option>
+                          <option value="business">Business</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                          Description
+                        </label>
+                        <textarea 
+                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange resize-none"
+                          rows={3}
+                          value={project.metadata.description}
+                          onChange={(e) => setProject(prev => prev ? {
+                            ...prev, 
+                            metadata: { ...prev.metadata, description: e.target.value }
+                          } : null)}
+                          placeholder="Describe your frame template..."
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isPublic"
+                          checked={project.metadata.isPublic}
+                          onChange={(e) => setProject(prev => prev ? {
+                            ...prev, 
+                            metadata: { ...prev.metadata, isPublic: e.target.checked }
+                          } : null)}
+                          className="rounded border-crd-border focus:ring-crd-orange"
+                        />
+                        <label htmlFor="isPublic" className="text-xs text-crd-text-dim">
+                          Make this frame template public
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Selected Layer Properties */}
+                  {selectedLayer && (
+                    <div>
+                      <h4 className="text-sm font-medium text-crd-text mb-3">Selected Layer</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
+                            value={selectedLayer.name}
+                            readOnly
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                            Type
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
+                            value={selectedLayer.semanticType || selectedLayer.type}
+                            readOnly
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-crd-text-dim mb-1">
+                            Dimensions
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
+                            value={`${selectedLayer.bounds.right - selectedLayer.bounds.left} × ${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`}
+                            readOnly
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
           
           {/* Collapse button */}
@@ -250,6 +460,9 @@ export const CRDMKRFrameBuilder: React.FC = () => {
                 <span className="text-sm text-crd-text-dim">
                   {project.processedPSD?.width} × {project.processedPSD?.height}px
                 </span>
+                <span className="text-xs text-crd-text-muted">
+                  {previewLayers.length} of {project.processedPSD?.layers.length} layers visible
+                </span>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setPreviewZoom(Math.max(0.1, previewZoom - 0.1))}
@@ -270,10 +483,21 @@ export const CRDMKRFrameBuilder: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-2">
-                <CRDButton variant="ghost" size="sm">
+                <CRDButton 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setPreviewZoom(1)}
+                >
                   <Maximize2 className="w-4 h-4" />
                 </CRDButton>
-                <CRDButton variant="ghost" size="sm">
+                <CRDButton 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setPreviewZoom(1);
+                    setPreviewOffset({ x: 0, y: 0 });
+                  }}
+                >
                   <RotateCcw className="w-4 h-4" />
                 </CRDButton>
               </div>
@@ -284,136 +508,48 @@ export const CRDMKRFrameBuilder: React.FC = () => {
           <div className="flex-1 relative overflow-auto bg-gray-900">
             <div className="absolute inset-0 flex items-center justify-center p-8">
               {project.processedPSD?.extractedImages.flattenedImageUrl && (
-                <img
-                  src={project.processedPSD.extractedImages.flattenedImageUrl}
-                  alt="PSD Preview"
-                  className="max-w-none border border-crd-border shadow-2xl rounded-lg"
-                  style={{
-                    transform: `scale(${previewZoom}) translate(${previewOffset.x}px, ${previewOffset.y}px)`
-                  }}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Panel - Properties */}
-        <div className={cn(
-          "bg-crd-surface border-l border-crd-border transition-all duration-300",
-          propertiesPanelCollapsed ? "w-12" : "w-80"
-        )}>
-          <div className="p-4 border-b border-crd-border">
-            <div className="flex items-center justify-between">
-              <h3 className={cn(
-                "font-semibold text-crd-text transition-opacity",
-                propertiesPanelCollapsed && "opacity-0"
-              )}>
-                Properties
-              </h3>
-              <button
-                onClick={() => setPropertiesPanelCollapsed(!propertiesPanelCollapsed)}
-                className="p-1 hover:bg-crd-hover rounded"
-              >
-                <ChevronRight className={cn(
-                  "w-4 h-4 text-crd-text-dim transition-transform",
-                  propertiesPanelCollapsed && "rotate-180"
-                )} />
-              </button>
-            </div>
-          </div>
-          
-          {!propertiesPanelCollapsed && (
-            <div className="p-4 space-y-6">
-              {selectedLayer ? (
-                <>
-                  {/* Selected Layer Properties */}
-                  <div>
-                    <h4 className="text-sm font-medium text-crd-text mb-3">Layer Details</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
-                          value={selectedLayer.name}
-                          readOnly
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
-                          Type
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
-                          value={selectedLayer.semanticType || selectedLayer.type}
-                          readOnly
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-crd-text-dim mb-1">
-                          Dimensions
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange focus:border-transparent"
-                          value={`${selectedLayer.bounds.right - selectedLayer.bounds.left} × ${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <Settings className="w-12 h-12 text-crd-text-muted mx-auto mb-3" />
-                  <p className="text-sm text-crd-text-dim">
-                    Select a layer to edit its properties
-                  </p>
-                </div>
-              )}
-
-              {/* Frame Settings */}
-              <div>
-                <h4 className="text-sm font-medium text-crd-text mb-3">Frame Settings</h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-crd-text-dim mb-1">
-                      Team Code
-                    </label>
-                    <select 
-                      className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
-                      value={project.teamCode}
-                      onChange={(e) => setProject(prev => prev ? {...prev, teamCode: e.target.value} : null)}
-                    >
-                      {TEAM_CODES.map(code => (
-                        <option key={code} value={code}>{code}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="relative">
+                  <img
+                    src={project.processedPSD.extractedImages.flattenedImageUrl}
+                    alt="PSD Preview"
+                    className="max-w-none border border-crd-border shadow-2xl rounded-lg"
+                    style={{
+                      transform: `scale(${previewZoom}) translate(${previewOffset.x}px, ${previewOffset.y}px)`,
+                      opacity: previewLayers.length === project.processedPSD.layers.length ? 1 : 0.3
+                    }}
+                  />
                   
-                  <div>
-                    <label className="block text-xs font-medium text-crd-text-dim mb-1">
-                      Style Code
-                    </label>
-                    <select 
-                      className="w-full px-3 py-2 bg-crd-black border border-crd-border rounded-lg text-crd-text text-sm focus:outline-none focus:ring-2 focus:ring-crd-orange"
-                      value={project.styleCode}
-                      onChange={(e) => setProject(prev => prev ? {...prev, styleCode: e.target.value} : null)}
+                  {/* Render visible layers on top */}
+                  {previewLayers.length < project.processedPSD.layers.length && (
+                    <div 
+                      className="absolute inset-0"
+                      style={{
+                        transform: `scale(${previewZoom}) translate(${previewOffset.x}px, ${previewOffset.y}px)`
+                      }}
                     >
-                      {STYLE_CODES.map(code => (
-                        <option key={code} value={code}>{code}</option>
-                      ))}
-                    </select>
-                  </div>
+                      {previewLayers.map(layer => {
+                        const enhancedLayer = layer as EnhancedProcessedPSDLayer;
+                        return enhancedLayer.thumbnailUrl && (
+                          <img
+                            key={enhancedLayer.id}
+                            src={enhancedLayer.thumbnailUrl}
+                            alt={enhancedLayer.name}
+                            className="absolute"
+                            style={{
+                              left: enhancedLayer.bounds.left,
+                              top: enhancedLayer.bounds.top,
+                              width: enhancedLayer.bounds.right - enhancedLayer.bounds.left,
+                              height: enhancedLayer.bounds.bottom - enhancedLayer.bounds.top,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
