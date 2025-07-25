@@ -51,9 +51,22 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
     console.log('MediaUploadZone: Upload path:', filePath);
 
     try {
-      const { data, error } = await supabase.storage
+      console.log('MediaUploadZone: About to call supabase.storage.upload...');
+      
+      // Add a timeout to prevent hanging
+      const uploadPromise = supabase.storage
         .from(bucket)
         .upload(filePath, file);
+      
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Upload timed out after 30 seconds')), 30000)
+      );
+      
+      const { data, error } = await Promise.race([uploadPromise, timeoutPromise]) as any;
+
+      console.log('MediaUploadZone: Upload response received');
+      console.log('MediaUploadZone: Data:', data);
+      console.log('MediaUploadZone: Error:', error);
 
       if (error) {
         console.error('MediaUploadZone: Upload error:', error);
