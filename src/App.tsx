@@ -3,7 +3,7 @@ import React from 'react';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { StableSignIn } from "./pages/auth/StableSignIn";
 import { StableProtectedRoute } from "./components/common/StableProtectedRoute";
@@ -18,7 +18,7 @@ import Index from "./pages/Index";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
-import { UltraStreamlinedFlow } from './components/creation/flows/UltraStreamlinedFlow';
+import { CRDCreateFlow } from './pages/CRDCreateFlow';
 import StudioPage from "@/pages/studio/index";
 import Collections from './pages/Collections';
 
@@ -102,23 +102,19 @@ function App() {
                       <Index />
                     </MainLayout>
                   } 
-                />
+                 />
+                 
+                 {/* Create routes */}
                  <Route 
                    path="/create" 
-                   element={
-                     <ProtectedRoute>
-                       <MainLayout showNavbar={false}>
-                         <UltraStreamlinedFlow />
-                       </MainLayout>
-                     </ProtectedRoute>
-                   } 
+                   element={<Navigate to="/create/crd" replace />} 
                  />
                  <Route 
-                   path="/create/enhanced" 
+                   path="/create/crd" 
                    element={
                      <ProtectedRoute>
                        <MainLayout showNavbar={false}>
-                         <UltraStreamlinedFlow />
+                         <CRDCreateFlow />
                        </MainLayout>
                      </ProtectedRoute>
                    } 
