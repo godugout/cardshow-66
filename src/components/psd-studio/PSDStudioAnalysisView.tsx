@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PSDStudioFile } from '@/pages/PSDStudioPage';
 import { EnhancedPSDCanvasPreview } from '@/components/debug/components/EnhancedPSDCanvasPreview';
-import { LayersPanel } from '@/components/editor/sidebar/LayersPanel';
+import { PSDLayersPanel } from './PSDLayersPanel';
 import { calculateCardPreviewZoom } from '@/utils/canvasZoom';
 import { convertPSDToCardData, isPSDReadyForCardCreation } from '@/utils/psdToCardConverter';
 import { useNavigate } from 'react-router-dom';
@@ -341,8 +341,33 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
             </TabsContent>
 
             <TabsContent value="layers" className="h-full m-0">
-              <div className="p-6">
-                <LayersPanel />
+              <div className="h-full flex">
+                <div className="w-80 bg-editor-darker border-r border-editor-border overflow-y-auto">
+                  <PSDLayersPanel
+                    layers={psd.layers}
+                    selectedLayerId={selectedLayerId || ''}
+                    hiddenLayers={hiddenLayers}
+                    onLayerSelect={setSelectedLayerId}
+                    onLayerToggle={handleLayerToggle}
+                  />
+                </div>
+                <div className="flex-1 p-6">
+                  <Card className="h-full">
+                    <div className="flex items-center justify-between mb-4 p-4 border-b">
+                      <h3 className="font-semibold">Layer Preview</h3>
+                      <Badge variant="outline">Interactive</Badge>
+                    </div>
+                    <div className="h-full">
+                      <EnhancedPSDCanvasPreview
+                        processedPSD={psd}
+                        selectedLayerId={selectedLayerId || ''}
+                        hiddenLayers={hiddenLayers}
+                        onLayerSelect={setSelectedLayerId}
+                        initialZoom={canvasZoom}
+                      />
+                    </div>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
 

@@ -79,11 +79,11 @@ export default {
         'crd-error': '#F44336',        // Error states and destructive actions
         'crd-info': '#2D9CDB',         // Information and neutral states
         
-        // Editor colors
+        // Editor colors - matching CSS variables
         'editor-dark': '#1a1a1a',
-        'editor-darker': '#121212',
-        'editor-tool': '#2a2a2a',
-        'editor-border': '#333333',
+        'editor-darker': 'hsl(var(--editor-darker))',
+        'editor-tool': 'hsl(var(--editor-tool))',
+        'editor-border': 'hsl(var(--editor-border))',
         'editor-canvas': '#2c2c2c',
       },
       borderRadius: {

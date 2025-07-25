@@ -27,6 +27,12 @@
   --crd-error: #F44336;        /* Error states and destructive actions */
   --crd-info: #2D9CDB;         /* Information and neutral states */
 
+  
+  /* Editor Theme Colors for PSD Studio */
+  --editor-darker: 24 24 27;          /* Dark background for editor panels */
+  --editor-tool: 39 39 42;            /* Slightly lighter for tool panels */
+  --editor-border: 63 63 70;          /* Border color for editor elements */
+
   /* Typography Scale (Mobile-first, scales up) */
   --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Roboto Mono', Consolas, monospace;

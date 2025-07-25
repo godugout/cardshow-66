@@ -155,7 +155,7 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
             )}
 
             {/* Layer Overlays */}
-            {visibleLayers.map((layer) => {
+            {visibleLayers.map((layer, index) => {
               const isSelected = layer.id === selectedLayerId;
               const isFocused = focusMode && isSelected;
               
@@ -175,7 +175,9 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
                 border: isSelected ? '2px solid #10b981' : 'none',
                 borderRadius: '2px',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                zIndex: isSelected ? 1000 : (100 + index), // Ensure proper layer stacking
+                pointerEvents: 'auto' as const // Ensure layers are clickable
               };
 
               // Check if this is an enhanced layer with imageUrl
