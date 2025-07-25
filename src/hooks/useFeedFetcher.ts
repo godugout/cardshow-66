@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { Memory } from '@/types/memory';
 import type { FeedType } from './use-feed-types';
 

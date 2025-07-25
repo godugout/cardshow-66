@@ -8,7 +8,7 @@ import { Bell, Shield, Palette, Globe, User, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import { BatchMediaUploader } from '@/components/media/BatchMediaUploader';
 
 interface UserPreferences {

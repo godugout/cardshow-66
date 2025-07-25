@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { localCardStorage } from '@/lib/localCardStorage';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
 import type { CardData } from './types';
 
 export const useLocalAutoSave = (
