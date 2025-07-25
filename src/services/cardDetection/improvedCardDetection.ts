@@ -38,7 +38,11 @@ export class ImprovedCardDetector {
   
   constructor() {
     this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d')!;
+    const ctx = this.canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Unable to get 2D canvas context');
+    }
+    this.ctx = ctx;
   }
 
   async detectCards(image: HTMLImageElement): Promise<DetectionResult> {
@@ -218,31 +222,48 @@ export class ImprovedCardDetector {
     const rectangles: Partial<DetectedCard>[] = [];
     const threshold = 50;
     
-    // Simple rectangle detection using edge map
-    for (let y = 10; y < height - 10; y += 5) {
-      for (let x = 10; x < width - 10; x += 5) {
-        for (let w = 50; w < width - x; w += 10) {
-          for (let h = 70; h < height - y; h += 10) {
-            const aspectRatio = w / h;
-            
-            if (aspectRatio < 0.5 || aspectRatio > 1.0) continue;
-            
-            const edgeScore = this.calculateRectangleEdgeScore(x, y, w, h, edges, width);
-            
-            if (edgeScore > threshold) {
-              rectangles.push({
-                x, y, width: w, height: h,
-                aspectRatio,
-                confidence: Math.min(edgeScore / 100, 1.0),
-                angle: 0,
-                corners: [
-                  { x, y },
-                  { x: x + w, y },
-                  { x: x + w, y: y + h },
-                  { x, y: y + h }
-                ]
-              });
-            }
+    // Optimized rectangle detection with reasonable bounds to prevent stack overflow
+    const stepSize = Math.max(5, Math.floor(Math.min(width, height) / 50));
+    const minCardWidth = Math.floor(width * 0.1);
+    const minCardHeight = Math.floor(height * 0.15);
+    const maxIterations = 1000; // Safety limit
+    
+    let iterations = 0;
+    
+    for (let y = 10; y < height - minCardHeight && iterations < maxIterations; y += stepSize) {
+      for (let x = 10; x < width - minCardWidth && iterations < maxIterations; x += stepSize) {
+        // Test a few reasonable card sizes instead of all possible sizes
+        const testSizes = [
+          { w: minCardWidth, h: minCardHeight * 1.4 },
+          { w: minCardWidth * 1.5, h: minCardHeight * 2.1 },
+          { w: minCardWidth * 2, h: minCardHeight * 2.8 }
+        ];
+        
+        for (const { w, h } of testSizes) {
+          iterations++;
+          if (x + w >= width || y + h >= height) continue;
+          
+          const aspectRatio = w / h;
+          const targetRatio = DETECTION_CONFIG.TARGET_ASPECT_RATIO;
+          
+          // Check if aspect ratio is close to trading card ratio
+          if (Math.abs(aspectRatio - targetRatio) > DETECTION_CONFIG.ASPECT_TOLERANCE) continue;
+          
+          const edgeScore = this.calculateRectangleEdgeScore(x, y, w, h, edges, width);
+          
+          if (edgeScore > threshold) {
+            rectangles.push({
+              x, y, width: w, height: h,
+              aspectRatio,
+              confidence: Math.min(edgeScore / 100, 1.0),
+              angle: 0,
+              corners: [
+                { x, y },
+                { x: x + w, y },
+                { x: x + w, y: y + h },
+                { x, y: y + h }
+              ]
+            });
           }
         }
       }

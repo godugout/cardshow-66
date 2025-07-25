@@ -1,5 +1,6 @@
 
 import { improvedCardDetector } from '@/services/cardDetection/improvedCardDetection';
+import { aiVisionCardDetector } from '@/services/cardDetection/aiVisionCardDetector';
 import type { DetectedCard } from '@/services/cardDetection/improvedCardDetection';
 
 export interface EnhancedDetectionRegion {
@@ -27,7 +28,54 @@ export const enhancedCardDetection = async (
   });
   
   try {
-    // Use the new improved card detector
+    // First try AI vision detection
+    console.log('🤖 Attempting AI Vision detection...');
+    try {
+      const aiResult = await aiVisionCardDetector.detectCards(image, file);
+      
+      if (aiResult.cards.length > 0) {
+        console.log('✅ AI Vision detection successful:', {
+          cardsFound: aiResult.cards.length,
+          processingTime: aiResult.processingTime,
+          method: aiResult.method
+        });
+        
+        // Convert AI results to EnhancedDetectionRegion format
+        const enhancedRegions: EnhancedDetectionRegion[] = aiResult.cards.map((card, index) => ({
+          x: card.x,
+          y: card.y,
+          width: card.width,
+          height: card.height,
+          confidence: card.confidence,
+          aspectRatio: card.aspectRatio,
+          corners: [
+            { x: card.x, y: card.y },
+            { x: card.x + card.width, y: card.y },
+            { x: card.x + card.width, y: card.y + card.height },
+            { x: card.x, y: card.y + card.height }
+          ],
+          edgeStrength: 0.8,
+          geometryScore: card.confidence
+        }));
+        
+        // Store debug info globally if available
+        if (typeof window !== 'undefined') {
+          (window as any).lastDetectionDebug = {
+            method: 'AI Vision',
+            processingTime: aiResult.processingTime,
+            cardsFound: aiResult.cards.length,
+            backgroundRemoved: aiResult.backgroundRemoved,
+            rawResults: aiResult.cards
+          };
+        }
+        
+        return enhancedRegions;
+      }
+    } catch (aiError) {
+      console.warn('⚠️ AI Vision detection failed, falling back to improved detection:', aiError);
+    }
+    
+    // Fallback to improved card detector
     console.log('🧠 Calling improvedCardDetector.detectCards...');
     const result = await improvedCardDetector.detectCards(image);
     
