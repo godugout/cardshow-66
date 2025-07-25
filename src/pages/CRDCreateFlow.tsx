@@ -110,9 +110,12 @@ export const CRDCreateFlow: React.FC = () => {
   };
 
   const handleUploadComplete = useCallback((files: any[]) => {
+    console.log('CRDCreateFlow: Upload complete called with:', files);
     if (files.length > 0) {
       const file = files[0];
-      setUploadedImageUrl(file.publicUrl);
+      const publicUrl = file.publicUrl || file.metadata?.publicUrl;
+      console.log('CRDCreateFlow: Setting uploaded image URL to:', publicUrl);
+      setUploadedImageUrl(publicUrl);
       
       // Auto-advance to crop step
       setCurrentStep('crop');
