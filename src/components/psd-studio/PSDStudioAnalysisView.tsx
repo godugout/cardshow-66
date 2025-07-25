@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PSDStudioFile } from '@/pages/PSDStudioPage';
 import { EnhancedPSDCanvasPreview } from '@/components/debug/components/EnhancedPSDCanvasPreview';
-import { SimplifiedLayerInspector } from '@/components/debug/components/SimplifiedLayerInspector';
+import { LayersPanel } from '@/components/editor/sidebar/LayersPanel';
 import { calculateCardPreviewZoom } from '@/utils/canvasZoom';
 import { convertPSDToCardData, isPSDReadyForCardCreation } from '@/utils/psdToCardConverter';
 import { useNavigate } from 'react-router-dom';
@@ -341,14 +341,9 @@ export const PSDStudioAnalysisView: React.FC<PSDStudioAnalysisViewProps> = ({
             </TabsContent>
 
             <TabsContent value="layers" className="h-full m-0">
-              <SimplifiedLayerInspector
-                layers={psd.layers}
-                selectedLayerId={selectedLayerId || ''}
-                onLayerSelect={setSelectedLayerId}
-                hiddenLayers={hiddenLayers}
-                onLayerToggle={handleLayerToggle}
-                viewMode={mode === 'beginner' ? 'inspect' : 'frame'}
-              />
+              <div className="p-6">
+                <LayersPanel />
+              </div>
             </TabsContent>
 
             {mode !== 'beginner' && (
