@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, CreditCard, Bookmark, Settings, LogOut, Coins, Trophy, Shield } from "lucide-react";
-import { ProfileService } from "@/features/auth/services/profileService";
+
 
 export const ProfileDropdown = () => {
   const { user, signOut } = useAuth();
@@ -23,7 +23,7 @@ export const ProfileDropdown = () => {
 
   const displayName = user.user_metadata?.full_name || user.email || 'User';
   const avatarUrl = user.user_metadata?.avatar_url;
-  const isDefaultAvatar = !avatarUrl || avatarUrl === ProfileService.getDefaultAvatarUrl();
+  const isDefaultAvatar = !avatarUrl;
   const isAdmin = user?.email === 'admin@cardshow.com' || process.env.NODE_ENV === 'development';
   
   return (
@@ -31,9 +31,8 @@ export const ProfileDropdown = () => {
       <DropdownMenuTrigger className="outline-none">
         <Avatar className="h-8 w-8 border-2 border-crd-mediumGray hover:border-crd-blue transition-colors cursor-pointer">
           <AvatarImage 
-            src={avatarUrl || ProfileService.getDefaultAvatarUrl()} 
+            src={avatarUrl || '/default-avatar.png'} 
             alt={displayName}
-            style={isDefaultAvatar ? ProfileService.getInvertedAvatarStyle() : undefined}
           />
           <AvatarFallback className="bg-crd-mediumGray text-crd-white text-sm">
             {(displayName?.[0] || '').toUpperCase()}

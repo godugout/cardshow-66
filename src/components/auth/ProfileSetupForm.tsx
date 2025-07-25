@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { CRDButton, CRDInput } from '@/components/ui/design-system';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { ProfileService } from '@/features/auth/services/profileService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileSetupFormProps {
   onComplete: () => void;
@@ -22,7 +22,7 @@ export const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ onComplete }
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
 
   const saveProfileToLocalStorage = (profileData: ProfileData) => {
     try {
@@ -54,8 +54,8 @@ export const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ onComplete }
       const profileData: ProfileData = {
         fullName,
         bio,
-        username: user.username,
-        avatarUrl: ProfileService.getDefaultAvatarUrl()
+        username: user.email?.split('@')[0] || '',
+        avatarUrl: '/default-avatar.png'
       };
 
       // Save to localStorage for now

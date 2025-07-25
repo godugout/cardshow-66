@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Edit, Verified, Crown } from 'lucide-react';
-import { ProfileService } from '@/features/auth/services/profileService';
+
 
 interface ProfileHeaderProps {
   user: any;
@@ -18,7 +18,7 @@ export const ProfileHeader = ({ user, profile, followers, following }: ProfileHe
   const username = profile?.username || displayName;
   const bio = profile?.bio || 'No bio yet';
   const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
-  const isDefaultAvatar = !avatarUrl || avatarUrl === ProfileService.getDefaultAvatarUrl();
+  const isDefaultAvatar = !avatarUrl;
   const cardsCount = profile?.cards_count || 0;
   const level = profile?.level || 1;
   const experience = profile?.experience || 0;
@@ -33,9 +33,8 @@ export const ProfileHeader = ({ user, profile, followers, following }: ProfileHe
           <div className="flex flex-col items-center md:items-start gap-4">
             <Avatar className="h-24 w-24 border-2 border-crd-green">
               <AvatarImage 
-                src={avatarUrl || ProfileService.getDefaultAvatarUrl()} 
+                src={avatarUrl || '/default-avatar.png'} 
                 alt={displayName}
-                style={isDefaultAvatar ? ProfileService.getInvertedAvatarStyle() : undefined}
               />
               <AvatarFallback className="bg-crd-mediumGray text-crd-white text-xl">
                 {(displayName?.[0] || '').toUpperCase()}

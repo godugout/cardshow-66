@@ -5,10 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { StableSignIn } from "./pages/auth/StableSignIn";
-import { StableProtectedRoute } from "./components/common/StableProtectedRoute";
-import { StableCardCreator } from "./components/core/StableCardCreator";
-import { StableCollectionsView } from "./components/core/StableCollectionsView";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { GlobalErrorBoundary } from "@/components/layout/GlobalErrorBoundary";
@@ -77,10 +73,6 @@ function App() {
                   element={<SignIn />} 
                 />
                 <Route 
-                  path="/auth/stable-signin" 
-                  element={<StableSignIn />} 
-                />
-                <Route 
                   path="/auth/enhanced-signin" 
                   element={
                     <React.Suspense fallback={<div>Loading...</div>}>
@@ -135,16 +127,6 @@ function App() {
                      <MainLayout>
                        <Collections />
                      </MainLayout>
-                   } 
-                 />
-                 <Route 
-                   path="/stable-create" 
-                   element={
-                     <StableProtectedRoute>
-                       <MainLayout>
-                         <StableCardCreator />
-                       </MainLayout>
-                     </StableProtectedRoute>
                    } 
                  />
                 <Route 
