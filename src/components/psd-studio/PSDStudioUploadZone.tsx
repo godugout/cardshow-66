@@ -71,18 +71,30 @@ export const PSDStudioUploadZone: React.FC<PSDStudioUploadZoneProps> = ({
   }, []);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    console.log('=== PSD Upload Debug ===');
+    console.log('onDrop triggered with files:', acceptedFiles);
+    console.log('Mode:', mode);
+    console.log('acceptedFiles length:', acceptedFiles.length);
+    
     const maxFiles = mode === 'bulk' ? 10 : mode === 'advanced' ? 5 : 1;
     const filesToProcess = acceptedFiles.slice(0, maxFiles);
 
+    console.log('Files to process:', filesToProcess.length);
+
     // Initialize processing files
-    const newProcessingFiles: ProcessingFile[] = filesToProcess.map(file => ({
-      file,
-      progress: 0,
-      status: 'pending'
-    }));
+    const newProcessingFiles: ProcessingFile[] = filesToProcess.map(file => {
+      console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
+      return {
+        file,
+        progress: 0,
+        status: 'pending'
+      };
+    });
 
     setProcessingFiles(newProcessingFiles);
     setIsProcessing(true);
+
+    console.log('Starting file processing...');
 
     // Process files
     await Promise.all(
@@ -91,12 +103,16 @@ export const PSDStudioUploadZone: React.FC<PSDStudioUploadZoneProps> = ({
 
     // Wait a moment for UI, then extract completed results
     setTimeout(() => {
+      console.log('Processing completed, extracting results...');
       setProcessingFiles(prev => {
         const completedFiles = prev
           .filter(pf => pf.status === 'completed' && pf.result)
           .map(pf => pf.result!);
         
+        console.log('Completed files:', completedFiles.length);
+        
         if (completedFiles.length > 0) {
+          console.log('Calling onFilesProcessed with:', completedFiles);
           onFilesProcessed(completedFiles);
         }
         
@@ -107,7 +123,7 @@ export const PSDStudioUploadZone: React.FC<PSDStudioUploadZoneProps> = ({
 
   }, [mode, processFile, onFilesProcessed]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: {
       'image/vnd.adobe.photoshop': ['.psd']
@@ -115,6 +131,13 @@ export const PSDStudioUploadZone: React.FC<PSDStudioUploadZoneProps> = ({
     maxFiles: mode === 'bulk' ? 10 : mode === 'advanced' ? 5 : 1,
     disabled: isProcessing
   });
+
+  // Add button click handler to test file picker
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Button clicked, opening file picker...');
+    open();
+  };
 
   const getModeDescription = () => {
     switch (mode) {
@@ -176,6 +199,7 @@ export const PSDStudioUploadZone: React.FC<PSDStudioUploadZoneProps> = ({
             size="lg"
             className="bg-gradient-to-r from-crd-green to-crd-blue hover:from-crd-green/90 hover:to-crd-blue/90 text-white"
             disabled={isProcessing}
+            onClick={handleButtonClick}
           >
             {isProcessing ? (
               <>
