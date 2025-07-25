@@ -21,6 +21,7 @@ import { PSDToFrameConverter } from './PSDToFrameConverter';
 import { MaterialLibrary } from '@/components/studio/assets/MaterialLibrary';
 import { EffectsLibrary } from '@/components/studio/assets/EffectsLibrary';
 import { TextEditingPanel } from './TextEditingPanel';
+import { OverlayManager } from '@/components/overlay/OverlayManager';
 import type { CardRarity } from '@/types/card';
 import type { PSDToCardData } from '@/utils/psdToCardConverter';
 import type { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
@@ -164,9 +165,10 @@ export const CardCreationInterface: React.FC = () => {
   }, [selectedTextElement]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Left Panel - Creation Tools */}
-      <div className="space-y-6">
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Panel - Creation Tools */}
+        <div className="space-y-6">
         {/* Card Info */}
         <Card>
           <CardHeader>
@@ -477,7 +479,11 @@ export const CardCreationInterface: React.FC = () => {
             />
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+      
+      {/* Overlay Manager for handling modals/overlays */}
+      <OverlayManager />
+    </>
   );
 };
