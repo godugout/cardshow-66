@@ -34,26 +34,118 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
   const [history, setHistory] = useState([crop]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
+  // Test image loading independently
+  useEffect(() => {
+    console.log('🔍 SimpleCropper: Component mounted with imageUrl:', imageUrl);
+    
+    if (imageUrl) {
+      // Test if the URL is accessible directly
+      console.log('🧪 SimpleCropper: Testing direct image access...');
+      
+      const testImg = new Image();
+      testImg.crossOrigin = 'anonymous';
+      
+      testImg.onload = () => {
+        console.log('✅ SimpleCropper: Direct image test SUCCESSFUL');
+        console.log('📏 SimpleCropper: Test image dimensions:', testImg.width, 'x', testImg.height);
+      };
+      
+      testImg.onerror = (error) => {
+        console.error('❌ SimpleCropper: Direct image test FAILED');
+        console.error('❌ SimpleCropper: Error details:', error);
+        console.error('❌ SimpleCropper: URL being tested:', imageUrl);
+      };
+      
+      testImg.src = imageUrl;
+    }
+  }, [imageUrl]);
+
   // Load image
   useEffect(() => {
-    if (imageRef.current && imageUrl) {
-      const img = imageRef.current;
-      img.onload = () => {
-        console.log('✅ Simple cropper image loaded');
-        setImageLoaded(true);
-        toast.success('Image loaded! Ready to crop');
-        
-        // Auto-center and fit the crop box
-        setTimeout(() => {
-          handleAutoFit();
-        }, 100);
-      };
-      img.onerror = () => {
-        console.error('❌ Simple cropper image failed to load');
-        toast.error('Failed to load image');
-      };
-      img.src = imageUrl;
+    console.log('🔍 SimpleCropper: Image load useEffect triggered', { 
+      imageUrl, 
+      hasImageRef: !!imageRef.current,
+      imageRefCurrent: imageRef.current
+    });
+    
+    if (!imageUrl) {
+      console.warn('⚠️ SimpleCropper: No imageUrl provided');
+      return;
     }
+
+    // Delay to ensure ref is available
+    const timer = setTimeout(() => {
+      if (imageRef.current) {
+        const img = imageRef.current;
+        
+        console.log('🏁 SimpleCropper: Starting image load process');
+        console.log('📱 SimpleCropper: Image URL:', imageUrl);
+        
+        img.onload = () => {
+          console.log('✅ SimpleCropper: Image loaded successfully');
+          console.log('📏 SimpleCropper: Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+          setImageLoaded(true);
+          toast.success('Image loaded! Ready to crop');
+          
+          // Auto-center and fit the crop box
+          setTimeout(() => {
+            handleAutoFit();
+          }, 100);
+        };
+        
+        img.onerror = (error) => {
+          console.error('❌ SimpleCropper: Image failed to load');
+          console.error('❌ SimpleCropper: Error details:', error);
+          console.error('❌ SimpleCropper: Failed URL:', imageUrl);
+          toast.error('Failed to load image');
+        };
+        
+        // Add load start debugging
+        img.onloadstart = () => {
+          console.log('🚀 SimpleCropper: Image load started');
+        };
+        
+        console.log('🔄 SimpleCropper: Setting image src to:', imageUrl);
+        img.crossOrigin = 'anonymous';
+        img.src = imageUrl;
+        
+        // Additional debugging - check if src was actually set
+        setTimeout(() => {
+          console.log('🔍 SimpleCropper: Image src after setting:', img.src);
+          console.log('🔍 SimpleCropper: Image complete:', img.complete);
+          console.log('🔍 SimpleCropper: Image naturalWidth:', img.naturalWidth);
+        }, 100);
+      } else {
+        console.error('❌ SimpleCropper: imageRef.current is still null after delay');
+        console.log('🔄 SimpleCropper: Retrying in 500ms...');
+        
+        // Retry after a longer delay
+        setTimeout(() => {
+          if (imageRef.current && imageUrl) {
+            console.log('🔄 SimpleCropper: Retry successful, imageRef found');
+            const img = imageRef.current;
+            img.crossOrigin = 'anonymous';
+            img.src = imageUrl;
+            
+            img.onload = () => {
+              console.log('✅ SimpleCropper: Image loaded on retry');
+              setImageLoaded(true);
+              toast.success('Image loaded! Ready to crop');
+              setTimeout(() => handleAutoFit(), 100);
+            };
+            
+            img.onerror = (error) => {
+              console.error('❌ SimpleCropper: Image failed on retry:', error);
+              toast.error('Failed to load image');
+            };
+          } else {
+            console.error('❌ SimpleCropper: Retry failed - still no imageRef');
+          }
+        }, 500);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [imageUrl]);
 
   const addToHistory = useCallback((newCrop: typeof crop) => {
