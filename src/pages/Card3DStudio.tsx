@@ -91,6 +91,8 @@ const Card3D: React.FC<{
 };
 
 export const Card3DStudio: React.FC<Card3DStudioProps> = ({ className }) => {
+  console.log('Card3DStudio - Component rendering');
+  
   const [selectedEffect, setSelectedEffect] = useState<EffectPreset>(EFFECT_PRESETS[0]);
   const [autoRotate, setAutoRotate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
