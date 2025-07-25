@@ -42,6 +42,7 @@ import Profile from './pages/Profile';
 import DebugDetection from './pages/DebugDetection';
 import CRDDesignGuide from './pages/CRDDesignGuide';
 import { CRDMKRFrameBuilder } from './pages/CRDMKRFrameBuilder';
+import { CRDMKRCardFinder } from './pages/CRDMKRCardFinder';
 import { Card3DStudio } from './pages/Card3DStudio';
 import { EnhancedMarketplace } from './pages/EnhancedMarketplace';
 import { TestingSuite } from './components/testing/TestingSuite';
@@ -313,22 +314,32 @@ function App() {
                     </MainLayout>
                   } 
                 />
-                <Route 
-                  path="/crdmkr/frame-builder" 
-                  element={
-                    <ProtectedRoute>
-                      <CRDMKRFrameBuilder />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/3dstudio" 
-                  element={
-                    <ProtectedRoute>
-                      <Card3DStudio />
-                    </ProtectedRoute>
-                  } 
-                />
+                 <Route 
+                   path="/crdmkr/frame-builder" 
+                   element={
+                     <ProtectedRoute>
+                       <CRDMKRFrameBuilder />
+                     </ProtectedRoute>
+                   } 
+                 />
+                 <Route 
+                   path="/crdmkr/fndr" 
+                   element={
+                     <ProtectedRoute>
+                       <MainLayout showNavbar={false}>
+                         <CRDMKRCardFinder />
+                       </MainLayout>
+                     </ProtectedRoute>
+                   } 
+                 />
+                 <Route 
+                   path="/3dstudio" 
+                   element={
+                     <ProtectedRoute>
+                       <Card3DStudio />
+                     </ProtectedRoute>
+                   } 
+                 />
                 
                 {/* Testing & Deployment Routes */}
                 <Route 
