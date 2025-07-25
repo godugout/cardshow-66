@@ -21,11 +21,13 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
   const cropBoxRef = useRef<HTMLDivElement>(null);
   
   const [imageLoaded, setImageLoaded] = useState(false);
+  // Ensure exact 2.5:3.5 aspect ratio (0.714285714...)
+  const cardAspectRatio = 2.5 / 3.5;
   const [crop, setCrop] = useState({
     x: 50,
     y: 50,
     width: 200,
-    height: 280, // 200 / (2.5/3.5) = 280
+    height: Math.round(200 / cardAspectRatio), // Exact 2.5:3.5 ratio
     rotation: 0
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -241,13 +243,14 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
     const maxWidth = containerRect.width * 0.8;
     const maxHeight = containerRect.height * 0.8;
     
+    // Always use exact card aspect ratio (2.5:3.5)
     let newWidth, newHeight;
-    if (maxWidth / aspectRatio <= maxHeight) {
+    if (maxWidth / cardAspectRatio <= maxHeight) {
       newWidth = maxWidth;
-      newHeight = maxWidth / aspectRatio;
+      newHeight = Math.round(maxWidth / cardAspectRatio);
     } else {
       newHeight = maxHeight;
-      newWidth = newHeight * aspectRatio;
+      newWidth = Math.round(newHeight * cardAspectRatio);
     }
     
     const newCrop = {
@@ -273,7 +276,7 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
       x: 50,
       y: 50,
       width: 200,
-      height: 280,
+      height: Math.round(200 / cardAspectRatio), // Exact 2.5:3.5 ratio
       rotation: 0
     };
     addToHistory(resetCrop);
@@ -286,50 +289,69 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
     }
 
     try {
-      // Create a canvas to generate the cropped image
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-
-      // Set canvas size to crop dimensions
-      canvas.width = crop.width;
-      canvas.height = crop.height;
-
-      // Get the image's natural dimensions and displayed dimensions
       const img = imageRef.current;
       const containerRect = containerRef.current.getBoundingClientRect();
       const imgRect = img.getBoundingClientRect();
       
-      // Calculate scale factors
+      // Calculate how the image is positioned within the container
       const scaleX = img.naturalWidth / imgRect.width;
       const scaleY = img.naturalHeight / imgRect.height;
       
-      // Calculate source coordinates
-      const sourceX = crop.x * scaleX;
-      const sourceY = crop.y * scaleY;
+      // Calculate the actual crop coordinates relative to the original image
+      const imgLeft = imgRect.left - containerRect.left;
+      const imgTop = imgRect.top - containerRect.top;
+      
+      // Crop coordinates relative to image
+      const cropRelativeX = Math.max(0, crop.x - imgLeft);
+      const cropRelativeY = Math.max(0, crop.y - imgTop);
+      
+      // Scale to original image coordinates
+      const sourceX = cropRelativeX * scaleX;
+      const sourceY = cropRelativeY * scaleY;
       const sourceWidth = crop.width * scaleX;
       const sourceHeight = crop.height * scaleY;
 
-      // Handle rotation
+      // Create canvas with exact card dimensions (maintaining 2.5:3.5 ratio)
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+
+      // Set standard card dimensions (scale up for quality)
+      const cardWidth = 500; // Standard card width
+      const cardHeight = Math.round(cardWidth / cardAspectRatio); // Exact 2.5:3.5 ratio
+      
+      canvas.width = cardWidth;
+      canvas.height = cardHeight;
+
+      console.log('🎯 Crop Details:', {
+        cropBox: { x: crop.x, y: crop.y, width: crop.width, height: crop.height },
+        aspectRatio: crop.width / crop.height,
+        expectedRatio: cardAspectRatio,
+        sourceCoords: { x: sourceX, y: sourceY, width: sourceWidth, height: sourceHeight },
+        canvasSize: { width: cardWidth, height: cardHeight }
+      });
+
+      // Handle rotation if needed
       if (crop.rotation !== 0) {
-        ctx.translate(crop.width / 2, crop.height / 2);
+        ctx.translate(cardWidth / 2, cardHeight / 2);
         ctx.rotate((crop.rotation * Math.PI) / 180);
-        ctx.translate(-crop.width / 2, -crop.height / 2);
+        ctx.translate(-cardWidth / 2, -cardHeight / 2);
       }
 
-      // Draw the cropped portion
+      // Draw the cropped portion to exact card dimensions
       ctx.drawImage(
         img,
         sourceX, sourceY, sourceWidth, sourceHeight,
-        0, 0, crop.width, crop.height
+        0, 0, cardWidth, cardHeight
       );
 
-      // Convert to blob and create URL
+      // Convert to high-quality blob
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
+          console.log('✅ Crop complete! Final dimensions:', cardWidth, 'x', cardHeight, 'Aspect:', cardWidth/cardHeight);
           onCropComplete(url);
-          toast.success('Crop applied successfully!');
+          toast.success(`Perfect! Cropped to exact 2.5×3.5 card ratio (${cardWidth}×${cardHeight})`);
         } else {
           toast.error('Failed to create cropped image');
         }
@@ -432,7 +454,7 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
         
         <div className="text-center">
           <span className="text-crd-lightGray text-sm">
-            Rotation: {crop.rotation}° | Position: {Math.round(crop.x)}, {Math.round(crop.y)}
+            Rotation: {crop.rotation}° | Position: {Math.round(crop.x)}, {Math.round(crop.y)} | Ratio: {(crop.width / crop.height).toFixed(3)} (Target: {cardAspectRatio.toFixed(3)})
           </span>
         </div>
       </div>
