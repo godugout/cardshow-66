@@ -367,13 +367,33 @@ export const CRDCreateFlow: React.FC = () => {
             </div>
             
             <div className="max-w-6xl mx-auto">
-              {uploadedImageUrl && (
+              <div className="bg-yellow-500/20 border border-yellow-500 rounded p-4 mb-4">
+                <p className="text-yellow-300 text-sm">
+                  DEBUG: currentStep={currentStep}, uploadedImageUrl={uploadedImageUrl ? 'EXISTS' : 'NULL'}
+                </p>
+                <p className="text-yellow-300 text-xs mt-1">
+                  URL: {uploadedImageUrl || 'No URL set'}
+                </p>
+              </div>
+              
+              {uploadedImageUrl ? (
                 <SimpleCropper
                   imageUrl={uploadedImageUrl}
                   onCropComplete={handleCropComplete}
                   aspectRatio={2.5 / 3.5}
                   className="bg-gradient-to-br from-crd-darkest/50 to-crd-surface/50 border border-crd-border rounded-2xl p-8 backdrop-blur-sm"
                 />
+              ) : (
+                <div className="bg-red-500/20 border border-red-500 rounded p-8 text-center">
+                  <p className="text-red-400 text-lg font-semibold">No image URL available!</p>
+                  <p className="text-red-300 text-sm mt-2">The uploadedImageUrl state is empty</p>
+                  <Button 
+                    onClick={() => setCurrentStep('upload')} 
+                    className="mt-4 bg-red-500 hover:bg-red-600"
+                  >
+                    Go Back to Upload
+                  </Button>
+                </div>
               )}
             </div>
           </div>
