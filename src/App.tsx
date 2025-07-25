@@ -132,11 +132,9 @@ function App() {
                  <Route 
                    path="/collections" 
                    element={
-                     <StableProtectedRoute>
-                       <MainLayout>
-                         <StableCollectionsView />
-                       </MainLayout>
-                     </StableProtectedRoute>
+                     <MainLayout>
+                       <Collections />
+                     </MainLayout>
                    } 
                  />
                  <Route 
