@@ -50,12 +50,23 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Dynamic canvas sizing for mobile responsiveness
+    const getCanvasSize = () => {
+      const containerWidth = window.innerWidth < 768 ? window.innerWidth - 40 : 900;
+      const containerHeight = window.innerWidth < 768 ? 400 : 600;
+      return { width: Math.min(containerWidth, 900), height: Math.min(containerHeight, 600) };
+    };
+
+    const { width, height } = getCanvasSize();
+    
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
-      backgroundColor: '#f0f0f0',
+      width,
+      height,
+      backgroundColor: 'rgba(20, 20, 25, 0.95)',
       selection: false,
       preserveObjectStacking: true,
+      imageSmoothingEnabled: true,
+      allowTouchScrolling: true, // Better mobile support
     });
 
     setFabricCanvas(canvas);
@@ -426,45 +437,61 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     );
   }
 
-  // Show loading state while Fabric.js sets up the image
+  // Enhanced loading state with better UX
   if (imageLoadingState === 'ready' && !isReady) {
     return (
-      <div className={`${className} flex items-center justify-center py-12`}>
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-crd-green mx-auto"></div>
-          <div>
-            <p className="text-white font-medium">Setting up crop editor...</p>
-            <p className="text-muted-foreground text-sm">Initializing canvas with your image</p>
+      <div className={`${className} flex items-center justify-center py-16`}>
+        <div className="text-center space-y-6 max-w-md">
+          {/* Animated Crop Icon */}
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-r from-crd-green to-crd-blue rounded-full animate-pulse"></div>
+            <div className="absolute inset-2 bg-crd-darkest rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-crd-green animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="32" strokeLinecap="round"></circle>
+              </svg>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-white font-bold text-xl">Setting up crop editor...</h3>
+            <p className="text-crd-lightGray">Initializing canvas with your image</p>
+            
+            {/* Progress indicator */}
+            <div className="w-full bg-crd-surface rounded-full h-2 mt-4">
+              <div className="bg-gradient-to-r from-crd-green to-crd-blue h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+            </div>
           </div>
           
           {showSkipOption && (
-            <div className="space-y-3">
-              <p className="text-yellow-400 text-sm">Taking longer than expected</p>
-              <div className="flex gap-3 justify-center">
-                <Button
-                  onClick={() => {
-                    console.log('User chose to skip cropping, using original image');
-                    onCropComplete(validatedImageUrl!);
-                    toast.success('Using original image without cropping');
-                  }}
-                  variant="outline"
-                  className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
-                >
-                  Skip Crop & Use Original
-                </Button>
-                <Button
-                  onClick={() => {
-                    console.log('User chose to retry crop editor setup');
-                    setShowSkipOption(false);
-                    setImageLoadingState('loading');
-                    setValidatedImageUrl(null);
-                    toast.info('Retrying crop editor...');
-                  }}
-                  variant="outline"
-                  className="border-crd-lightGray text-crd-lightGray hover:bg-crd-lightGray hover:text-black"
-                >
-                  Try Again
-                </Button>
+            <div className="space-y-4 mt-8">
+              <div className="bg-crd-orange/10 border border-crd-orange/20 rounded-lg p-4">
+                <p className="text-crd-orange text-sm font-medium mb-3">Setup is taking longer than expected</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    onClick={() => {
+                      console.log('User chose to skip cropping, using original image');
+                      onCropComplete(validatedImageUrl!);
+                      toast.success('Using original image without cropping');
+                    }}
+                    variant="outline"
+                    className="border-crd-green bg-crd-green/10 text-crd-green hover:bg-crd-green hover:text-black transition-all duration-300"
+                  >
+                    Skip Crop & Use Original
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      console.log('User chose to retry crop editor setup');
+                      setShowSkipOption(false);
+                      setImageLoadingState('loading');
+                      setValidatedImageUrl(null);
+                      toast.info('Retrying crop editor...');
+                    }}
+                    variant="outline"
+                    className="border-crd-lightGray text-crd-lightGray hover:bg-crd-lightGray hover:text-black transition-all duration-300"
+                  >
+                    Try Again
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -474,9 +501,23 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="flex justify-center">
-        <canvas ref={canvasRef} className="border border-gray-300 rounded-lg shadow-lg" />
+    <div className={`space-y-6 ${className}`}>
+      {/* Canvas Container with improved styling */}
+      <div className="relative flex justify-center">
+        <div className="relative bg-gradient-to-br from-crd-darkest to-crd-surface rounded-xl p-6 border border-crd-border shadow-2xl">
+          <canvas 
+            ref={canvasRef} 
+            className="rounded-lg shadow-xl border-2 border-crd-border/50 max-w-full h-auto" 
+            style={{ maxHeight: '70vh' }}
+          />
+          
+          {/* Canvas Overlay Instructions */}
+          <div className="absolute top-2 right-2 bg-crd-darkest/80 backdrop-blur-sm rounded-lg px-3 py-1 border border-crd-border/50">
+            <p className="text-crd-lightGray text-xs font-medium">
+              Drag corners • Rotate handle above
+            </p>
+          </div>
+        </div>
       </div>
 
       {isReady && (
@@ -510,28 +551,38 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
             />
           )}
           
-          {/* Apply Crop Button */}
-          <div className="flex justify-center mt-6">
-            <Button
-              onClick={handleApplyCrop}
-              size="lg"
-              className="bg-crd-green hover:bg-crd-green/90 text-white px-8 py-3 font-semibold"
-            >
-              Apply Crop & Continue
-            </Button>
+          {/* Enhanced Apply Crop Section */}
+          <div className="bg-gradient-to-r from-crd-green/10 to-crd-blue/10 border border-crd-green/20 rounded-xl p-6 text-center">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-white font-semibold text-lg">Ready to Apply Your Crop</h3>
+                <p className="text-crd-lightGray text-sm mt-1">
+                  Your image is perfectly positioned. Click below to continue with your card creation.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <Button
+                  onClick={handleApplyCrop}
+                  size="lg"
+                  className="bg-gradient-to-r from-crd-green to-crd-green/90 hover:from-crd-green/90 hover:to-crd-green text-black font-bold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  Apply Crop & Continue
+                </Button>
+                
+                <Button
+                  onClick={() => onCropComplete(validatedImageUrl!)}
+                  variant="outline"
+                  size="lg"
+                  className="border-crd-border bg-crd-surface/50 text-white hover:bg-crd-surface px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  Skip Crop
+                </Button>
+              </div>
+            </div>
           </div>
         </>
       )}
-
-      <div className="flex justify-center gap-4">
-        <Button
-          onClick={handleApplyCrop}
-          disabled={!isReady}
-          className="bg-crd-green hover:bg-crd-green/90 text-black"
-        >
-          Apply Crop
-        </Button>
-      </div>
     </div>
   );
 };

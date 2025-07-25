@@ -344,11 +344,26 @@ export const CRDCreateFlow: React.FC = () => {
       case 'crop':
         return (
           <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-white mb-4">Perfect Your Composition</h2>
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl font-bold text-white mb-4 bg-gradient-to-r from-crd-green to-crd-blue bg-clip-text text-transparent">
+                Perfect Your Composition
+              </h2>
               <p className="text-crd-lightGray text-lg">
-                Crop and adjust your image to fit the card perfectly
+                Crop and adjust your image to fit the card perfectly using our professional editing tools
               </p>
+              
+              {/* Progress indicator */}
+              <div className="flex items-center justify-center mt-6 mb-8">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-crd-green rounded-full"></div>
+                  <div className="w-8 h-0.5 bg-crd-green"></div>
+                  <div className="w-3 h-3 bg-crd-green rounded-full animate-pulse"></div>
+                  <div className="w-8 h-0.5 bg-crd-border"></div>
+                  <div className="w-3 h-3 bg-crd-border rounded-full"></div>
+                  <div className="w-8 h-0.5 bg-crd-border"></div>
+                  <div className="w-3 h-3 bg-crd-border rounded-full"></div>
+                </div>
+              </div>
             </div>
             
             <div className="max-w-6xl mx-auto">
@@ -358,19 +373,9 @@ export const CRDCreateFlow: React.FC = () => {
                   onCropComplete={handleCropComplete}
                   aspectRatio={2.5 / 3.5}
                   compact={false}
-                  className="bg-crd-surface border border-crd-border rounded-lg p-6"
+                  className="bg-gradient-to-br from-crd-darkest/50 to-crd-surface/50 border border-crd-border rounded-2xl p-8 backdrop-blur-sm"
                 />
               )}
-            </div>
-            
-            <div className="flex justify-center gap-4">
-              <Button 
-                variant="outline" 
-                onClick={handleSkipCrop}
-                className="border-crd-mediumGray text-white hover:bg-crd-surface"
-              >
-                Skip Crop & Use Original
-              </Button>
             </div>
           </div>
         );
