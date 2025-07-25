@@ -11,26 +11,36 @@ export const createMemory = async (params: CreateMemoryParams): Promise<Memory> 
     const appId = null;
     
     const { data, error } = await supabase
-      .from('memories')
+      .from('cards')
       .insert({
         user_id: params.userId,
         title: params.title,
         description: params.description,
-        team_id: params.teamId,
-        game_id: params.gameId,
-        location: params.location,
-        visibility: params.visibility,
         tags: params.tags || [],
-        metadata: params.metadata,
-        app_id: appId
+        is_public: params.visibility === 'public',
+        category: 'memory'
       })
-      .select('*, media(*)')
+      .select('*')
       .single();
 
-    if (error) throw new Error(`Failed to create memory: ${error.message}`);
-    if (!data) throw new Error('No data returned after creating memory');
+    if (error) throw new Error(`Failed to create card: ${error.message}`);
+    if (!data) throw new Error('No data returned after creating card');
 
-    return data as Memory;
+    // Transform card to Memory interface
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description,
+      teamId: params.teamId,
+      gameId: params.gameId,
+      location: params.location,
+      visibility: params.visibility,
+      createdAt: data.created_at,
+      tags: data.tags || [],
+      metadata: params.metadata || {},
+      media: []
+    } as Memory;
   } catch (error) {
     console.error('Error in createMemory:', error);
     
@@ -77,17 +87,37 @@ export const updateMemory = async (params: UpdateMemoryParams): Promise<Memory> 
     if (params.tags !== undefined) updates.tags = params.tags;
     if (params.metadata !== undefined) updates.metadata = params.metadata;
 
+    const cardUpdates: any = {};
+    if (params.title !== undefined) cardUpdates.title = params.title;
+    if (params.description !== undefined) cardUpdates.description = params.description;
+    if (params.tags !== undefined) cardUpdates.tags = params.tags;
+    if (params.visibility !== undefined) cardUpdates.is_public = params.visibility === 'public';
+
     const { data, error } = await supabase
-      .from('memories')
-      .update(updates)
+      .from('cards')
+      .update(cardUpdates)
       .eq('id', params.id)
-      .select('*, media(*)')
+      .select('*')
       .single();
 
-    if (error) throw new Error(`Failed to update memory: ${error.message}`);
-    if (!data) throw new Error(`Memory not found: ${params.id}`);
+    if (error) throw new Error(`Failed to update card: ${error.message}`);
+    if (!data) throw new Error(`Card not found: ${params.id}`);
 
-    return data as Memory;
+    // Transform card to Memory interface
+    return {
+      id: data.id,
+      userId: data.user_id,
+      title: data.title,
+      description: data.description,
+      teamId: '', // Default values since not stored in cards
+      gameId: null,
+      location: params.location || null,
+      visibility: data.is_public ? 'public' : 'private',
+      createdAt: data.created_at,
+      tags: data.tags || [],
+      metadata: params.metadata || {},
+      media: []
+    } as Memory;
   } catch (error) {
     console.error('Error in updateMemory:', error);
     

@@ -4,20 +4,28 @@ import { getMemoryById } from './queries';
 import { supabase } from '@/integrations/supabase/client';
 
 export const deleteMemory = async (id: string): Promise<void> => {
-  const memory = await getMemoryById(id);
-  if (!memory) throw new Error(`Memory not found: ${id}`);
+  // Since memories table doesn't exist, use cards table instead
+  const { data: card, error: fetchError } = await supabase
+    .from('cards')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  const deleteMediaPromises = memory.media?.map(media => 
-    deleteMedia(media.id, memory.userId)
-  ) || [];
+  if (fetchError || !card) throw new Error(`Card not found: ${id}`);
 
-  await Promise.all(deleteMediaPromises);
+  // Delete associated media if any
+  const { error: mediaError } = await supabase
+    .from('media_assets')
+    .delete()
+    .eq('asset_reference_id', id);
+
+  if (mediaError) console.warn('Failed to delete associated media:', mediaError);
 
   const { error } = await supabase
-    .from('memories')
+    .from('cards')
     .delete()
     .eq('id', id);
 
-  if (error) throw new Error(`Failed to delete memory: ${error.message}`);
+  if (error) throw new Error(`Failed to delete card: ${error.message}`);
 };
 

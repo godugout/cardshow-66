@@ -6,8 +6,8 @@ export const CollectionRepository = {
     try {
       const { data, error } = await supabase
         .from('collections')
-        .select('*, profiles!collections_owner_id_fkey(full_name, avatar_url)')
-        .eq('visibility', 'public')
+        .select('*')
+        .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(limit);
         
@@ -26,8 +26,8 @@ export const CollectionRepository = {
       
       const { data, error, count } = await supabase
         .from('collections')
-        .select('*, profiles!collections_owner_id_fkey(full_name, avatar_url)', { count: 'exact' })
-        .eq('visibility', 'public')
+        .select('*', { count: 'exact' })
+        .eq('is_public', true)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
         

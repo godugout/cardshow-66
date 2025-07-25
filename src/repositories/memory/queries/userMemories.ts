@@ -19,20 +19,18 @@ export const getMemoriesByUserId = async (
     } = options;
 
     let query = supabase
-      .from('memories')
-      .select('*, media(*)', { count: 'exact' })
+      .from('cards')
+      .select('*', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
       
     // Skip app_id filter for now
     
     if (visibility && visibility !== 'all') {
-      query = query.eq('visibility', visibility);
+      query = query.eq('is_public', visibility === 'public');
     }
     
-    if (teamId) {
-      query = query.eq('team_id', teamId);
-    }
+    // Skip teamId filter since not in cards table
     
     if (tags && tags.length > 0) {
       query = query.contains('tags', tags);
@@ -49,10 +47,26 @@ export const getMemoriesByUserId = async (
 
     const { data, error, count } = await query;
 
-    if (error) throw new Error(`Failed to fetch memories: ${error.message}`);
+    if (error) throw new Error(`Failed to fetch cards: ${error.message}`);
+    
+    // Transform cards to Memory interface
+    const memories = (data || []).map(card => ({
+      id: card.id,
+      userId: card.user_id,
+      title: card.title,
+      description: card.description,
+      teamId: '', // Default since not in cards table
+      gameId: null,
+      location: null,
+      visibility: (card.is_public ? 'public' : 'private') as 'public' | 'private' | 'shared',
+      createdAt: card.created_at,
+      tags: card.tags || [],
+      metadata: {},
+      media: []
+    }));
     
     return {
-      memories: data || [],
+      memories,
       total: count || 0
     };
   } catch (error) {
