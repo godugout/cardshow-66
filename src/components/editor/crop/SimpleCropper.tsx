@@ -341,22 +341,22 @@ export const SimpleCropper: React.FC<SimpleCropperProps> = ({
     }
   };
 
-  if (!imageLoaded) {
-    return (
-      <div className={`${className} flex items-center justify-center py-16`}>
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-crd-green border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <div>
-            <h3 className="text-white font-semibold text-lg">Loading Image...</h3>
-            <p className="text-crd-lightGray">Preparing your image for cropping</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Render the cropper interface immediately, hide image until loaded
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* Loading overlay */}
+      {!imageLoaded && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-center space-y-4">
+            <div className="w-12 h-12 border-4 border-crd-green border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div>
+              <h3 className="text-white font-semibold text-lg">Loading Image...</h3>
+              <p className="text-crd-lightGray">Preparing your image for cropping</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Image Container */}
       <div className="relative bg-gradient-to-br from-crd-darkest to-crd-surface rounded-xl p-6 border border-crd-border shadow-2xl">
         <div 
