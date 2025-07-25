@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { useCardComposition } from '@/hooks/useCardComposition';
 import { MediaUploadZone } from '@/components/media/MediaUploadZone';
-import { EnhancedImageCropper } from '@/components/editor/crop/EnhancedImageCropper';
+import { SimpleCropper } from '@/components/editor/crop/SimpleCropper';
 import { toast } from 'sonner';
 
 type FlowStep = 'setup' | 'upload' | 'crop' | 'design' | 'effects' | 'preview' | 'publish';
@@ -368,11 +368,10 @@ export const CRDCreateFlow: React.FC = () => {
             
             <div className="max-w-6xl mx-auto">
               {uploadedImageUrl && (
-                <EnhancedImageCropper
+                <SimpleCropper
                   imageUrl={uploadedImageUrl}
                   onCropComplete={handleCropComplete}
                   aspectRatio={2.5 / 3.5}
-                  compact={false}
                   className="bg-gradient-to-br from-crd-darkest/50 to-crd-surface/50 border border-crd-border rounded-2xl p-8 backdrop-blur-sm"
                 />
               )}
