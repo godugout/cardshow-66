@@ -41,3 +41,12 @@ enable_confirmations = false
 
 [functions.generate-card-composition]
 verify_jwt = true
+
+[functions.creator-revenue-summary]
+verify_jwt = true
+
+[functions.creator-payouts]
+verify_jwt = true
+
+[functions.stripe-connect-onboarding]
+verify_jwt = true
