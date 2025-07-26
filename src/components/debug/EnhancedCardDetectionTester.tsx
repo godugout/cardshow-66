@@ -74,146 +74,198 @@ export const EnhancedCardDetectionTester: React.FC = () => {
     setIsProcessing(true);
     const detectionResults: DetectionResult[] = [];
 
+    // Count enabled methods
+    const enabledMethods = Object.entries(selectedMethods).filter(([_, enabled]) => enabled);
+    console.log(`Running ${enabledMethods.length} detection methods...`);
+
     try {
       const img = new Image();
       img.onload = async () => {
         try {
-          // Simple Detection
-          if (selectedMethods.simple) {
-            const startTime = Date.now();
-            const simpleResult = await detectCardsInImage(imageFile);
-            detectionResults.push({
-              method: 'Simple Detection',
-              cards: simpleResult.detectedCards.map((card, index) => ({
-                id: `simple-${index}`,
-                bounds: card.bounds,
-                confidence: card.confidence,
-                aspectRatio: card.bounds.width / card.bounds.height
-              })),
-              processingTime: Date.now() - startTime
-            });
-          }
+          // Run methods one by one with individual error handling
+          for (const [methodKey, enabled] of enabledMethods) {
+            if (!enabled) continue;
 
-          // Enhanced Detection
-          if (selectedMethods.enhanced) {
+            console.log(`Starting ${methodKey} detection...`);
             const startTime = Date.now();
-            const enhancedCards = await enhancedCardDetection(img, imageFile);
-            detectionResults.push({
-              method: 'Enhanced Detection',
-              cards: enhancedCards.map((card, index) => ({
-                id: `enhanced-${index}`,
-                bounds: { x: card.x, y: card.y, width: card.width, height: card.height },
-                confidence: card.confidence,
-                aspectRatio: card.aspectRatio,
-                edgeStrength: card.edgeStrength,
-                geometryScore: card.geometryScore,
-                corners: card.corners
-              })),
-              processingTime: Date.now() - startTime
-            });
-          }
 
-          // Improved Detection
-          if (selectedMethods.improved) {
-            const startTime = Date.now();
-            const improvedResult = await improvedCardDetector.detectCards(img);
-            detectionResults.push({
-              method: 'Improved Detection',
-              cards: improvedResult.cards.map((card, index) => ({
-                id: `improved-${index}`,
-                bounds: { x: card.x, y: card.y, width: card.width, height: card.height },
-                confidence: card.confidence,
-                aspectRatio: card.aspectRatio,
-                edgeStrength: card.edgeStrength,
-                geometryScore: card.geometryScore,
-                corners: card.corners
-              })),
-              processingTime: Date.now() - startTime,
-              debugInfo: improvedResult.debugInfo
-            });
-          }
+            try {
+              let result: DetectionResult | null = null;
 
-          // Histogram Detection
-          if (selectedMethods.histogram) {
-            const startTime = Date.now();
-            const histogramCards = await histogramCardDetector.detectCards(img);
-            detectionResults.push({
-              method: 'Histogram Detection',
-              cards: histogramCards.map((card, index) => ({
-                id: `histogram-${index}`,
-                bounds: card.bounds,
-                confidence: card.confidence,
-                aspectRatio: card.aspectRatio,
-                corners: card.corners
-              })),
-              processingTime: Date.now() - startTime
-            });
-          }
+              switch (methodKey) {
+                case 'simple':
+                  try {
+                    const simpleResult = await detectCardsInImage(imageFile);
+                    result = {
+                      method: 'Simple Detection',
+                      cards: simpleResult.detectedCards.map((card, index) => ({
+                        id: `simple-${index}`,
+                        bounds: card.bounds,
+                        confidence: card.confidence,
+                        aspectRatio: card.bounds.width / card.bounds.height
+                      })),
+                      processingTime: Date.now() - startTime
+                    };
+                  } catch (err) {
+                    console.error('Simple detection failed:', err);
+                  }
+                  break;
 
-          // Template Matching
-          if (selectedMethods.template) {
-            const startTime = Date.now();
-            const templateCards = await templateCardMatcher.detectCards(img);
-            detectionResults.push({
-              method: 'Template Matching',
-              cards: templateCards.map((card, index) => ({
-                id: `template-${index}`,
-                bounds: card.bounds,
-                confidence: card.confidence,
-                aspectRatio: card.aspectRatio,
-                corners: card.corners
-              })),
-              processingTime: Date.now() - startTime
-            });
-          }
+                case 'enhanced':
+                  try {
+                    const enhancedCards = await enhancedCardDetection(img, imageFile);
+                    result = {
+                      method: 'Enhanced Detection',
+                      cards: enhancedCards.map((card, index) => ({
+                        id: `enhanced-${index}`,
+                        bounds: { x: card.x, y: card.y, width: card.width, height: card.height },
+                        confidence: card.confidence,
+                        aspectRatio: card.aspectRatio,
+                        edgeStrength: card.edgeStrength,
+                        geometryScore: card.geometryScore,
+                        corners: card.corners
+                      })),
+                      processingTime: Date.now() - startTime
+                    };
+                  } catch (err) {
+                    console.error('Enhanced detection failed:', err);
+                  }
+                  break;
 
-          // Hough Transform
-          if (selectedMethods.hough) {
-            const startTime = Date.now();
-            const houghCards = await houghTransformDetector.detectCards(img);
-            detectionResults.push({
-              method: 'Hough Transform',
-              cards: houghCards.map((card, index) => ({
-                id: `hough-${index}`,
-                bounds: card.bounds,
-                confidence: card.confidence,
-                aspectRatio: card.aspectRatio,
-                corners: card.corners
-              })),
-              processingTime: Date.now() - startTime
-            });
-          }
+                case 'improved':
+                  try {
+                    const improvedResult = await improvedCardDetector.detectCards(img);
+                    result = {
+                      method: 'Improved Detection',
+                      cards: improvedResult.cards.map((card, index) => ({
+                        id: `improved-${index}`,
+                        bounds: { x: card.x, y: card.y, width: card.width, height: card.height },
+                        confidence: card.confidence,
+                        aspectRatio: card.aspectRatio,
+                        edgeStrength: card.edgeStrength,
+                        geometryScore: card.geometryScore,
+                        corners: card.corners
+                      })),
+                      processingTime: Date.now() - startTime,
+                      debugInfo: improvedResult.debugInfo
+                    };
+                  } catch (err) {
+                    console.error('Improved detection failed:', err);
+                  }
+                  break;
 
-          // Advanced OpenCV
-          if (selectedMethods.advanced) {
-            const startTime = Date.now();
-            const advancedResult = await advancedCardDetector.detectCards(img);
-            detectionResults.push({
-              method: 'Advanced OpenCV',
-              cards: advancedResult.cards.map((card, index) => ({
-                id: `advanced-${index}`,
-                bounds: card.bounds,
-                confidence: card.confidence,
-                aspectRatio: card.aspectRatio,
-                edgeStrength: card.edgeStrength,
-                geometryScore: card.geometryScore,
-                corners: card.corners
-              })),
-              processingTime: Date.now() - startTime,
-              debugInfo: advancedResult.debugInfo
-            });
+                case 'histogram':
+                  try {
+                    const histogramCards = await histogramCardDetector.detectCards(img);
+                    result = {
+                      method: 'Histogram Detection',
+                      cards: histogramCards.map((card, index) => ({
+                        id: `histogram-${index}`,
+                        bounds: card.bounds,
+                        confidence: card.confidence,
+                        aspectRatio: card.aspectRatio,
+                        corners: card.corners
+                      })),
+                      processingTime: Date.now() - startTime
+                    };
+                  } catch (err) {
+                    console.error('Histogram detection failed:', err);
+                  }
+                  break;
+
+                case 'template':
+                  try {
+                    const templateCards = await templateCardMatcher.detectCards(img);
+                    result = {
+                      method: 'Template Matching',
+                      cards: templateCards.map((card, index) => ({
+                        id: `template-${index}`,
+                        bounds: card.bounds,
+                        confidence: card.confidence,
+                        aspectRatio: card.aspectRatio,
+                        corners: card.corners
+                      })),
+                      processingTime: Date.now() - startTime
+                    };
+                  } catch (err) {
+                    console.error('Template matching failed:', err);
+                  }
+                  break;
+
+                case 'hough':
+                  try {
+                    const houghCards = await houghTransformDetector.detectCards(img);
+                    result = {
+                      method: 'Hough Transform',
+                      cards: houghCards.map((card, index) => ({
+                        id: `hough-${index}`,
+                        bounds: card.bounds,
+                        confidence: card.confidence,
+                        aspectRatio: card.aspectRatio,
+                        corners: card.corners
+                      })),
+                      processingTime: Date.now() - startTime
+                    };
+                  } catch (err) {
+                    console.error('Hough transform failed:', err);
+                  }
+                  break;
+
+                case 'advanced':
+                  try {
+                    const advancedResult = await advancedCardDetector.detectCards(img);
+                    result = {
+                      method: 'Advanced OpenCV',
+                      cards: advancedResult.cards.map((card, index) => ({
+                        id: `advanced-${index}`,
+                        bounds: card.bounds,
+                        confidence: card.confidence,
+                        aspectRatio: card.aspectRatio,
+                        edgeStrength: card.edgeStrength,
+                        geometryScore: card.geometryScore,
+                        corners: card.corners
+                      })),
+                      processingTime: Date.now() - startTime,
+                      debugInfo: advancedResult.debugInfo
+                    };
+                  } catch (err) {
+                    console.error('Advanced detection failed:', err);
+                  }
+                  break;
+              }
+
+              if (result) {
+                detectionResults.push(result);
+                console.log(`✅ ${methodKey} completed: ${result.cards.length} cards in ${result.processingTime}ms`);
+              }
+
+              // Small delay between methods to prevent browser freeze
+              await new Promise(resolve => setTimeout(resolve, 100));
+
+            } catch (methodError) {
+              console.error(`Method ${methodKey} failed:`, methodError);
+              // Continue with next method even if this one fails
+            }
           }
 
           setResults(detectionResults);
+          console.log(`🎯 All detection completed! Total: ${detectionResults.reduce((sum, r) => sum + r.cards.length, 0)} cards found`);
+          
         } catch (error) {
-          console.error('Detection failed:', error);
+          console.error('Detection process failed:', error);
         } finally {
           setIsProcessing(false);
         }
       };
+      
+      img.onerror = () => {
+        console.error('Failed to load image');
+        setIsProcessing(false);
+      };
+      
       img.src = image;
     } catch (error) {
-      console.error('Detection error:', error);
+      console.error('Detection setup failed:', error);
       setIsProcessing(false);
     }
   }, [image, imageFile, selectedMethods]);
