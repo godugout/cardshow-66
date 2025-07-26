@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Table, 
@@ -12,559 +11,376 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
   Flag, 
-  Search, 
   Eye, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle,
-  Filter,
-  User,
-  Calendar,
-  RefreshCw
+  Shield, 
+  AlertTriangle, 
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ReviewModal } from './ReviewModal';
+
+interface FlaggedItem {
+  flagId: string;
+  contentId: string;
+  contentType: 'Card' | 'Comment' | 'Profile';
+  reason: string;
+  flaggedByUser: string;
+  contentPreview?: string;
+  createdAt: string;
+  severity: 'low' | 'medium' | 'high';
+}
 
 interface UserRole {
   role: 'admin' | 'moderator' | 'creator' | 'user';
 }
 
-interface FlaggedContent {
-  id: string;
-  card_id: string;
-  card_title: string;
-  card_image_url: string;
-  reporter_id: string;
-  reporter_name: string;
-  flag_reason: string;
-  flag_details: string;
-  status: 'pending' | 'approved' | 'rejected' | 'escalated';
-  created_at: string;
-  creator_name: string;
-  creator_id: string;
+interface ContentModerationPanelProps {
+  userRole: UserRole;
 }
 
-export const ContentModerationPanel: React.FC<{ userRole: UserRole }> = ({ userRole }) => {
-  const [flaggedContent, setFlaggedContent] = useState<FlaggedContent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [previewItem, setPreviewItem] = useState<FlaggedContent | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [reasonFilter, setReasonFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [processing, setProcessing] = useState<string[]>([]);
-
-  const itemsPerPage = 10;
+export const ContentModerationPanel: React.FC<ContentModerationPanelProps> = ({ userRole }) => {
+  const [flaggedItems, setFlaggedItems] = useState<FlaggedItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<FlaggedItem | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
-    loadFlaggedContent();
+    fetchFlaggedItems();
   }, []);
 
-  const loadFlaggedContent = async () => {
-    setLoading(true);
+  const fetchFlaggedItems = async () => {
     try {
-      // Since we don't have a flags table yet, we'll create mock data
-      // In a real implementation, this would query a content_flags table
-      const mockFlaggedContent: FlaggedContent[] = [
+      setIsLoading(true);
+      
+      // Mock API call - replace with actual endpoint
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+      
+      // Mock data
+      const mockFlags: FlaggedItem[] = [
         {
-          id: '1',
-          card_id: 'card-1',
-          card_title: 'Controversial Sports Card',
-          card_image_url: '/api/placeholder/300/400',
-          reporter_id: 'user-1',
-          reporter_name: 'John Reporter',
-          flag_reason: 'inappropriate_content',
-          flag_details: 'Contains offensive language in description',
-          status: 'pending',
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          creator_name: 'CardMaker123',
-          creator_id: 'creator-1'
+          flagId: '1',
+          contentId: 'card_001',
+          contentType: 'Card',
+          reason: 'Inappropriate content',
+          flaggedByUser: 'user_123',
+          contentPreview: '/placeholder.svg',
+          createdAt: new Date().toISOString(),
+          severity: 'high'
         },
         {
-          id: '2',
-          card_id: 'card-2',
-          card_title: 'Fake Celebrity Card',
-          card_image_url: '/api/placeholder/300/400',
-          reporter_id: 'user-2',
-          reporter_name: 'Jane Watchdog',
-          flag_reason: 'copyright_violation',
-          flag_details: 'Uses copyrighted celebrity image without permission',
-          status: 'pending',
-          created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          creator_name: 'FakeCards',
-          creator_id: 'creator-2'
+          flagId: '2',
+          contentId: 'comment_002',
+          contentType: 'Comment',
+          reason: 'Spam',
+          flaggedByUser: 'user_456',
+          contentPreview: 'This is a spam comment...',
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          severity: 'medium'
         },
         {
-          id: '3',
-          card_id: 'card-3',
-          card_title: 'Spam Card #47',
-          card_image_url: '/api/placeholder/300/400',
-          reporter_id: 'user-3',
-          reporter_name: 'Community Mod',
-          flag_reason: 'spam',
-          flag_details: 'Part of mass spam campaign',
-          status: 'escalated',
-          created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          creator_name: 'SpamBot99',
-          creator_id: 'creator-3'
+          flagId: '3',
+          contentId: 'profile_003',
+          contentType: 'Profile',
+          reason: 'Fake profile',
+          flaggedByUser: 'user_789',
+          contentPreview: 'Suspicious profile activity',
+          createdAt: new Date(Date.now() - 172800000).toISOString(),
+          severity: 'low'
         }
       ];
-
-      setFlaggedContent(mockFlaggedContent);
+      
+      setFlaggedItems(mockFlags);
     } catch (error) {
-      console.error('Failed to load flagged content:', error);
+      console.error('Failed to fetch flagged items:', error);
       toast.error('Failed to load flagged content');
-    }
-    setLoading(false);
-  };
-
-  const handleItemSelection = (itemId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedItems([...selectedItems, itemId]);
-    } else {
-      setSelectedItems(selectedItems.filter(id => id !== itemId));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedItems(filteredContent.map(item => item.id));
-    } else {
-      setSelectedItems([]);
-    }
-  };
-
-  const handleBulkAction = async (action: 'approve' | 'reject' | 'escalate') => {
-    if (selectedItems.length === 0) return;
-
-    setProcessing(selectedItems);
+  const handleDismiss = async (flagId: string) => {
     try {
-      // In a real implementation, this would update the database
-      setFlaggedContent(prev => prev.map(item => 
-        selectedItems.includes(item.id) 
-          ? { ...item, status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'escalated' }
-          : item
-      ));
-
-      toast.success(`${selectedItems.length} items ${action}d successfully`);
-      setSelectedItems([]);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setFlaggedItems(prev => prev.filter(item => item.flagId !== flagId));
+      toast.success('Flag dismissed successfully');
     } catch (error) {
-      toast.error(`Failed to ${action} selected items`);
+      console.error('Failed to dismiss flag:', error);
+      toast.error('Failed to dismiss flag');
     }
-    setProcessing([]);
   };
 
-  const handleSingleAction = async (itemId: string, action: 'approve' | 'reject' | 'escalate') => {
-    setProcessing([itemId]);
-    try {
-      setFlaggedContent(prev => prev.map(item => 
-        item.id === itemId 
-          ? { ...item, status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'escalated' }
-          : item
-      ));
-
-      toast.success(`Content ${action}d successfully`);
-    } catch (error) {
-      toast.error(`Failed to ${action} content`);
-    }
-    setProcessing(prev => prev.filter(id => id !== itemId));
+  const handleTakeAction = (item: FlaggedItem) => {
+    setSelectedItem(item);
+    setShowReviewModal(true);
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      pending: { variant: 'secondary' as const, text: 'Pending', color: 'text-crd-orange' },
-      approved: { variant: 'default' as const, text: 'Approved', color: 'text-crd-green' },
-      rejected: { variant: 'destructive' as const, text: 'Rejected', color: 'text-red-400' },
-      escalated: { variant: 'outline' as const, text: 'Escalated', color: 'text-crd-blue' }
-    };
-    
-    const config = variants[status as keyof typeof variants] || variants.pending;
+  const handleReviewComplete = (flagId: string) => {
+    setFlaggedItems(prev => prev.filter(item => item.flagId !== flagId));
+    setShowReviewModal(false);
+    setSelectedItem(null);
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'low': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'high': return <AlertTriangle className="w-4 h-4" />;
+      case 'medium': return <Flag className="w-4 h-4" />;
+      case 'low': return <Clock className="w-4 h-4" />;
+      default: return <Eye className="w-4 h-4" />;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (isLoading) {
     return (
-      <Badge variant={config.variant} className={`${config.color} border-current`}>
-        {config.text}
-      </Badge>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Content Moderation</h2>
+          <p className="text-muted-foreground">Review and act on flagged content</p>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-12 w-12 rounded" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                  <div className="flex space-x-2">
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-8 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
-  };
-
-  const getReasonDisplay = (reason: string) => {
-    const reasons = {
-      inappropriate_content: 'Inappropriate Content',
-      copyright_violation: 'Copyright Violation',
-      spam: 'Spam',
-      fake_content: 'Fake Content',
-      harassment: 'Harassment',
-      other: 'Other'
-    };
-    return reasons[reason as keyof typeof reasons] || reason;
-  };
-
-  const filteredContent = flaggedContent.filter(item => {
-    const matchesSearch = item.card_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.creator_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.reporter_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-    const matchesReason = reasonFilter === 'all' || item.flag_reason === reasonFilter;
-    
-    return matchesSearch && matchesStatus && matchesReason;
-  });
-
-  const paginatedContent = filteredContent.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredContent.length / itemsPerPage);
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-crd-white">Content Moderation</h2>
-          <p className="text-crd-lightGray">Review and manage flagged content</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Content Moderation</h2>
+          <p className="text-muted-foreground">
+            Review and take action on user-flagged content
+          </p>
         </div>
-        <Button 
-          onClick={loadFlaggedContent}
-          variant="outline"
-          className="bg-crd-black border-crd-border text-crd-white hover:bg-crd-surface"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-4">
+          <Badge variant="outline" className="flex items-center gap-2">
+            <Flag className="w-4 h-4" />
+            {flaggedItems.length} pending
+          </Badge>
+          <Button 
+            onClick={fetchFlaggedItems}
+            variant="outline"
+            size="sm"
+          >
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card className="bg-crd-black border-crd-border">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray w-4 h-4" />
-                <Input
-                  placeholder="Search by card title, creator, or reporter..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-crd-surface border-crd-border text-crd-white"
-                />
-              </div>
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-crd-surface border-crd-border text-crd-white">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent className="bg-crd-surface border-crd-border">
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="escalated">Escalated</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={reasonFilter} onValueChange={setReasonFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-crd-surface border-crd-border text-crd-white">
-                <SelectValue placeholder="Reason" />
-              </SelectTrigger>
-              <SelectContent className="bg-crd-surface border-crd-border">
-                <SelectItem value="all">All Reasons</SelectItem>
-                <SelectItem value="inappropriate_content">Inappropriate</SelectItem>
-                <SelectItem value="copyright_violation">Copyright</SelectItem>
-                <SelectItem value="spam">Spam</SelectItem>
-                <SelectItem value="fake_content">Fake Content</SelectItem>
-                <SelectItem value="harassment">Harassment</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bulk Actions */}
-      {selectedItems.length > 0 && (
-        <Card className="bg-crd-black border-crd-border">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-crd-white">
-                {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
-              </span>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => handleBulkAction('approve')}
-                  className="bg-crd-green hover:bg-crd-green/80"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Approve
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="destructive"
-                  onClick={() => handleBulkAction('reject')}
-                >
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Reject
-                </Button>
-                {userRole.role === 'admin' && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleBulkAction('escalate')}
-                    className="border-crd-blue text-crd-blue hover:bg-crd-blue/10"
-                  >
-                    <AlertTriangle className="w-4 h-4 mr-1" />
-                    Escalate
-                  </Button>
-                )}
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">High Priority</p>
+                <p className="text-xl font-bold">{flaggedItems.filter(i => i.severity === 'high').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Flag className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Medium Priority</p>
+                <p className="text-xl font-bold">{flaggedItems.filter(i => i.severity === 'medium').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-yellow-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Low Priority</p>
+                <p className="text-xl font-bold">{flaggedItems.filter(i => i.severity === 'low').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Flags</p>
+                <p className="text-xl font-bold">{flaggedItems.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Content Table */}
-      <Card className="bg-crd-black border-crd-border">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-crd-border">
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={selectedItems.length === filteredContent.length}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                <TableHead className="text-crd-lightGray">Card</TableHead>
-                <TableHead className="text-crd-lightGray">Flag Reason</TableHead>
-                <TableHead className="text-crd-lightGray">Reporter</TableHead>
-                <TableHead className="text-crd-lightGray">Status</TableHead>
-                <TableHead className="text-crd-lightGray">Date</TableHead>
-                <TableHead className="text-crd-lightGray">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <TableRow key={i} className="border-crd-border">
-                    <TableCell colSpan={7}>
-                      <div className="flex items-center space-x-4 p-4">
-                        <div className="w-16 h-20 bg-crd-surface rounded animate-pulse" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-crd-surface rounded animate-pulse" />
-                          <div className="h-3 bg-crd-surface rounded animate-pulse w-2/3" />
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                paginatedContent.map((item) => (
-                  <TableRow key={item.id} className="border-crd-border">
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedItems.includes(item.id)}
-                        onCheckedChange={(checked) => handleItemSelection(item.id, !!checked)}
-                      />
-                    </TableCell>
+      {/* Flagged Content Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Flag className="w-5 h-5" />
+            Flagged Content
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {flaggedItems.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">All Clear!</h3>
+              <p className="text-muted-foreground">No flagged content to review at this time.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Content Preview</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Severity</TableHead>
+                  <TableHead>Flagged By</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {flaggedItems.map((item) => (
+                  <TableRow key={item.flagId}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <img 
-                          src={item.card_image_url} 
-                          alt={item.card_title}
-                          className="w-12 h-16 object-cover rounded border border-crd-border"
-                        />
-                        <div>
-                          <p className="text-crd-white font-medium">{item.card_title}</p>
-                          <p className="text-crd-lightGray text-sm">by {item.creator_name}</p>
+                        {item.contentType === 'Card' ? (
+                          <img 
+                            src={item.contentPreview || '/placeholder.svg'} 
+                            alt="Content preview"
+                            className="w-12 h-12 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                            <Eye className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="max-w-[200px]">
+                          <p className="text-sm font-medium truncate">
+                            {item.contentType === 'Card' ? 'Card Content' : item.contentPreview}
+                          </p>
+                          <p className="text-xs text-muted-foreground">ID: {item.contentId}</p>
                         </div>
                       </div>
                     </TableCell>
+                    
                     <TableCell>
-                      <div>
-                        <p className="text-crd-white">{getReasonDisplay(item.flag_reason)}</p>
-                        <p className="text-crd-lightGray text-xs truncate max-w-32" title={item.flag_details}>
-                          {item.flag_details}
-                        </p>
-                      </div>
+                      <Badge variant="outline">{item.contentType}</Badge>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-crd-lightGray" />
-                        <span className="text-crd-white text-sm">{item.reporter_name}</span>
-                      </div>
+                      <span className="text-sm">{item.reason}</span>
                     </TableCell>
+                    
                     <TableCell>
-                      {getStatusBadge(item.status)}
+                      <Badge className={getSeverityColor(item.severity)}>
+                        {getSeverityIcon(item.severity)}
+                        <span className="ml-1 capitalize">{item.severity}</span>
+                      </Badge>
                     </TableCell>
+                    
                     <TableCell>
-                      <div className="flex items-center gap-2 text-crd-lightGray text-sm">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(item.created_at).toLocaleDateString()}
-                      </div>
+                      <span className="text-sm text-muted-foreground">{item.flaggedByUser}</span>
                     </TableCell>
+                    
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {formatDate(item.createdAt)}
+                      </span>
+                    </TableCell>
+                    
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
+                          variant="outline"
                           size="sm"
-                          variant="ghost"
-                          onClick={() => setPreviewItem(item)}
-                          className="text-crd-blue hover:bg-crd-surface"
+                          onClick={() => handleDismiss(item.flagId)}
+                          className="text-green-600 hover:text-green-700"
                         >
-                          <Eye className="w-4 h-4" />
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Dismiss
                         </Button>
-                        {item.status === 'pending' && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => handleSingleAction(item.id, 'approve')}
-                              disabled={processing.includes(item.id)}
-                              className="bg-crd-green hover:bg-crd-green/80 text-white"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleSingleAction(item.id, 'reject')}
-                              disabled={processing.includes(item.id)}
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </Button>
-                          </>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTakeAction(item)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Take Action
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 border-t border-crd-border">
-              <p className="text-crd-lightGray text-sm">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredContent.length)} of {filteredContent.length} results
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="bg-crd-black border-crd-border text-crd-white hover:bg-crd-surface"
-                >
-                  Previous
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="bg-crd-black border-crd-border text-crd-white hover:bg-crd-surface"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
-      {/* Preview Modal */}
-      <Dialog open={!!previewItem} onOpenChange={() => setPreviewItem(null)}>
-        <DialogContent className="bg-crd-black border-crd-border text-crd-white max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Content Review</DialogTitle>
-            <DialogDescription className="text-crd-lightGray">
-              Review flagged content details and make moderation decision
-            </DialogDescription>
-          </DialogHeader>
-          
-          {previewItem && (
-            <div className="space-y-6">
-              <div className="flex gap-6">
-                <img 
-                  src={previewItem.card_image_url}
-                  alt={previewItem.card_title}
-                  className="w-48 h-64 object-cover rounded-lg border border-crd-border"
-                />
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-crd-white">{previewItem.card_title}</h3>
-                    <p className="text-crd-lightGray">Created by {previewItem.creator_name}</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-crd-white">Flag Details</h4>
-                    <div className="bg-crd-surface p-3 rounded-lg">
-                      <p className="text-sm text-crd-white mb-1">
-                        <strong>Reason:</strong> {getReasonDisplay(previewItem.flag_reason)}
-                      </p>
-                      <p className="text-sm text-crd-lightGray">
-                        <strong>Details:</strong> {previewItem.flag_details}
-                      </p>
-                      <p className="text-sm text-crd-lightGray mt-2">
-                        <strong>Reported by:</strong> {previewItem.reporter_name} on {new Date(previewItem.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => {
-                        handleSingleAction(previewItem.id, 'approve');
-                        setPreviewItem(null);
-                      }}
-                      className="bg-crd-green hover:bg-crd-green/80"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Approve
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        handleSingleAction(previewItem.id, 'reject');
-                        setPreviewItem(null);
-                      }}
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject
-                    </Button>
-                    {userRole.role === 'admin' && (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          handleSingleAction(previewItem.id, 'escalate');
-                          setPreviewItem(null);
-                        }}
-                        className="border-crd-blue text-crd-blue hover:bg-crd-blue/10"
-                      >
-                        <AlertTriangle className="w-4 h-4 mr-2" />
-                        Escalate
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Review Modal */}
+      {selectedItem && (
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          flaggedItem={selectedItem}
+          onReviewComplete={handleReviewComplete}
+        />
+      )}
     </div>
   );
 };
