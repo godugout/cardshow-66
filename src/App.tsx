@@ -194,14 +194,6 @@ function App() {
                      </MainLayout>
                    } 
                  />
-                 <Route 
-                   path="/marketplace/classic" 
-                   element={
-                     <MainLayout>
-                       <MarketplacePage />
-                     </MainLayout>
-                   } 
-                 />
                 
                 {/* Password Reset Route */}
                 <Route path="/auth/forgot-password" element={<MainLayout showNavbar={false}><ForgotPassword /></MainLayout>} />
