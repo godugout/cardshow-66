@@ -10,8 +10,8 @@ export interface HistogramDetectedCard {
 
 export class HistogramCardDetector {
   private readonly TARGET_ASPECT_RATIO = 2.5 / 3.5;
-  private readonly ASPECT_TOLERANCE = 0.15;
-  private readonly MIN_CARD_AREA = 6000;
+  private readonly ASPECT_TOLERANCE = 0.25; // Increased for more flexibility
+  private readonly MIN_CARD_AREA = 4000; // Lowered for smaller cards
 
   async detectCards(image: HTMLImageElement): Promise<HistogramDetectedCard[]> {
     console.log('🎨 Starting histogram-based card detection...');
@@ -58,15 +58,15 @@ export class HistogramCardDetector {
     const regions = [];
     const maxRegions = 50; // Increase to user's requested max
     
-    // Balanced grid size for good coverage without excessive processing
-    const gridSize = Math.max(25, Math.min(width, height) / 40);
+    // Optimized grid size for better coverage
+    const gridSize = Math.max(15, Math.min(width, height) / 60);
     
-    // Test a broader range of card sizes
-    for (let y = 0; y < height - 120 && regions.length < maxRegions; y += gridSize) {
-      for (let x = 0; x < width - 80 && regions.length < maxRegions; x += gridSize) {
-        // Test various sizes instead of just 3 fixed ones
-        for (let w = 80; w <= Math.min(300, width - x); w += 25) {
-          for (let h = 110; h <= Math.min(400, height - y); h += 35) {
+    // Test a broader range of card sizes with smaller increments
+    for (let y = 0; y < height - 100 && regions.length < maxRegions; y += gridSize) {
+      for (let x = 0; x < width - 60 && regions.length < maxRegions; x += gridSize) {
+        // Test more size variations with finer granularity
+        for (let w = 60; w <= Math.min(350, width - x); w += 20) {
+          for (let h = 80; h <= Math.min(450, height - y); h += 25) {
             if (regions.length >= maxRegions) break;
             
             const aspectRatio = w / h;
@@ -74,8 +74,8 @@ export class HistogramCardDetector {
               const region = { x, y, width: w, height: h };
               const analysis = this.analyzeRegionHistogram(data, width, region);
               
-              // More permissive thresholds for better detection
-              if (analysis.colorVariance > 0.25 && analysis.textureScore > 0.3) {
+              // Lower thresholds for better detection
+              if (analysis.colorVariance > 0.15 && analysis.textureScore > 0.2) {
                 regions.push({
                   bounds: region,
                   confidence: Math.min(0.85, analysis.colorVariance * 0.5 + analysis.textureScore * 0.5),

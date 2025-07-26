@@ -23,9 +23,9 @@ export interface AdvancedDetectionResult {
 
 export class AdvancedCardDetector {
   private readonly TARGET_ASPECT_RATIO = 2.5 / 3.5;
-  private readonly ASPECT_TOLERANCE = 0.15;
-  private readonly MIN_CARD_AREA = 8000;
-  private readonly MAX_CARD_AREA = 200000;
+  private readonly ASPECT_TOLERANCE = 0.25; // Increased for more flexibility
+  private readonly MIN_CARD_AREA = 4000; // Lowered for smaller cards
+  private readonly MAX_CARD_AREA = 300000; // Increased for larger cards
 
   async detectCards(image: HTMLImageElement): Promise<AdvancedDetectionResult> {
     const startTime = performance.now();
@@ -215,7 +215,7 @@ export class AdvancedCardDetector {
             const aspectRatio = w / h;
             if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
               const edgeScore = this.calculateRectangleEdgeScore(edges, x, y, w, h, threshold);
-              if (edgeScore > 0.25) { // Lower threshold for more detections
+              if (edgeScore > 0.15) { // Even lower threshold for more detections
                 rectangles.push({ x, y, width: w, height: h });
               }
             }

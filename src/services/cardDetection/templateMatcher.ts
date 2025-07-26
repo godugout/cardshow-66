@@ -9,8 +9,8 @@ export interface TemplateMatchResult {
 
 export class TemplateCardMatcher {
   private readonly TARGET_ASPECT_RATIO = 2.5 / 3.5;
-  private readonly ASPECT_TOLERANCE = 0.12;
-  private readonly MIN_CARD_AREA = 6000;
+  private readonly ASPECT_TOLERANCE = 0.25; // Increased for more flexibility
+  private readonly MIN_CARD_AREA = 4000; // Lowered for smaller cards
 
   async detectCards(image: HTMLImageElement): Promise<TemplateMatchResult[]> {
     console.log('🎯 Starting template matching card detection...');
@@ -78,7 +78,7 @@ export class TemplateCardMatcher {
 
         const matchScore = this.calculateTemplateMatch(imageData, region, template);
         
-        if (matchScore > 0.6) {
+        if (matchScore > 0.4) { // Lowered threshold for more detections
           const aspectRatio = template.width / template.height;
           
           if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {

@@ -1,6 +1,7 @@
 
 import { improvedCardDetector } from '@/services/cardDetection/improvedCardDetection';
 import { aiVisionCardDetector } from '@/services/cardDetection/aiVisionCardDetector';
+import { calibratedCardDetector } from '@/services/cardDetection/calibratedCardDetector';
 import type { DetectedCard } from '@/services/cardDetection/improvedCardDetection';
 
 export interface EnhancedDetectionRegion {
@@ -75,47 +76,48 @@ export const enhancedCardDetection = async (
       console.warn('⚠️ AI Vision detection failed, falling back to improved detection:', aiError);
     }
     
-    // Fallback to improved card detector
-    console.log('🧠 Calling improvedCardDetector.detectCards...');
-    const result = await improvedCardDetector.detectCards(image);
+    // Use calibrated multi-method detection
+    console.log('🎯 Calling calibratedCardDetector.detectCards...');
+    const result = await calibratedCardDetector.detectCards(image);
     
-    console.log('📊 Improved detection result:', {
+    console.log('📊 Calibrated detection result:', {
       cardsFound: result.cards.length,
-      processingTime: result.debugInfo.processingTime,
-      processingSteps: result.debugInfo.processingSteps.length
+      processingTime: result.processingTime,
+      methodsUsed: result.methodsUsed,
+      totalCandidates: result.totalCandidates
     });
     
     // Log detailed card information
     result.cards.forEach((card, index) => {
       console.log(`🎴 Card ${index + 1}:`, {
-        position: `${card.x},${card.y}`,
-        size: `${card.width}x${card.height}`,
+        position: `${card.bounds.x},${card.bounds.y}`,
+        size: `${card.bounds.width}x${card.bounds.height}`,
         confidence: `${Math.round(card.confidence * 100)}%`,
         aspectRatio: card.aspectRatio.toFixed(2),
-        edgeStrength: card.edgeStrength.toFixed(2)
+        method: card.method
       });
     });
     
     // Convert to the expected format
     const regions: EnhancedDetectionRegion[] = result.cards.map(card => ({
-      x: card.x,
-      y: card.y,
-      width: card.width,
-      height: card.height,
+      x: card.bounds.x,
+      y: card.bounds.y,
+      width: card.bounds.width,
+      height: card.bounds.height,
       confidence: card.confidence,
       corners: card.corners,
       aspectRatio: card.aspectRatio,
       edgeStrength: card.edgeStrength,
-      geometryScore: card.geometryScore
+      geometryScore: card.colorVariance || 0.7
     }));
     
     console.log('✅ Enhanced detection complete:', regions.length, 'high-quality regions found');
-    console.log('🎯 Detection method used: IMPROVED CONTOUR-BASED ALGORITHM');
+    console.log('🎯 Detection method used: CALIBRATED MULTI-METHOD ENSEMBLE');
     
     // Store debug info globally for potential debugging
     if (typeof window !== 'undefined') {
       (window as any).lastDetectionDebug = result.debugInfo;
-      (window as any).lastDetectionMethod = 'IMPROVED_CONTOUR_ALGORITHM';
+      (window as any).lastDetectionMethod = 'CALIBRATED_MULTI_METHOD_ENSEMBLE';
       console.log('🐛 Debug info stored in window.lastDetectionDebug');
     }
     
