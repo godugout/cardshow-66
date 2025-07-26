@@ -1,27 +1,23 @@
 import { CardRegion } from './types';
 import { removeOverlappingRegions } from './confidenceCalculator';
-import { detectCardsWithAI, detectRectangularShapes } from './aiObjectDetection';
+import { SimpleOpenCVCardDetector } from '../cardDetection/opencvCardDetector';
 
 export const detectCardRegions = async (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<CardRegion[]> => {
-  console.log('🎯 Starting enhanced multi-strategy card detection...');
+  console.log('🎯 Starting OpenCV-based card detection...');
   
-  // Strategy 1: AI-powered object detection (best results)
-  console.log('Trying AI object detection...');
-  let regions = await detectCardsWithAI(canvas, ctx);
+  const detector = new SimpleOpenCVCardDetector();
+  const detectedCards = await detector.detectCards(canvas, ctx);
   
-  // Strategy 2: Contour-based rectangle detection (fallback)
-  if (regions.length === 0) {
-    console.log('AI detection found no cards, trying contour detection...');
-    regions = await detectRectangularShapes(canvas, ctx);
-  }
+  // Convert DetectedCard to CardRegion format
+  const regions: CardRegion[] = detectedCards.map(card => ({
+    x: card.bounds.x,
+    y: card.bounds.y,
+    width: card.bounds.width,
+    height: card.bounds.height,
+    confidence: card.confidence
+  }));
   
-  // Strategy 3: Traditional edge detection (last resort)
-  if (regions.length === 0) {
-    console.log('Contour detection failed, using traditional method...');
-    regions = await detectCardRegionsTraditional(canvas, ctx);
-  }
-  
-  console.log(`Total regions found: ${regions.length}`);
+  console.log(`OpenCV detection found ${regions.length} regions`);
   
   // Remove overlapping regions and return best results
   const filteredRegions = removeOverlappingRegions(regions);
