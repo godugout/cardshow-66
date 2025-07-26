@@ -4,25 +4,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Overview } from './revenue/Overview';
+import { RevenueOverview } from './tabs/RevenueOverview';
 import { SalesAnalytics } from './revenue/SalesAnalytics';
-import { PayoutManager } from './revenue/PayoutManager';
+import { PayoutManager } from './tabs/PayoutManager';
+import { RevenueSummary, LegacyRevenueData } from '@/types/revenue';
 import { useToast } from '@/hooks/use-toast';
 
-interface RevenueData {
-  balance: number;
-  hasStripeAccount: boolean;
-  recentTransactions: any[];
-  payoutHistory: any[];
-  salesAnalytics: any;
-}
+// Helper function to transform legacy data to new format
+const transformLegacyData = (legacyData: LegacyRevenueData): RevenueSummary => {
+  return {
+    balance: legacyData.balance,
+    pendingBalance: Math.random() * 200, // Mock pending balance for now
+    hasStripeAccount: legacyData.hasStripeAccount,
+    earningsHistory: legacyData.salesAnalytics?.earningsChart || [],
+    recentTransactions: legacyData.recentTransactions.slice(0, 10).map(tx => ({
+      id: tx.id,
+      date: tx.date,
+      type: tx.type === 'sale' ? 'Sale' : tx.type === 'payout' ? 'Royalty' : 'Adjustment',
+      description: tx.description,
+      amount: tx.amount,
+      status: 'Completed'
+    })),
+    payoutHistory: legacyData.payoutHistory.map(payout => ({
+      id: payout.id,
+      requestDate: payout.date,
+      completionDate: payout.status === 'completed' ? payout.date : undefined,
+      amount: payout.amount,
+      status: payout.status === 'completed' ? 'Completed' : 
+              payout.status === 'pending' ? 'Pending' : 'Failed',
+      transactionId: payout.transactionId
+    }))
+  };
+};
 
 export const RevenueDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
+  const [legacyRevenueData, setLegacyRevenueData] = useState<LegacyRevenueData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Transform legacy data to new format
+  const summaryData: RevenueSummary | null = legacyRevenueData ? 
+    transformLegacyData(legacyRevenueData) : null;
 
   const fetchRevenueData = async () => {
     try {
@@ -39,7 +63,7 @@ export const RevenueDashboard: React.FC = () => {
         throw new Error(data.error);
       }
 
-      setRevenueData(data);
+      setLegacyRevenueData(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load revenue data';
       setError(errorMessage);
@@ -92,7 +116,7 @@ export const RevenueDashboard: React.FC = () => {
     );
   }
 
-  if (!revenueData) {
+  if (!summaryData) {
     return (
       <Card>
         <CardHeader>
@@ -120,24 +144,25 @@ export const RevenueDashboard: React.FC = () => {
         </TabsList>
 
         <TabsContent value="overview">
-          <Overview 
-            revenueData={revenueData} 
+          <RevenueOverview 
+            summaryData={summaryData} 
+            isLoading={isLoading}
             onRefresh={handleRefresh}
           />
         </TabsContent>
 
         <TabsContent value="analytics">
           <SalesAnalytics 
-            salesAnalytics={revenueData.salesAnalytics}
+            salesAnalytics={legacyRevenueData?.salesAnalytics}
             onRefresh={handleRefresh}
           />
         </TabsContent>
 
         <TabsContent value="payouts">
           <PayoutManager 
-            balance={revenueData.balance}
-            hasStripeAccount={revenueData.hasStripeAccount}
-            payoutHistory={revenueData.payoutHistory}
+            balance={summaryData.balance}
+            hasStripeAccount={summaryData.hasStripeAccount}
+            payoutHistory={summaryData.payoutHistory}
             onRefresh={handleRefresh}
           />
         </TabsContent>
