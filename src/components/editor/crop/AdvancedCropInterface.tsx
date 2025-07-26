@@ -300,15 +300,32 @@ export const AdvancedCropInterface: React.FC<AdvancedCropInterfaceProps> = ({
               alt="Crop me"
               src={processedImageUrl}
               style={{ transform: `rotate(${rotation}deg)` }}
-              onLoad={onImageLoad}
+              onLoad={(e) => {
+                console.log('AdvancedCropInterface: Image loaded successfully:', processedImageUrl);
+                onImageLoad(e);
+              }}
               onError={(e) => {
                 console.error('AdvancedCropInterface: Image failed to load:', {
                   src: processedImageUrl,
                   error: e,
                   target: e.currentTarget
                 });
+                // Try to fetch the URL directly to see what the actual error is
+                fetch(processedImageUrl)
+                  .then(response => {
+                    console.error('Fetch test result:', {
+                      status: response.status,
+                      statusText: response.statusText,
+                      ok: response.ok,
+                      url: response.url
+                    });
+                  })
+                  .catch(fetchError => {
+                    console.error('Fetch test failed:', fetchError);
+                  });
               }}
               className="max-w-full max-h-[500px] object-contain"
+              crossOrigin="anonymous"
             />
           </ReactCrop>
         </div>
