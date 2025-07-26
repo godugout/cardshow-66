@@ -374,6 +374,27 @@ export const CRDCreateFlow: React.FC = () => {
                 <p className="text-yellow-300 text-xs mt-1">
                   URL: {uploadedImageUrl || 'No URL set'}
                 </p>
+                {uploadedImageUrl && (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        console.log('Testing URL access:', uploadedImageUrl);
+                        const response = await fetch(uploadedImageUrl);
+                        console.log('URL test response:', response.status, response.statusText);
+                        if (response.ok) {
+                          console.log('URL is accessible');
+                        } else {
+                          console.error('URL access failed:', response.status);
+                        }
+                      } catch (error) {
+                        console.error('URL test error:', error);
+                      }
+                    }}
+                    className="mt-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700"
+                  >
+                    Test URL Access
+                  </button>
+                )}
               </div>
               
               {uploadedImageUrl ? (
