@@ -50,3 +50,15 @@ verify_jwt = true
 
 [functions.stripe-connect-onboarding]
 verify_jwt = true
+
+[functions.marketplace-auctions-create]
+verify_jwt = true
+
+[functions.marketplace-auctions-get]
+verify_jwt = false
+
+[functions.marketplace-auctions-bid]
+verify_jwt = true
+
+[functions.marketplace-auctions-buy-now]
+verify_jwt = true

@@ -1,291 +1,322 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { useAuctionSystem } from '@/hooks/marketplace/useAuctionSystem';
-import { formatDistanceToNow } from 'date-fns';
-import { Gavel, Clock, TrendingUp, Users, DollarSign, Shield } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, Clock, Users, Gavel } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow, format, isAfter } from 'date-fns';
+import type { Auction, AuctionBid, AuctionRealtimeUpdate } from '@/types/auction';
 
 interface AuctionInterfaceProps {
-  listingId: string;
-  listing: {
-    id: string;
-    title: string;
-    starting_bid?: number;
-    current_bid?: number;
-    auction_end_time?: string;
-    reserve_price?: number;
-    watchers_count?: number;
-  };
+  auctionId: string;
 }
 
-export const AuctionInterface: React.FC<AuctionInterfaceProps> = ({
-  listingId,
-  listing
-}) => {
-  const { bids, winningBid, currentPrice, bidsLoading, placeBid, isPlacingBid } = useAuctionSystem(listingId);
+export const AuctionInterface: React.FC<AuctionInterfaceProps> = ({ auctionId }) => {
+  const [auction, setAuction] = useState<Auction | null>(null);
+  const [bidHistory, setBidHistory] = useState<AuctionBid[]>([]);
   const [bidAmount, setBidAmount] = useState('');
-  const [proxyMaxAmount, setProxyMaxAmount] = useState('');
-  const [bidType, setBidType] = useState<'manual' | 'proxy'>('manual');
-  const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPlacingBid, setIsPlacingBid] = useState(false);
+  const [showBidHistory, setShowBidHistory] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isEnded, setIsEnded] = useState(false);
 
-  // Calculate minimum bid
-  const minimumBid = currentPrice > 0 ? currentPrice + 1 : (listing.starting_bid || 1);
+  // Fetch auction details
+  const fetchAuctionDetails = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('marketplace-auctions-get', {
+        body: { auctionId }
+      });
+
+      if (error) throw error;
+
+      setAuction(data.auction);
+      setBidHistory(data.bidHistory || []);
+      
+      // Check if auction has ended
+      const endTime = new Date(data.auction.auction_end_time);
+      setIsEnded(isAfter(new Date(), endTime));
+    } catch (error) {
+      console.error('Error fetching auction:', error);
+      toast.error('Failed to load auction details');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [auctionId]);
 
   // Update countdown timer
   useEffect(() => {
-    if (!listing.auction_end_time) return;
+    if (!auction?.auction_end_time) return;
 
     const updateTimer = () => {
-      const endTime = new Date(listing.auction_end_time!);
+      const endTime = new Date(auction.auction_end_time);
       const now = new Date();
-      const difference = endTime.getTime() - now.getTime();
-
-      if (difference > 0) {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-        if (days > 0) {
-          setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
-        } else if (hours > 0) {
-          setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
-        } else {
-          setTimeRemaining(`${minutes}m ${seconds}s`);
-        }
-      } else {
-        setTimeRemaining('Auction ended');
+      
+      if (isAfter(now, endTime)) {
+        setTimeLeft('Ended');
+        setIsEnded(true);
+        return;
       }
+
+      setTimeLeft(formatDistanceToNow(endTime, { addSuffix: false }));
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [listing.auction_end_time]);
+  }, [auction?.auction_end_time]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel(`auction:${auctionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'auction_bids',
+          filter: `auction_id=eq.${auctionId}`
+        },
+        (payload) => {
+          console.log('Real-time bid update:', payload);
+          // Refetch auction details when new bid is placed
+          fetchAuctionDetails();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [auctionId, fetchAuctionDetails]);
+
+  // Initial load
+  useEffect(() => {
+    fetchAuctionDetails();
+  }, [fetchAuctionDetails]);
 
   const handlePlaceBid = async () => {
+    if (!auction || !bidAmount) return;
+
     const amount = parseFloat(bidAmount);
-    const proxyMax = proxyMaxAmount ? parseFloat(proxyMaxAmount) : undefined;
-
-    if (!amount || amount < minimumBid) {
-      toast.error(`Bid must be at least $${minimumBid}`);
+    
+    if (amount <= auction.current_bid) {
+      toast.error(`Bid must be higher than current bid of $${auction.current_bid.toFixed(2)}`);
       return;
     }
 
-    if (bidType === 'proxy' && (!proxyMax || proxyMax <= amount)) {
-      toast.error('Maximum proxy bid must be higher than current bid');
-      return;
-    }
+    setIsPlacingBid(true);
 
     try {
-      await placeBid.mutateAsync();
+      const { error } = await supabase.functions.invoke('marketplace-auctions-bid', {
+        body: {
+          auctionId,
+          amount
+        }
+      });
 
+      if (error) throw error;
+
+      toast.success('Bid placed successfully!');
       setBidAmount('');
-      setProxyMaxAmount('');
+      
+      // Refresh auction data
+      await fetchAuctionDetails();
     } catch (error) {
       console.error('Error placing bid:', error);
+      toast.error('Failed to place bid. Please try again.');
+    } finally {
+      setIsPlacingBid(false);
     }
   };
 
-  const isAuctionEnded = listing.auction_end_time && new Date(listing.auction_end_time) < new Date();
+  const handleBuyNow = async () => {
+    if (!auction?.buy_now_price) return;
+
+    try {
+      const { error } = await supabase.functions.invoke('marketplace-auctions-buy-now', {
+        body: { auctionId }
+      });
+
+      if (error) throw error;
+
+      toast.success('Purchase completed! Auction ended.');
+      await fetchAuctionDetails();
+    } catch (error) {
+      console.error('Error buying now:', error);
+      toast.error('Failed to complete purchase. Please try again.');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-32 bg-crd-surface rounded-lg"></div>
+        <div className="h-24 bg-crd-surface rounded-lg"></div>
+        <div className="h-16 bg-crd-surface rounded-lg"></div>
+      </div>
+    );
+  }
+
+  if (!auction) {
+    return (
+      <Card className="bg-crd-surface border-crd-border">
+        <CardContent className="p-6 text-center">
+          <p className="text-white">Auction not found</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const minBidAmount = auction.current_bid + 0.01;
+  const canBid = !isEnded && auction.status === 'active';
 
   return (
     <div className="space-y-6">
       {/* Auction Header */}
-      <Card className="bg-crd-dark border-crd-mediumGray">
+      <Card className="bg-crd-surface border-crd-border">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
-              <Gavel className="w-5 h-5 text-crd-green" />
-              Live Auction
-            </CardTitle>
-            <Badge variant={isAuctionEnded ? "destructive" : "default"} className="bg-crd-green text-black">
-              {isAuctionEnded ? 'Ended' : 'Active'}
-            </Badge>
-          </div>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Gavel className="h-5 w-5 text-crd-orange" />
+            Live Auction
+            {isEnded && <span className="text-red-400 text-sm">(Ended)</span>}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Current Bid & Time Remaining */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-crd-mediumGray rounded-lg">
-              <div className="text-sm text-crd-lightGray mb-1">Current Bid</div>
-              <div className="text-2xl font-bold text-crd-green">
-                ${currentPrice.toFixed(2)}
-              </div>
-              {listing.reserve_price && currentPrice < listing.reserve_price && (
-                <div className="text-xs text-orange-400 mt-1">
-                  Reserve not met
-                </div>
-              )}
+          {/* Countdown Timer */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Clock className="h-5 w-5 text-crd-orange" />
+              <span className="text-sm text-muted-foreground">Time Left</span>
             </div>
+            <div className={`text-2xl font-bold ${isEnded ? 'text-red-400' : 'text-white'}`}>
+              {timeLeft}
+            </div>
+          </div>
 
-            <div className="text-center p-4 bg-crd-mediumGray rounded-lg">
-              <div className="text-sm text-crd-lightGray mb-1 flex items-center justify-center gap-1">
-                <Clock className="w-4 h-4" />
-                Time Remaining
-              </div>
-              <div className="text-xl font-bold text-white">
-                {timeRemaining}
+          {/* Current Bid Info */}
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div>
+              <div className="text-sm text-muted-foreground">Current Bid</div>
+              <div className="text-xl font-bold text-crd-green">
+                ${auction.current_bid.toFixed(2)}
               </div>
             </div>
-
-            <div className="text-center p-4 bg-crd-mediumGray rounded-lg">
-              <div className="text-sm text-crd-lightGray mb-1 flex items-center justify-center gap-1">
-                <Users className="w-4 h-4" />
-                Watchers
+            <div>
+              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                <Users className="h-4 w-4" />
+                Bids
               </div>
               <div className="text-xl font-bold text-white">
-                {listing.watchers_count || 0}
+                {auction.bid_count}
               </div>
             </div>
           </div>
 
-          {/* Bid Form */}
-          {!isAuctionEnded && (
-            <div className="p-4 bg-crd-mediumGray rounded-lg">
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant={bidType === 'manual' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setBidType('manual')}
-                    className={bidType === 'manual' ? 'bg-crd-green text-black' : ''}
-                  >
-                    Manual Bid
-                  </Button>
-                  <Button
-                    variant={bidType === 'proxy' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setBidType('proxy')}
-                    className={bidType === 'proxy' ? 'bg-crd-green text-black' : ''}
-                  >
-                    <Shield className="w-4 h-4 mr-1" />
-                    Proxy Bid
-                  </Button>
+          {/* Buy Now Option */}
+          {auction.buy_now_price && canBid && (
+            <div className="text-center pt-4 border-t border-crd-border">
+              <Button
+                onClick={handleBuyNow}
+                className="bg-crd-green hover:bg-crd-green/90 text-white font-semibold"
+              >
+                Buy It Now - ${auction.buy_now_price.toFixed(2)}
+              </Button>
+              <p className="text-xs text-muted-foreground mt-1">
+                Purchase immediately and end the auction
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Bidding Form */}
+      {canBid && (
+        <Card className="bg-crd-surface border-crd-border">
+          <CardHeader>
+            <CardTitle className="text-white">Place Your Bid</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={minBidAmount}
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    placeholder={`Min: ${minBidAmount.toFixed(2)}`}
+                    className="pl-8 bg-crd-black border-crd-border text-white"
+                    disabled={isPlacingBid}
+                  />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-crd-lightGray mb-2 block">
-                      {bidType === 'manual' ? 'Your Bid' : 'Initial Bid'} (min: ${minimumBid})
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-crd-lightGray" />
-                      <Input
-                        type="number"
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                        placeholder={minimumBid.toString()}
-                        className="pl-10 bg-crd-dark border-crd-mediumGray text-white"
-                        min={minimumBid}
-                        step="0.01"
-                      />
-                    </div>
-                  </div>
-
-                  {bidType === 'proxy' && (
-                    <div>
-                      <label className="text-sm text-crd-lightGray mb-2 block">
-                        Maximum Bid (auto-bid up to this amount)
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-crd-lightGray" />
-                        <Input
-                          type="number"
-                          value={proxyMaxAmount}
-                          onChange={(e) => setProxyMaxAmount(e.target.value)}
-                          placeholder="Maximum amount"
-                          className="pl-10 bg-crd-dark border-crd-mediumGray text-white"
-                          step="0.01"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 <Button
                   onClick={handlePlaceBid}
-                  disabled={isPlacingBid || !bidAmount}
-                  className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+                  disabled={isPlacingBid || !bidAmount || parseFloat(bidAmount) <= auction.current_bid}
+                  className="bg-crd-orange hover:bg-crd-orange/90 text-white px-6"
                 >
-                  {isPlacingBid ? 'Placing Bid...' : `Place ${bidType === 'proxy' ? 'Proxy ' : ''}Bid`}
+                  {isPlacingBid ? 'Placing...' : 'Place Bid'}
                 </Button>
-
-                {bidType === 'proxy' && (
-                  <div className="text-xs text-crd-lightGray">
-                    <Shield className="w-3 h-3 inline mr-1" />
-                    Proxy bidding will automatically bid for you up to your maximum amount when outbid.
-                  </div>
-                )}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Minimum bid: ${minBidAmount.toFixed(2)}
+              </p>
             </div>
-          )}
-
-          {/* Reserve Price Info */}
-          {listing.reserve_price && (
-            <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
-              <div className="text-sm text-orange-400">
-                <Shield className="w-4 h-4 inline mr-1" />
-                This auction has a reserve price. The item will only sell if the reserve is met.
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Bid History */}
-      <Card className="bg-crd-dark border-crd-mediumGray">
-        <CardHeader>
-          <CardTitle className="text-white">Bid History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {bidsLoading ? (
-            <div className="text-center py-4 text-crd-lightGray">Loading bid history...</div>
-          ) : bids.length === 0 ? (
-            <div className="text-center py-4 text-crd-lightGray">No bids yet. Be the first to bid!</div>
-          ) : (
-            <div className="space-y-2">
-              {bids.map((bid, index) => (
-                <div
-                  key={bid.id}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    bid.is_winning_bid 
-                      ? 'bg-crd-green/20 border border-crd-green/30' 
-                      : 'bg-crd-mediumGray'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      bid.is_winning_bid ? 'bg-crd-green text-black' : 'bg-crd-lightGray text-crd-dark'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white">${bid.amount.toFixed(2)}</div>
-                      <div className="text-xs text-crd-lightGray">
-                        {bid.bid_type === 'proxy' && '(Proxy) '}
-                        {formatDistanceToNow(new Date(bid.created_at), { addSuffix: true })}
+      <Collapsible open={showBidHistory} onOpenChange={setShowBidHistory}>
+        <CollapsibleTrigger asChild>
+          <Card className="bg-crd-surface border-crd-border cursor-pointer hover:bg-crd-surface/80 transition-colors">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-white font-medium">Bid History ({bidHistory.length})</span>
+                <ChevronDown className={`h-4 w-4 text-white transition-transform ${showBidHistory ? 'rotate-180' : ''}`} />
+              </div>
+            </CardContent>
+          </Card>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <Card className="bg-crd-surface border-crd-border mt-2">
+            <CardContent className="p-4">
+              {bidHistory.length > 0 ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {bidHistory.map((bid, index) => (
+                    <div key={bid.id} className="flex justify-between items-center py-2 border-b border-crd-border last:border-b-0">
+                      <div>
+                        <span className="text-white font-medium">
+                          {bid.bidder_display_name || `Bidder #${bidHistory.length - index}`}
+                        </span>
+                        {bid.is_winning_bid && (
+                          <span className="ml-2 px-2 py-1 bg-crd-green/20 text-crd-green text-xs rounded">
+                            Winning
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white font-semibold">${bid.amount.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(bid.created_at), 'MMM d, HH:mm')}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {bid.is_winning_bid && (
-                    <Badge className="bg-crd-green text-black">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      Winning
-                    </Badge>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">No bids yet</p>
+              )}
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };
