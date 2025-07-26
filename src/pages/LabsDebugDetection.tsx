@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Beaker } from 'lucide-react';
-import { CardDetectionTester } from '@/components/debug/CardDetectionTester';
+import { AdvancedCardDetectionTester } from '@/components/debug/AdvancedCardDetectionTester';
 
 const LabsDebugDetection = () => {
   return (
@@ -42,7 +42,7 @@ const LabsDebugDetection = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <CardDetectionTester />
+        <AdvancedCardDetectionTester />
       </div>
     </div>
   );
