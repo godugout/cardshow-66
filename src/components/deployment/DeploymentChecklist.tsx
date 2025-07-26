@@ -89,14 +89,6 @@ export const DeploymentChecklist: React.FC = () => {
         critical: true
       },
       {
-        id: 'domain-3dstudio',
-        title: '3D Studio Subdomain',
-        description: '3dstudio.cardshow.app DNS and SSL configured',
-        status: 'pending',
-        category: 'domain',
-        critical: true
-      },
-      {
         id: 'domain-alt',
         title: 'Alternative Domain',
         description: 'www.crd.show DNS configuration (optional)',

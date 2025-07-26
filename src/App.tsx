@@ -43,7 +43,7 @@ import DebugDetection from './pages/DebugDetection';
 import CRDDesignGuide from './pages/CRDDesignGuide';
 import { CRDMKRFrameBuilder } from './pages/CRDMKRFrameBuilder';
 import { CRDMKRCardFinder } from './pages/CRDMKRCardFinder';
-import { Card3DStudio } from './pages/Card3DStudio';
+
 import { EnhancedMarketplace } from './pages/EnhancedMarketplace';
 import { TestingSuite } from './components/testing/TestingSuite';
 import { DeploymentChecklist } from './components/deployment/DeploymentChecklist';
@@ -329,14 +329,6 @@ function App() {
                        <MainLayout showNavbar={false}>
                          <CRDMKRCardFinder />
                        </MainLayout>
-                     </ProtectedRoute>
-                   } 
-                 />
-                 <Route 
-                   path="/3dstudio" 
-                   element={
-                     <ProtectedRoute>
-                       <Card3DStudio />
                      </ProtectedRoute>
                    } 
                  />

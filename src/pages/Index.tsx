@@ -20,16 +20,6 @@ const Index = () => {
       gradient: 'from-crd-orange/20 to-crd-orange/5'
     },
     {
-      icon: <Box className="w-8 h-8" />,
-      title: '3D Studio Renderer',
-      description: 'Immersive 3D card visualization with advanced effects and materials',
-      href: '/studio',
-      badge: 'Cutting Edge',
-      subdomain: '3dstudio.cardshow.app',
-      color: 'crd-blue',
-      gradient: 'from-crd-blue/20 to-crd-blue/5'
-    },
-    {
       icon: <ShoppingBag className="w-8 h-8" />,
       title: 'Marketplace Hub',
       description: 'Buy, sell, and discover unique digital collectibles with secure transactions',

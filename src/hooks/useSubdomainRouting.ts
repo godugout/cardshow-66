@@ -3,12 +3,12 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export interface SubdomainConfig {
-  subdomain: 'www' | 'crdmkr' | '3dstudio';
+  subdomain: 'www' | 'crdmkr';
   domain: string;
   basePath: string;
   title: string;
   description: string;
-  theme: 'main' | 'crdmkr' | 'studio3d';
+  theme: 'main' | 'crdmkr';
   primaryColor: 'orange' | 'blue' | 'green' | 'yellow';
   name: string;
   features: string[];
@@ -38,17 +38,6 @@ export const SUBDOMAIN_CONFIG: Record<string, SubdomainConfig> = {
     name: 'CRDMKR',
     features: ['psd-import', 'layer-editing', 'frame-templates', 'preview']
   },
-  '3dstudio': {
-    subdomain: '3dstudio',
-    domain: '3dstudio.cardshow.app',
-    basePath: '/3dstudio',
-    title: '3D Studio - Advanced Card Visualization',
-    description: 'Create stunning 3D effects and export high-quality card renders',
-    theme: 'studio3d',
-    primaryColor: 'green',
-    name: '3D Studio',
-    features: ['3d-rendering', 'effects', 'materials', 'export']
-  }
 };
 
 // Subdomain Detection and Routing Hook
@@ -64,10 +53,6 @@ export function useSubdomainRouting() {
     // Production domain detection
     if (hostname.includes('crdmkr.cardshow.app') || path.startsWith('/crdmkr')) {
       return SUBDOMAIN_CONFIG.crdmkr;
-    }
-    
-    if (hostname.includes('3dstudio.cardshow.app') || path.startsWith('/3dstudio')) {
-      return SUBDOMAIN_CONFIG['3dstudio'];
     }
     
     // Default to main platform

@@ -128,14 +128,12 @@ export const TestingSuite: React.FC = () => {
     // CRDMKR PSD Import
     tests[1] = await testCRDMKRFlow();
     
-    // 3D Studio
-    tests[2] = await test3DStudio();
     
     // Marketplace
-    tests[3] = await testMarketplace();
+    tests[2] = await testMarketplace();
     
     // CRD Token Wallet
-    tests[4] = await testCRDTokenWallet();
+    tests[3] = await testCRDTokenWallet();
     
     // Cross-Subdomain Navigation
     tests[5] = await testCrossSubdomainNavigation();
