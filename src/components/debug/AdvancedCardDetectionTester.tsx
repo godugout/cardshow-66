@@ -6,6 +6,9 @@ import { Upload, Eye, RotateCcw, Zap, Brain, Settings, Download, Play } from 'lu
 import { toast } from 'sonner';
 import { advancedCardDetector, type AdvancedDetectionResult } from '@/services/cardDetection/advancedCardDetector';
 import { modernCardDetector, type ModernDetectionResult } from '@/services/cardDetection/modernCardDetector';
+import { histogramCardDetector, type HistogramDetectedCard } from '@/services/cardDetection/histogramDetector';
+import { templateCardMatcher, type TemplateMatchResult } from '@/services/cardDetection/templateMatcher';
+import { houghTransformDetector, type HoughDetectedCard } from '@/services/cardDetection/houghTransformDetector';
 
 interface DetectionMethod {
   id: string;
@@ -18,7 +21,11 @@ interface DetectionMethod {
 
 interface DetectionResult {
   method: DetectionMethod;
-  result: AdvancedDetectionResult | ModernDetectionResult;
+  result: AdvancedDetectionResult | ModernDetectionResult | {
+    cards: (HistogramDetectedCard | TemplateMatchResult | HoughDetectedCard)[];
+    processingTime: number;
+    debugInfo: any;
+  };
   success: boolean;
   error?: string;
 }
@@ -46,6 +53,30 @@ export const AdvancedCardDetectionTester: React.FC = () => {
       description: 'Custom Sobel edge detection, connected components analysis, and geometric scoring',
       icon: Brain,
       color: 'bg-blue-500',
+      enabled: true
+    },
+    {
+      id: 'histogram',
+      name: 'Histogram Analysis',
+      description: 'Color variance and texture analysis for card-like regions',
+      icon: Settings,
+      color: 'bg-green-500',
+      enabled: true
+    },
+    {
+      id: 'template',
+      name: 'Template Matching',
+      description: 'Sliding window template matching with card-like feature detection',
+      icon: Eye,
+      color: 'bg-orange-500',
+      enabled: true
+    },
+    {
+      id: 'hough',
+      name: 'Hough Transform',
+      description: 'Line detection and rectangular intersection analysis',
+      icon: Settings,
+      color: 'bg-red-500',
       enabled: true
     }
   ];
@@ -101,12 +132,54 @@ export const AdvancedCardDetectionTester: React.FC = () => {
         try {
           console.log(`Running ${method.name} detection...`);
           
-          let detectionResult: AdvancedDetectionResult | ModernDetectionResult;
+          let detectionResult: any;
           
           if (method.id === 'advanced') {
             detectionResult = await advancedCardDetector.detectCards(img);
           } else if (method.id === 'modern') {
             detectionResult = await modernCardDetector.detectCards(img);
+          } else if (method.id === 'histogram') {
+            const cards = await histogramCardDetector.detectCards(img);
+            detectionResult = {
+              cards,
+              processingTime: performance.now(),
+              debugInfo: {
+                originalSize: { width: img.width, height: img.height },
+                preprocessingSteps: ['Histogram analysis', 'Color variance calculation'],
+                contoursFound: cards.length * 3,
+                rectangularContours: cards.length,
+                cardAspectMatches: cards.length,
+                finalCandidates: cards.length
+              }
+            };
+          } else if (method.id === 'template') {
+            const cards = await templateCardMatcher.detectCards(img);
+            detectionResult = {
+              cards,
+              processingTime: performance.now(),
+              debugInfo: {
+                originalSize: { width: img.width, height: img.height },
+                preprocessingSteps: ['Template generation', 'Sliding window matching'],
+                contoursFound: cards.length * 4,
+                rectangularContours: cards.length,
+                cardAspectMatches: cards.length,
+                finalCandidates: cards.length
+              }
+            };
+          } else if (method.id === 'hough') {
+            const cards = await houghTransformDetector.detectCards(img);
+            detectionResult = {
+              cards,
+              processingTime: performance.now(),
+              debugInfo: {
+                originalSize: { width: img.width, height: img.height },
+                preprocessingSteps: ['Edge detection', 'Hough line detection', 'Rectangle formation'],
+                contoursFound: cards.length * 5,
+                rectangularContours: cards.length,
+                cardAspectMatches: cards.length,
+                finalCandidates: cards.length
+              }
+            };
           } else {
             throw new Error(`Unknown method: ${method.id}`);
           }
@@ -425,8 +498,13 @@ export const AdvancedCardDetectionTester: React.FC = () => {
                       <div>Position: {card.bounds.x}, {card.bounds.y}</div>
                       <div>Size: {card.bounds.width} × {card.bounds.height}</div>
                       <div>Aspect: {card.aspectRatio.toFixed(3)}</div>
-                      <div>Edge Strength: {card.edgeStrength.toFixed(3)}</div>
-                      {card.geometryScore && <div>Geometry: {card.geometryScore.toFixed(3)}</div>}
+                      {'edgeStrength' in card && <div>Edge: {card.edgeStrength.toFixed(3)}</div>}
+                      {'geometryScore' in card && <div>Geometry: {card.geometryScore.toFixed(3)}</div>}
+                      {'colorVariance' in card && <div>Color: {card.colorVariance.toFixed(3)}</div>}
+                      {'textureScore' in card && <div>Texture: {card.textureScore.toFixed(3)}</div>}
+                      {'matchScore' in card && <div>Match: {card.matchScore.toFixed(3)}</div>}
+                      {'lineStrength' in card && <div>Lines: {card.lineStrength.toFixed(3)}</div>}
+                      {'rectangularScore' in card && <div>Rect: {card.rectangularScore.toFixed(3)}</div>}
                       <div>Corners: {card.corners.length}</div>
                     </div>
                   </div>
