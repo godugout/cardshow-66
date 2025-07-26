@@ -198,33 +198,26 @@ export class AdvancedCardDetector {
 
   private findRectangles(edges: number[][], width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
     const rectangles = [];
-    const threshold = 50;
-    const maxRectangles = 10; // Limit output to prevent memory issues
+    const threshold = 30; // Lower threshold for more sensitivity
+    const maxRectangles = 50; // Increase to user's requested max
     
-    // Much more conservative sampling to prevent excessive iterations
-    const stepSize = Math.max(20, Math.min(width, height) / 50);
-    const maxWidth = Math.min(400, width * 0.8);
-    const maxHeight = Math.min(500, height * 0.8);
+    // More reasonable sampling - not too sparse, not too dense
+    const stepSize = Math.max(15, Math.min(width, height) / 80);
     
     // Simple rectangle detection using edge intensity
     for (let y = 0; y < height - 100 && rectangles.length < maxRectangles; y += stepSize) {
       for (let x = 0; x < width - 80 && rectangles.length < maxRectangles; x += stepSize) {
-        // Test only a few standard card sizes instead of all combinations
-        const testSizes = [
-          { w: 100, h: 140 },
-          { w: 150, h: 210 },
-          { w: 200, h: 280 }
-        ];
-        
-        for (const size of testSizes) {
-          if (x + size.w >= width || y + size.h >= height) continue;
-          
-          const aspectRatio = size.w / size.h;
-          if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
-            const edgeScore = this.calculateRectangleEdgeScore(edges, x, y, size.w, size.h, threshold);
-            if (edgeScore > 0.5) { // Higher threshold for better quality
-              rectangles.push({ x, y, width: size.w, height: size.h });
-              if (rectangles.length >= maxRectangles) break;
+        // Test a range of card sizes instead of just 3 fixed sizes
+        for (let w = 80; w <= Math.min(350, width - x); w += 30) {
+          for (let h = 110; h <= Math.min(450, height - y); h += 40) {
+            if (rectangles.length >= maxRectangles) break;
+            
+            const aspectRatio = w / h;
+            if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
+              const edgeScore = this.calculateRectangleEdgeScore(edges, x, y, w, h, threshold);
+              if (edgeScore > 0.25) { // Lower threshold for more detections
+                rectangles.push({ x, y, width: w, height: h });
+              }
             }
           }
         }

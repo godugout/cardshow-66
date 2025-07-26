@@ -56,37 +56,33 @@ export class HistogramCardDetector {
   }> {
     const { width, height, data } = imageData;
     const regions = [];
-    const maxRegions = 8; // Limit to prevent excessive processing
+    const maxRegions = 50; // Increase to user's requested max
     
-    // Much larger grid size for efficiency
-    const gridSize = Math.max(40, Math.min(width, height) / 25);
+    // Balanced grid size for good coverage without excessive processing
+    const gridSize = Math.max(25, Math.min(width, height) / 40);
     
-    // Test only standard card sizes instead of all combinations
-    const cardSizes = [
-      { w: 100, h: 140 },
-      { w: 150, h: 210 },
-      { w: 200, h: 280 }
-    ];
-    
-    for (let y = 0; y < height - 140 && regions.length < maxRegions; y += gridSize) {
-      for (let x = 0; x < width - 100 && regions.length < maxRegions; x += gridSize) {
-        for (const size of cardSizes) {
-          if (x + size.w >= width || y + size.h >= height) continue;
-          
-          const aspectRatio = size.w / size.h;
-          if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
-            const region = { x, y, width: size.w, height: size.h };
-            const analysis = this.analyzeRegionHistogram(data, width, region);
+    // Test a broader range of card sizes
+    for (let y = 0; y < height - 120 && regions.length < maxRegions; y += gridSize) {
+      for (let x = 0; x < width - 80 && regions.length < maxRegions; x += gridSize) {
+        // Test various sizes instead of just 3 fixed ones
+        for (let w = 80; w <= Math.min(300, width - x); w += 25) {
+          for (let h = 110; h <= Math.min(400, height - y); h += 35) {
+            if (regions.length >= maxRegions) break;
             
-            if (analysis.colorVariance > 0.4 && analysis.textureScore > 0.5) {
-              regions.push({
-                bounds: region,
-                confidence: Math.min(0.85, analysis.colorVariance * 0.5 + analysis.textureScore * 0.5),
-                colorVariance: analysis.colorVariance,
-                textureScore: analysis.textureScore
-              });
+            const aspectRatio = w / h;
+            if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
+              const region = { x, y, width: w, height: h };
+              const analysis = this.analyzeRegionHistogram(data, width, region);
               
-              if (regions.length >= maxRegions) break;
+              // More permissive thresholds for better detection
+              if (analysis.colorVariance > 0.25 && analysis.textureScore > 0.3) {
+                regions.push({
+                  bounds: region,
+                  confidence: Math.min(0.85, analysis.colorVariance * 0.5 + analysis.textureScore * 0.5),
+                  colorVariance: analysis.colorVariance,
+                  textureScore: analysis.textureScore
+                });
+              }
             }
           }
         }
@@ -160,10 +156,10 @@ export class HistogramCardDetector {
     return regions
       .filter(region => {
         const area = region.bounds.width * region.bounds.height;
-        return area >= this.MIN_CARD_AREA && region.confidence > 0.5;
+        return area >= this.MIN_CARD_AREA && region.confidence > 0.3; // Lower confidence threshold
       })
       .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 6); // Limit to top 6 candidates
+      .slice(0, 50); // Increase to user's requested max
   }
 }
 

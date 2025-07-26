@@ -171,7 +171,7 @@ export const EnhancedCardDetectionTester: React.FC = () => {
                     
                     result = {
                       method: 'Histogram Detection',
-                      cards: histogramCards.slice(0, 15).map((card, index) => ({
+                      cards: histogramCards.slice(0, 50).map((card, index) => ({
                         id: `histogram-${index}`,
                         bounds: card.bounds,
                         confidence: card.confidence,
@@ -230,8 +230,8 @@ export const EnhancedCardDetectionTester: React.FC = () => {
                       timeoutPromise
                     ]);
                     
-                    // Limit results to prevent memory issues
-                    const limitedCards = advancedResult.cards.slice(0, 20);
+                    // Limit results to user's requested max
+                    const limitedCards = advancedResult.cards.slice(0, 50);
                     
                     result = {
                       method: 'Advanced OpenCV',
