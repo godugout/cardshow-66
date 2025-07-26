@@ -301,6 +301,13 @@ export const AdvancedCropInterface: React.FC<AdvancedCropInterfaceProps> = ({
               src={processedImageUrl}
               style={{ transform: `rotate(${rotation}deg)` }}
               onLoad={onImageLoad}
+              onError={(e) => {
+                console.error('AdvancedCropInterface: Image failed to load:', {
+                  src: processedImageUrl,
+                  error: e,
+                  target: e.currentTarget
+                });
+              }}
               className="max-w-full max-h-[500px] object-contain"
             />
           </ReactCrop>
