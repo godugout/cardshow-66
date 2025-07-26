@@ -55,6 +55,75 @@ export type Database = {
           },
         ]
       }
+      bundle_cards: {
+        Row: {
+          added_at: string
+          bundle_id: string
+          card_id: string
+          id: string
+        }
+        Insert: {
+          added_at?: string
+          bundle_id: string
+          card_id: string
+          id?: string
+        }
+        Update: {
+          added_at?: string
+          bundle_id?: string
+          card_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_cards_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bundles: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          price: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          price: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          price?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       card_likes: {
         Row: {
           card_id: string
@@ -88,6 +157,7 @@ export type Database = {
         Row: {
           activity_data: Json | null
           activity_type: string | null
+          bundle_id: string | null
           category: string | null
           created_at: string | null
           creator_name: string | null
@@ -112,6 +182,7 @@ export type Database = {
         Insert: {
           activity_data?: Json | null
           activity_type?: string | null
+          bundle_id?: string | null
           category?: string | null
           created_at?: string | null
           creator_name?: string | null
@@ -136,6 +207,7 @@ export type Database = {
         Update: {
           activity_data?: Json | null
           activity_type?: string | null
+          bundle_id?: string | null
           category?: string | null
           created_at?: string | null
           creator_name?: string | null
@@ -157,7 +229,15 @@ export type Database = {
           views_count?: number | null
           watchers_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cards_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collection_items: {
         Row: {

@@ -62,3 +62,6 @@ verify_jwt = true
 
 [functions.marketplace-auctions-buy-now]
 verify_jwt = true
+
+[functions.marketplace-bundles-create]
+verify_jwt = true
