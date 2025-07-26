@@ -56,29 +56,37 @@ export class HistogramCardDetector {
   }> {
     const { width, height, data } = imageData;
     const regions = [];
+    const maxRegions = 8; // Limit to prevent excessive processing
     
-    // Grid-based analysis for computational efficiency
-    const gridSize = 20;
-    const colorMap = new Map<string, number>();
+    // Much larger grid size for efficiency
+    const gridSize = Math.max(40, Math.min(width, height) / 25);
     
-    for (let y = 0; y < height - 120; y += gridSize) {
-      for (let x = 0; x < width - 80; x += gridSize) {
-        for (let w = 80; w < Math.min(250, width - x); w += 20) {
-          for (let h = 120; h < Math.min(350, height - y); h += 20) {
-            const aspectRatio = w / h;
+    // Test only standard card sizes instead of all combinations
+    const cardSizes = [
+      { w: 100, h: 140 },
+      { w: 150, h: 210 },
+      { w: 200, h: 280 }
+    ];
+    
+    for (let y = 0; y < height - 140 && regions.length < maxRegions; y += gridSize) {
+      for (let x = 0; x < width - 100 && regions.length < maxRegions; x += gridSize) {
+        for (const size of cardSizes) {
+          if (x + size.w >= width || y + size.h >= height) continue;
+          
+          const aspectRatio = size.w / size.h;
+          if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
+            const region = { x, y, width: size.w, height: size.h };
+            const analysis = this.analyzeRegionHistogram(data, width, region);
             
-            if (Math.abs(aspectRatio - this.TARGET_ASPECT_RATIO) <= this.ASPECT_TOLERANCE) {
-              const region = { x, y, width: w, height: h };
-              const analysis = this.analyzeRegionHistogram(data, width, region);
+            if (analysis.colorVariance > 0.4 && analysis.textureScore > 0.5) {
+              regions.push({
+                bounds: region,
+                confidence: Math.min(0.85, analysis.colorVariance * 0.5 + analysis.textureScore * 0.5),
+                colorVariance: analysis.colorVariance,
+                textureScore: analysis.textureScore
+              });
               
-              if (analysis.colorVariance > 0.3 && analysis.textureScore > 0.4) {
-                regions.push({
-                  bounds: region,
-                  confidence: Math.min(0.85, analysis.colorVariance * 0.5 + analysis.textureScore * 0.5),
-                  colorVariance: analysis.colorVariance,
-                  textureScore: analysis.textureScore
-                });
-              }
+              if (regions.length >= maxRegions) break;
             }
           }
         }

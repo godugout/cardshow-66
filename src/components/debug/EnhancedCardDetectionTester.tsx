@@ -91,11 +91,19 @@ export const EnhancedCardDetectionTester: React.FC = () => {
 
             try {
               let result: DetectionResult | null = null;
+              
+              // Add timeout to prevent hanging
+              const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error('Detection timeout')), 10000); // 10 second timeout
+              });
 
               switch (methodKey) {
                 case 'simple':
                   try {
-                    const simpleResult = await detectCardsInImage(imageFile);
+                    const simpleResult = await Promise.race([
+                      detectCardsInImage(imageFile),
+                      timeoutPromise
+                    ]);
                     result = {
                       method: 'Simple Detection',
                       cards: simpleResult.detectedCards.map((card, index) => ({
@@ -156,10 +164,14 @@ export const EnhancedCardDetectionTester: React.FC = () => {
 
                 case 'histogram':
                   try {
-                    const histogramCards = await histogramCardDetector.detectCards(img);
+                    const histogramCards = await Promise.race([
+                      histogramCardDetector.detectCards(img),
+                      timeoutPromise
+                    ]);
+                    
                     result = {
                       method: 'Histogram Detection',
-                      cards: histogramCards.map((card, index) => ({
+                      cards: histogramCards.slice(0, 15).map((card, index) => ({
                         id: `histogram-${index}`,
                         bounds: card.bounds,
                         confidence: card.confidence,
@@ -213,10 +225,17 @@ export const EnhancedCardDetectionTester: React.FC = () => {
 
                 case 'advanced':
                   try {
-                    const advancedResult = await advancedCardDetector.detectCards(img);
+                    const advancedResult = await Promise.race([
+                      advancedCardDetector.detectCards(img),
+                      timeoutPromise
+                    ]);
+                    
+                    // Limit results to prevent memory issues
+                    const limitedCards = advancedResult.cards.slice(0, 20);
+                    
                     result = {
                       method: 'Advanced OpenCV',
-                      cards: advancedResult.cards.map((card, index) => ({
+                      cards: limitedCards.map((card, index) => ({
                         id: `advanced-${index}`,
                         bounds: card.bounds,
                         confidence: card.confidence,
