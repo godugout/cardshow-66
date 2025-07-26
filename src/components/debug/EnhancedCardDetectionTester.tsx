@@ -6,7 +6,10 @@ import { Upload, Eye, Download, RotateCcw, Zap, Clock, Target, Brain } from 'luc
 import { detectCardsInImage } from '@/services/cardDetection';
 import { enhancedCardDetection } from '@/services/cardExtractor/enhancedDetection';
 import { improvedCardDetector } from '@/services/cardDetection/improvedCardDetection';
-import { analyzeCardImage, convertImageToBase64, type CardAnalysisResult } from '@/services/cardAnalysisService';
+import { histogramCardDetector } from '@/services/cardDetection/histogramDetector';
+import { templateCardMatcher } from '@/services/cardDetection/templateMatcher';
+import { houghTransformDetector } from '@/services/cardDetection/houghTransformDetector';
+import { advancedCardDetector } from '@/services/cardDetection/advancedCardDetector';
 
 interface DetectionResult {
   method: string;
@@ -44,6 +47,10 @@ export const EnhancedCardDetectionTester: React.FC = () => {
     simple: true,
     enhanced: true,
     improved: true,
+    histogram: true,
+    template: true,
+    hough: true,
+    advanced: true,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -126,6 +133,77 @@ export const EnhancedCardDetectionTester: React.FC = () => {
             });
           }
 
+          // Histogram Detection
+          if (selectedMethods.histogram) {
+            const startTime = Date.now();
+            const histogramCards = await histogramCardDetector.detectCards(img);
+            detectionResults.push({
+              method: 'Histogram Detection',
+              cards: histogramCards.map((card, index) => ({
+                id: `histogram-${index}`,
+                bounds: card.bounds,
+                confidence: card.confidence,
+                aspectRatio: card.aspectRatio,
+                corners: card.corners
+              })),
+              processingTime: Date.now() - startTime
+            });
+          }
+
+          // Template Matching
+          if (selectedMethods.template) {
+            const startTime = Date.now();
+            const templateCards = await templateCardMatcher.detectCards(img);
+            detectionResults.push({
+              method: 'Template Matching',
+              cards: templateCards.map((card, index) => ({
+                id: `template-${index}`,
+                bounds: card.bounds,
+                confidence: card.confidence,
+                aspectRatio: card.aspectRatio,
+                corners: card.corners
+              })),
+              processingTime: Date.now() - startTime
+            });
+          }
+
+          // Hough Transform
+          if (selectedMethods.hough) {
+            const startTime = Date.now();
+            const houghCards = await houghTransformDetector.detectCards(img);
+            detectionResults.push({
+              method: 'Hough Transform',
+              cards: houghCards.map((card, index) => ({
+                id: `hough-${index}`,
+                bounds: card.bounds,
+                confidence: card.confidence,
+                aspectRatio: card.aspectRatio,
+                corners: card.corners
+              })),
+              processingTime: Date.now() - startTime
+            });
+          }
+
+          // Advanced OpenCV
+          if (selectedMethods.advanced) {
+            const startTime = Date.now();
+            const advancedResult = await advancedCardDetector.detectCards(img);
+            detectionResults.push({
+              method: 'Advanced OpenCV',
+              cards: advancedResult.cards.map((card, index) => ({
+                id: `advanced-${index}`,
+                bounds: card.bounds,
+                confidence: card.confidence,
+                aspectRatio: card.aspectRatio,
+                edgeStrength: card.edgeStrength,
+                geometryScore: card.geometryScore,
+                corners: card.corners
+              })),
+              processingTime: Date.now() - startTime,
+              debugInfo: advancedResult.debugInfo
+            });
+          }
+
           setResults(detectionResults);
         } catch (error) {
           console.error('Detection failed:', error);
@@ -145,20 +223,8 @@ export const EnhancedCardDetectionTester: React.FC = () => {
 
     setIsAnalyzing(true);
     try {
-      const base64Data = await convertImageToBase64(imageFile);
-      const response = await analyzeCardImage(undefined, base64Data);
-      
-      if (response.success && response.analysis) {
-        setAiAnalysis({
-          cardType: response.analysis.cardType,
-          manufacturer: response.analysis.manufacturer,
-          detectedText: response.analysis.detectedText,
-          rarity: response.analysis.rarity,
-          suggestedTitle: response.analysis.playerName || response.analysis.cardType,
-          suggestedDescription: response.analysis.description,
-          confidence: response.analysis.confidence
-        });
-      }
+      // AI Analysis disabled for now
+      console.log('AI Analysis feature temporarily disabled');
     } catch (error) {
       console.error('AI Analysis failed:', error);
     } finally {
@@ -181,6 +247,10 @@ export const EnhancedCardDetectionTester: React.FC = () => {
       case 'Simple Detection': return 'bg-blue-500';
       case 'Enhanced Detection': return 'bg-green-500';
       case 'Improved Detection': return 'bg-purple-500';
+      case 'Histogram Detection': return 'bg-yellow-500';
+      case 'Template Matching': return 'bg-orange-500';
+      case 'Hough Transform': return 'bg-red-500';
+      case 'Advanced OpenCV': return 'bg-pink-500';
       default: return 'bg-gray-500';
     }
   };
