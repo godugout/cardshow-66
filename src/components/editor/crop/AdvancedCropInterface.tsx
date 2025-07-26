@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { removeBackground, loadImage } from '@/services/backgroundRemoval';
+import { ImageLoader } from './ImageLoader';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface CropResult {
@@ -295,38 +296,29 @@ export const AdvancedCropInterface: React.FC<AdvancedCropInterfaceProps> = ({
             aspect={aspectRatio}
             className="max-w-full"
           >
-            <img
-              ref={imgRef}
-              alt="Crop me"
+            <ImageLoader
               src={processedImageUrl}
-              style={{ transform: `rotate(${rotation}deg)` }}
+              alt="Crop me"
               onLoad={(e) => {
-                console.log('AdvancedCropInterface: Image loaded successfully:', processedImageUrl);
+                console.log('AdvancedCropInterface: Image loaded successfully via ImageLoader:', processedImageUrl);
                 onImageLoad(e);
               }}
-              onError={(e) => {
-                console.error('AdvancedCropInterface: Image failed to load:', {
-                  src: processedImageUrl,
-                  error: e,
-                  target: e.currentTarget
-                });
-                // Try to fetch the URL directly to see what the actual error is
-                fetch(processedImageUrl)
-                  .then(response => {
-                    console.error('Fetch test result:', {
-                      status: response.status,
-                      statusText: response.statusText,
-                      ok: response.ok,
-                      url: response.url
-                    });
-                  })
-                  .catch(fetchError => {
-                    console.error('Fetch test failed:', fetchError);
-                  });
+              onError={(error) => {
+                console.error('AdvancedCropInterface: ImageLoader reported error:', error);
+                toast.error(`Image loading failed: ${error}`);
               }}
               className="max-w-full max-h-[500px] object-contain"
+              style={{ transform: `rotate(${rotation}deg)` }}
               crossOrigin="anonymous"
-            />
+              maxRetries={5}
+            >
+              {(imageProps) => (
+                <img
+                  ref={imgRef}
+                  {...imageProps}
+                />
+              )}
+            </ImageLoader>
           </ReactCrop>
         </div>
       </Card>

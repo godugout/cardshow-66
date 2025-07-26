@@ -109,17 +109,40 @@ export const CRDCreateFlow: React.FC = () => {
     }
   };
 
-  const handleUploadComplete = useCallback((files: any[]) => {
+  const handleUploadComplete = useCallback(async (files: any[]) => {
     console.log('CRDCreateFlow: Upload complete called with:', files);
     if (files.length > 0) {
       const file = files[0];
       const publicUrl = file.publicUrl || file.metadata?.publicUrl;
       console.log('CRDCreateFlow: Setting uploaded image URL to:', publicUrl);
-      setUploadedImageUrl(publicUrl);
       
-      // Auto-advance to crop step
-      setCurrentStep('crop');
-      toast.success('Image uploaded successfully!');
+      // Wait a moment for the file to be fully accessible
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Verify the file is accessible before proceeding
+      try {
+        const response = await fetch(publicUrl, { method: 'HEAD' });
+        if (response.ok) {
+          console.log('CRDCreateFlow: File is accessible, proceeding');
+          setUploadedImageUrl(publicUrl);
+          // Auto-advance to crop step
+          setCurrentStep('crop');
+          toast.success('Image uploaded successfully!');
+        } else {
+          console.error('CRDCreateFlow: File not accessible yet, status:', response.status);
+          // Add a delay and try again
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          setUploadedImageUrl(publicUrl);
+          setCurrentStep('crop');
+          toast.success('Image uploaded successfully!');
+        }
+      } catch (error) {
+        console.error('CRDCreateFlow: Error checking file accessibility:', error);
+        // Proceed anyway, let the ImageLoader handle retries
+        setUploadedImageUrl(publicUrl);
+        setCurrentStep('crop');
+        toast.success('Image uploaded successfully!');
+      }
     }
   }, []);
 
