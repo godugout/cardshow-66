@@ -376,7 +376,7 @@ export const AdvancedCropInterface: React.FC<AdvancedCropInterfaceProps> = ({
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`${className}`}>
       {/* Loading overlay */}
       {(!imageLoaded || backgroundRemoving) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
@@ -395,186 +395,187 @@ export const AdvancedCropInterface: React.FC<AdvancedCropInterfaceProps> = ({
       )}
 
       {/* Main Interface */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="relative">
         {/* Image Container */}
-        <div className="lg:col-span-2">
-          <Card className="p-6 bg-crd-surface border-crd-border">
-            <div 
-              ref={containerRef}
-              className="relative w-full h-[500px] mx-auto bg-gray-900 rounded-lg overflow-hidden"
+        <Card className="p-6 bg-crd-surface border-crd-border">
+          <div 
+            ref={containerRef}
+            className="relative w-full h-[600px] mx-auto bg-gray-900 rounded-lg overflow-hidden"
+          >
+            <img
+              ref={imageRef}
+              src={processedImageUrl}
+              alt="Crop preview"
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+            
+            {/* Crop Box with Attached Controls */}
+            <div
+              ref={cropBoxRef}
+              className="absolute border-2 border-crd-green bg-transparent cursor-move group"
+              style={{
+                left: `${cropState.x}px`,
+                top: `${cropState.y}px`,
+                width: `${cropState.width}px`,
+                height: `${cropState.height}px`,
+                transform: `rotate(${cropState.rotation}deg)`,
+                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)'
+              }}
+              onMouseDown={handleMouseDown}
             >
-              <img
-                ref={imageRef}
-                src={processedImageUrl}
-                alt="Crop preview"
-                className="w-full h-full object-contain"
-                draggable={false}
-              />
+              {/* Corner handles */}
+              <div className="absolute -top-1 -left-1 w-3 h-3 bg-crd-green border border-white"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-crd-green border border-white"></div>
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-crd-green border border-white"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-crd-green border border-white"></div>
               
-              {/* Crop Box */}
-              <div
-                ref={cropBoxRef}
-                className="absolute border-2 border-crd-green bg-transparent cursor-move"
-                style={{
-                  left: `${cropState.x}px`,
-                  top: `${cropState.y}px`,
-                  width: `${cropState.width}px`,
-                  height: `${cropState.height}px`,
-                  transform: `rotate(${cropState.rotation}deg)`,
-                  boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)'
-                }}
-                onMouseDown={handleMouseDown}
-              >
-                {/* Corner handles */}
-                <div className="absolute -top-1 -left-1 w-3 h-3 bg-crd-green border border-white"></div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-crd-green border border-white"></div>
-                <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-crd-green border border-white"></div>
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-crd-green border border-white"></div>
-                
-                {/* Center label */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-crd-green text-black px-2 py-1 rounded text-xs font-semibold">
-                    CROP AREA
+              {/* Center label */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-crd-green text-black px-2 py-1 rounded text-xs font-semibold">
+                  CROP AREA
+                </div>
+              </div>
+
+              {/* Top Controls Panel */}
+              <div className="absolute -top-12 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+                <div className="bg-black/90 backdrop-blur-sm rounded-lg border border-crd-border p-3 min-w-max">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-white font-medium">Size:</span>
+                    <div className="w-24">
+                      <Slider
+                        value={[cropSize]}
+                        onValueChange={(value) => setCropSize(value[0])}
+                        min={50}
+                        max={400}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+                    <span className="text-crd-mediumGray">{cropSize}px</span>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        </div>
 
-        {/* Controls Panel */}
-        <div className="space-y-4">
-          <Card className="p-4 bg-crd-surface border-crd-border">
-            <h3 className="text-white font-semibold mb-4">Crop Controls</h3>
-            
-            {/* Size Control */}
-            <div className="space-y-2 mb-4">
-              <label className="text-sm text-crd-lightGray">Crop Size</label>
-              <Slider
-                value={[cropSize]}
-                onValueChange={(value) => setCropSize(value[0])}
-                min={50}
-                max={400}
-                step={1}
-                className="w-full"
-              />
-              <div className="text-xs text-crd-mediumGray">{cropSize}px × {Math.round(cropSize / aspectRatio)}px</div>
-            </div>
+              {/* Right Controls Panel */}
+              <div className="absolute -right-16 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+                <div className="bg-black/90 backdrop-blur-sm rounded-lg border border-crd-border p-2 space-y-1">
+                  <Button onClick={handleAutoCenter} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-green hover:text-black">
+                    <Move className="w-3 h-3" />
+                  </Button>
+                  <Button onClick={handleAutoFit} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-green hover:text-black">
+                    <Maximize2 className="w-3 h-3" />
+                  </Button>
+                  <Button onClick={() => setFineRotation(prev => prev - 90)} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-green hover:text-black">
+                    <RotateCcw className="w-3 h-3" />
+                  </Button>
+                  <Button onClick={() => setFineRotation(prev => prev + 90)} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-green hover:text-black">
+                    <RotateCw className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
 
-            {/* Fine Rotation */}
-            <div className="space-y-2 mb-4">
-              <label className="text-sm text-crd-lightGray">Rotation (degrees)</label>
-              <Slider
-                value={[fineRotation]}
-                onValueChange={(value) => setFineRotation(value[0])}
-                min={-180}
-                max={180}
-                step={0.1}
-                className="w-full"
-              />
-              <div className="text-xs text-crd-mediumGray">{fineRotation.toFixed(1)}°</div>
-            </div>
+              {/* Bottom Controls Panel */}
+              <div className="absolute -bottom-12 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+                <div className="bg-black/90 backdrop-blur-sm rounded-lg border border-crd-border p-3">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-white font-medium">Rotation:</span>
+                    <div className="w-32">
+                      <Slider
+                        value={[fineRotation]}
+                        onValueChange={(value) => setFineRotation(value[0])}
+                        min={-180}
+                        max={180}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+                    <span className="text-crd-mediumGray">{fineRotation.toFixed(1)}°</span>
+                  </div>
+                </div>
+              </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <Button onClick={handleAutoCenter} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-green hover:text-black">
-                <Move className="w-4 h-4" />
-              </Button>
-              <Button onClick={handleAutoFit} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-green hover:text-black">
-                <Maximize2 className="w-4 h-4" />
-              </Button>
-              <Button onClick={() => setFineRotation(prev => prev - 90)} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-green hover:text-black">
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Button onClick={() => setFineRotation(prev => prev + 90)} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-green hover:text-black">
-                <RotateCw className="w-4 h-4" />
-              </Button>
+              {/* Left Controls Panel */}
+              <div className="absolute -left-16 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-auto">
+                <div className="bg-black/90 backdrop-blur-sm rounded-lg border border-crd-border p-2 space-y-1">
+                  <Button onClick={undo} disabled={!canUndo} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-blue hover:text-black disabled:opacity-50">
+                    <Undo className="w-3 h-3" />
+                  </Button>
+                  <Button onClick={redo} disabled={!canRedo} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-blue hover:text-black disabled:opacity-50">
+                    <Redo className="w-3 h-3" />
+                  </Button>
+                  <Button onClick={resetCrop} size="sm" variant="ghost" className="w-12 h-8 p-0 text-white hover:bg-crd-orange hover:text-black">
+                    <RotateCcwSquare className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
             </div>
+          </div>
+        </Card>
 
-            {/* History Controls */}
-            <div className="flex gap-2 mb-4">
-              <Button onClick={undo} disabled={!canUndo} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-blue hover:text-black">
-                <Undo className="w-4 h-4" />
-              </Button>
-              <Button onClick={redo} disabled={!canRedo} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-blue hover:text-black">
-                <Redo className="w-4 h-4" />
-              </Button>
-              <Button onClick={resetCrop} size="sm" variant="outline" className="border-crd-border text-white hover:bg-crd-orange hover:text-black">
-                <RotateCcwSquare className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Background Removal */}
-            <Button 
-              onClick={handleRemoveBackground} 
-              disabled={backgroundRemoving}
-              size="sm" 
-              variant="outline" 
-              className="w-full border-crd-border text-white hover:bg-crd-purple hover:text-black mb-4"
-            >
-              <Wand2 className="w-4 h-4 mr-2" />
-              Remove Background
+        {/* Fixed Controls at Bottom */}
+        <div className="mt-4 flex flex-wrap gap-2 justify-center">
+          <Button 
+            onClick={handleRemoveBackground} 
+            disabled={backgroundRemoving}
+            size="sm" 
+            variant="outline" 
+            className="border-crd-border text-white hover:bg-purple-500 hover:text-white"
+          >
+            <Wand2 className="w-4 h-4 mr-2" />
+            Remove Background
+          </Button>
+          
+          <Button onClick={handleSaveCrop} className="bg-crd-green text-black hover:bg-crd-green/80">
+            <Scissors className="w-4 h-4 mr-2" />
+            Save Crop
+          </Button>
+          
+          {onCropComplete && (
+            <Button onClick={handleCompleteSingle} className="bg-crd-blue text-white hover:bg-crd-blue/80">
+              Apply & Continue
             </Button>
+          )}
 
-            {/* Action Buttons */}
-            <div className="space-y-2">
-              <Button onClick={handleSaveCrop} className="w-full bg-crd-green text-black hover:bg-crd-green/80">
-                <Scissors className="w-4 h-4 mr-2" />
-                Save Crop
+          {cropResults.length > 0 && (
+            <>
+              <Button onClick={handleClearHistory} variant="outline" className="border-red-500 text-red-400 hover:bg-red-500/20">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear History ({cropResults.length})
               </Button>
               
-              {onCropComplete && (
-                <Button onClick={handleCompleteSingle} className="w-full bg-crd-blue text-white hover:bg-crd-blue/80">
-                  Apply & Continue
+              {onMultipleCropsComplete && (
+                <Button onClick={handleCompleteMultiple} className="bg-crd-orange text-black hover:bg-crd-orange/80">
+                  Finalize All Crops ({cropResults.length})
                 </Button>
               )}
-            </div>
-          </Card>
+            </>
+          )}
+        </div>
 
-          {/* Saved Crops */}
-          {cropResults.length > 0 && (
-            <Card className="p-4 bg-crd-surface border-crd-border">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-white font-semibold">Saved Crops ({cropResults.length})</h3>
-                <Button onClick={handleClearHistory} size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/20">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {cropResults.map((crop) => (
-                  <div key={crop.id} className="flex items-center gap-2 p-2 bg-crd-darkest rounded border border-crd-border">
-                    <img src={crop.imageUrl} alt="Crop preview" className="w-8 h-8 object-cover rounded" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-white truncate">Crop {new Date(crop.timestamp).toLocaleTimeString()}</div>
-                      <div className="text-xs text-crd-mediumGray">{crop.cropData.width}×{crop.cropData.height}</div>
-                    </div>
+        {/* Saved Crops Preview */}
+        {cropResults.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-white font-semibold mb-2">Saved Crops ({cropResults.length})</h3>
+            <div className="flex gap-2 flex-wrap">
+              {cropResults.map((crop) => (
+                <div key={crop.id} className="relative group">
+                  <img src={crop.imageUrl} alt="Crop preview" className="w-16 h-20 object-cover rounded border border-crd-border" />
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded flex items-center justify-center">
                     <div className="flex gap-1">
-                      <Button onClick={() => handlePreviewCrop(crop)} size="sm" variant="ghost" className="w-6 h-6 p-0">
-                        <Eye className="w-3 h-3" />
-                      </Button>
-                      <Button onClick={() => handleDownloadCrop(crop)} size="sm" variant="ghost" className="w-6 h-6 p-0">
+                      <Button onClick={() => handleDownloadCrop(crop)} size="sm" variant="ghost" className="w-6 h-6 p-0 text-white hover:bg-white/20">
                         <Download className="w-3 h-3" />
                       </Button>
-                      <Button onClick={() => handleDuplicateCrop(crop)} size="sm" variant="ghost" className="w-6 h-6 p-0">
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                      <Button onClick={() => handleDeleteCrop(crop.id)} size="sm" variant="ghost" className="w-6 h-6 p-0 text-red-400">
+                      <Button onClick={() => handleDeleteCrop(crop.id)} size="sm" variant="ghost" className="w-6 h-6 p-0 text-red-400 hover:bg-red-500/20">
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              {onMultipleCropsComplete && (
-                <Button onClick={handleCompleteMultiple} className="w-full mt-3 bg-crd-orange text-black hover:bg-crd-orange/80">
-                  Finalize All Crops
-                </Button>
-              )}
-            </Card>
-          )}
-        </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
