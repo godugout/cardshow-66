@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { useCardComposition } from '@/hooks/useCardComposition';
 import { MediaUploadZone } from '@/components/media/MediaUploadZone';
-import { SimpleCropper } from '@/components/editor/crop/SimpleCropper';
+import { AdvancedCropInterface } from '@/components/editor/crop/AdvancedCropInterface';
 import { toast } from 'sonner';
 
 type FlowStep = 'setup' | 'upload' | 'crop' | 'design' | 'effects' | 'preview' | 'publish';
@@ -377,7 +377,7 @@ export const CRDCreateFlow: React.FC = () => {
               </div>
               
               {uploadedImageUrl ? (
-                <SimpleCropper
+                <AdvancedCropInterface
                   imageUrl={uploadedImageUrl}
                   onCropComplete={handleCropComplete}
                   aspectRatio={2.5 / 3.5}
