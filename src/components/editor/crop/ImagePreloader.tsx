@@ -159,6 +159,12 @@ export const ImagePreloader: React.FC<ImagePreloaderProps> = ({
               Retry attempt {retryCount} of {maxRetries}
             </p>
           )}
+          {showDebugInfo && (
+            <div className="mt-3 p-2 bg-gray-800 rounded text-xs">
+              <p className="text-gray-400 mb-1">Current URL:</p>
+              <p className="text-white break-all">{currentUrl || imageUrl}</p>
+            </div>
+          )}
         </div>
       </div>
     );
