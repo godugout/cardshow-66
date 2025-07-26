@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      auction_bids: {
+        Row: {
+          amount: number
+          bid_type: string
+          bidder_id: string
+          created_at: string
+          id: string
+          is_winning_bid: boolean
+          listing_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bid_type?: string
+          bidder_id: string
+          created_at?: string
+          id?: string
+          is_winning_bid?: boolean
+          listing_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bid_type?: string
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          is_winning_bid?: boolean
+          listing_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_likes: {
         Row: {
           card_id: string
@@ -539,28 +580,43 @@ export type Database = {
       }
       marketplace_listings: {
         Row: {
+          auction_end_time: string | null
+          buy_now_price: number | null
           card_id: string | null
           created_at: string | null
+          current_bid: number | null
           id: string
+          listing_type: string | null
           price: number
+          starting_bid: number | null
           status: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          auction_end_time?: string | null
+          buy_now_price?: number | null
           card_id?: string | null
           created_at?: string | null
+          current_bid?: number | null
           id?: string
+          listing_type?: string | null
           price: number
+          starting_bid?: number | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          auction_end_time?: string | null
+          buy_now_price?: number | null
           card_id?: string | null
           created_at?: string | null
+          current_bid?: number | null
           id?: string
+          listing_type?: string | null
           price?: number
+          starting_bid?: number | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1088,6 +1144,18 @@ export type Database = {
           time_window_minutes?: number
         }
         Returns: boolean
+      }
+      get_auction_bids_anonymized: {
+        Args: { auction_listing_id: string }
+        Returns: {
+          id: string
+          listing_id: string
+          amount: number
+          bid_type: string
+          is_winning_bid: boolean
+          created_at: string
+          bidder_display_name: string
+        }[]
       }
       has_role: {
         Args: {
