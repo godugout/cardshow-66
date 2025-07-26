@@ -1,8 +1,41 @@
 import { CardRegion } from './types';
 import { removeOverlappingRegions } from './confidenceCalculator';
+import { detectCardsWithAI, detectRectangularShapes } from './aiObjectDetection';
 
 export const detectCardRegions = async (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<CardRegion[]> => {
-  console.log('🔍 Starting straightforward card detection...');
+  console.log('🎯 Starting enhanced multi-strategy card detection...');
+  
+  // Strategy 1: AI-powered object detection (best results)
+  console.log('Trying AI object detection...');
+  let regions = await detectCardsWithAI(canvas, ctx);
+  
+  // Strategy 2: Contour-based rectangle detection (fallback)
+  if (regions.length === 0) {
+    console.log('AI detection found no cards, trying contour detection...');
+    regions = await detectRectangularShapes(canvas, ctx);
+  }
+  
+  // Strategy 3: Traditional edge detection (last resort)
+  if (regions.length === 0) {
+    console.log('Contour detection failed, using traditional method...');
+    regions = await detectCardRegionsTraditional(canvas, ctx);
+  }
+  
+  console.log(`Total regions found: ${regions.length}`);
+  
+  // Remove overlapping regions and return best results
+  const filteredRegions = removeOverlappingRegions(regions);
+  const sortedRegions = filteredRegions
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, 15);
+  
+  console.log(`Returning ${sortedRegions.length} filtered regions`);
+  return sortedRegions;
+};
+
+// Traditional detection as fallback
+const detectCardRegionsTraditional = async (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<CardRegion[]> => {
+  console.log('🔍 Using traditional edge detection fallback...');
   
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -42,20 +75,7 @@ export const detectCardRegions = async (canvas: HTMLCanvasElement, ctx: CanvasRe
     }
   }
   
-  console.log(`Found ${regions.length} potential regions before filtering`);
-  
-  // Remove overlapping regions, keeping the highest confidence ones
-  const filteredRegions = removeOverlappingRegions(regions);
-  console.log(`After removing overlaps: ${filteredRegions.length} regions`);
-  
-  // Sort by confidence and return top results
-  const sortedRegions = filteredRegions
-    .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, 12);
-  
-  console.log(`Returning top ${sortedRegions.length} regions`);
-  
-  return sortedRegions;
+  return regions;
 };
 
 function calculateSimpleConfidence(
