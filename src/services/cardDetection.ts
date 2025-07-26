@@ -64,55 +64,85 @@ export const detectCardsInImage = async (
   // Load image to get dimensions and detect bounds
   const img = await loadImageFromFile(imageFile);
   
-  // Use smart detection for initial bounds
-  const smartBounds = detectCardBounds(img);
-  console.log('Smart bounds detected:', smartBounds);
+  // Try to use the enhanced detection first to see if any cards are actually present
+  const { enhancedCardDetection } = await import('@/services/cardExtractor/enhancedDetection');
   
-  // Adjust bounds to proper card aspect ratio
-  const adjustedBounds = adjustCropBounds(smartBounds, img.naturalWidth, img.naturalHeight);
-  
-  console.log('Creating cropped image with smart bounds:', adjustedBounds);
-  
-  // Create actual cropped image
-  let croppedImageUrl: string;
   try {
-    croppedImageUrl = await cropImageFromFile(imageFile, {
-      bounds: adjustedBounds,
-      outputWidth: 300,
-      outputHeight: 420,
-      quality: 0.95,
-      format: 'jpeg'
-    });
-    console.log('Successfully created cropped image');
+    const enhancedRegions = await enhancedCardDetection(img, imageFile);
+    
+    // If enhanced detection found cards, use those results
+    if (enhancedRegions.length > 0) {
+      console.log(`Enhanced detection found ${enhancedRegions.length} cards`);
+      
+      const detectedCards: DetectedCard[] = [];
+      
+      for (let i = 0; i < Math.min(enhancedRegions.length, 3); i++) {
+        const region = enhancedRegions[i];
+        
+        // Create actual cropped image
+        let croppedImageUrl: string;
+        try {
+          croppedImageUrl = await cropImageFromFile(imageFile, {
+            bounds: {
+              x: region.x,
+              y: region.y,
+              width: region.width,
+              height: region.height
+            },
+            outputWidth: 300,
+            outputHeight: 420,
+            quality: 0.95,
+            format: 'jpeg'
+          });
+        } catch (error) {
+          console.warn('Failed to crop image, using original:', error);
+          croppedImageUrl = originalImageUrl;
+        }
+        
+        detectedCards.push({
+          id: `card-${Date.now()}-${i}`,
+          originalImageId: imageFile.name,
+          originalImageUrl,
+          croppedImageUrl,
+          bounds: {
+            x: region.x,
+            y: region.y,
+            width: region.width,
+            height: region.height
+          },
+          confidence: region.confidence,
+          metadata: {
+            detectedAt: new Date(),
+            processingTime: Date.now() - startTime,
+            cardType: 'Trading Card'
+          }
+        });
+      }
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`Smart detection completed in ${processingTime}ms with ${detectedCards.length} cards`);
+      
+      return {
+        sessionId: sessionId || `session-${Date.now()}`,
+        originalImage: imageFile,
+        detectedCards,
+        processingTime,
+        totalDetected: detectedCards.length
+      };
+    }
   } catch (error) {
-    console.warn('Failed to crop image, using original:', error);
-    croppedImageUrl = originalImageUrl; // Fallback to original
+    console.warn('Enhanced detection failed, no fallback will be used:', error);
   }
   
-  const card: DetectedCard = {
-    id: `card-${Date.now()}-0`,
-    originalImageId: imageFile.name,
-    originalImageUrl,
-    croppedImageUrl,
-    bounds: adjustedBounds,
-    confidence: 0.95, // High confidence for smart detection
-    metadata: {
-      detectedAt: new Date(),
-      processingTime: Date.now() - startTime,
-      cardType: 'Trading Card'
-    }
-  };
-  
-  const processingTime = Date.now() - startTime;
-  
-  console.log(`Smart detection completed in ${processingTime}ms`);
+  // If no cards were detected, return empty result
+  console.log('No cards detected in image');
   
   return {
     sessionId: sessionId || `session-${Date.now()}`,
     originalImage: imageFile,
-    detectedCards: [card],
-    processingTime,
-    totalDetected: 1
+    detectedCards: [],
+    processingTime: Date.now() - startTime,
+    totalDetected: 0
   };
 };
 
