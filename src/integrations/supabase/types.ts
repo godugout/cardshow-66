@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_definitions: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          name: string
+          target: number
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          target?: number
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          target?: number
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       auction_bids: {
         Row: {
           amount: number
@@ -1183,6 +1222,68 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          current_progress: number
+          id: string
+          unlocked_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          current_progress?: number
+          id?: string
+          unlocked_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          current_progress?: number
+          id?: string
+          unlocked_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_action_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string | null
@@ -1251,6 +1352,10 @@ export type Database = {
       has_sufficient_credits: {
         Args: { _user_id: string; _amount: number }
         Returns: boolean
+      }
+      process_achievement_progress: {
+        Args: { _user_id: string; _event_type: string; _event_data?: Json }
+        Returns: undefined
       }
       validate_file_upload: {
         Args: { file_name: string; file_size: number; mime_type: string }
